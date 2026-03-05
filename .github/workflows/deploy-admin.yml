@@ -2,12 +2,11 @@
 # 构建 Docker 镜像，打包后通过 SSH 部署到服务器
 #
 # 触发条件:
-#   1. 推送 tag (admin-v*.*.*)  - 自动部署
+#   1. push 到 main / master / release/**（admin 相关路径变更时）
 #   2. 手动触发                  - 可选择是否执行部署
 #
 # 配置步骤:
 #   在 GitHub 仓库 Settings -> Secrets and variables -> Actions 中添加:
-#     - ADMIN_VITE_BASEURL:      API 接口基础地址
 #     - DEPLOY_SERVER_HOST:      服务器 IP 或域名
 #     - DEPLOY_SERVER_USER:      SSH 用户名
 #     - DEPLOY_SERVER_PATH:      部署目标路径 (如 /opt/deploy/mall-admin)
@@ -98,7 +97,6 @@ jobs:
         working-directory: ${{ env.APP_DIR }}
         run: pnpm build
         env:
-          VITE_BASEURL: ${{ secrets.ADMIN_VITE_BASEURL }}
           NODE_OPTIONS: --max-old-space-size=16384
 
       - name: Upload build artifacts
@@ -178,10 +176,10 @@ jobs:
       - name: Check secrets
         run: |
           has_error=0
-          [[ -z "${{ secrets.DEPLOY_SERVER_HOST }}" ]]     && echo "::error::缺少 DEPLOY_SERVER_HOST"     && has_error=1
-          [[ -z "${{ secrets.DEPLOY_SERVER_USER }}" ]]     && echo "::error::缺少 DEPLOY_SERVER_USER"     && has_error=1
-          [[ -z "${{ secrets.DEPLOY_SERVER_PATH }}" ]]     && echo "::error::缺少 DEPLOY_SERVER_PATH"     && has_error=1
-          [[ -z "${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}" ]] && echo "::error::缺少 DEPLOY_SSH_PRIVATE_KEY" && has_error=1
+          [[ -z "${{ secrets.DEPLOY_HOST }}" ]]     && echo "::error::缺少 DEPLOY_HOST"     && has_error=1
+          [[ -z "${{ secrets.DEPLOY_USER }}" ]]     && echo "::error::缺少 DEPLOY_USER"     && has_error=1
+          [[ -z "${{ secrets.ADMIN_DEPLOY_PATH }}" ]]     && echo "::error::缺少 ADMIN_DEPLOY_PATH"     && has_error=1
+          [[ -z "${{ secrets.DEPLOY_SSH_KEY }}" ]] && echo "::error::缺少 DEPLOY_SSH_KEY" && has_error=1
           [[ $has_error -eq 1 ]] && echo "请在 Settings -> Secrets 中配置以上变量" && exit 1
           echo "Secrets 配置正确"
 
@@ -193,15 +191,15 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H "${{ secrets.DEPLOY_SERVER_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
+          ssh-keyscan -p "${{ secrets.DEPLOY_PORT || 22 }}" -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
 
       - name: Deploy to server
         env:
-          DEPLOY_HOST: ${{ secrets.DEPLOY_SERVER_HOST }}
-          DEPLOY_USER: ${{ secrets.DEPLOY_SERVER_USER }}
-          DEPLOY_PATH: ${{ secrets.DEPLOY_SERVER_PATH }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.ADMIN_DEPLOY_PATH }}
         run: |
           source node_build_info.sh
           PACKAGE_FILE=$(ls ${{ env.PACKAGE_PREFIX }}_${hash}_*.tar.gz | head -1)
@@ -218,13 +216,13 @@ jobs:
           echo "=========================================="
 
           # 确保目标目录存在
-          ssh -i ~/.ssh/deploy_key "${DEPLOY_USER}@${DEPLOY_HOST}" "mkdir -p ${DEPLOY_PATH}"
+          ssh -p "${{ secrets.DEPLOY_PORT || 22 }}" -i ~/.ssh/deploy_key "${DEPLOY_USER}@${DEPLOY_HOST}" "mkdir -p ${DEPLOY_PATH}"
 
           # 上传部署包
-          scp -i ~/.ssh/deploy_key "${PACKAGE_FILE}" "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/"
+          scp -P "${{ secrets.DEPLOY_PORT || 22 }}" -i ~/.ssh/deploy_key "${PACKAGE_FILE}" "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}/"
 
           # 在服务器上执行部署
-          ssh -i ~/.ssh/deploy_key "${DEPLOY_USER}@${DEPLOY_HOST}" << EOF
+          ssh -p "${{ secrets.DEPLOY_PORT || 22 }}" -i ~/.ssh/deploy_key "${DEPLOY_USER}@${DEPLOY_HOST}" << EOF
             set -e
             cd ${DEPLOY_PATH}
 
@@ -280,5 +278,5 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
           if [[ "${{ needs.deploy.result }}" == "success" ]]; then
             echo "" >> "$GITHUB_STEP_SUMMARY"
-            echo "**服务器**: ${{ secrets.DEPLOY_SERVER_HOST }}" >> "$GITHUB_STEP_SUMMARY"
+            echo "**服务器**: ${{ secrets.DEPLOY_HOST }}" >> "$GITHUB_STEP_SUMMARY"
           fi

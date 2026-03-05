@@ -7,11 +7,11 @@
 #   3. 手动触发 (workflow_dispatch)
 #
 # 配置步骤（GitHub Secrets）:
-#   ALIYUN_HOST        - 服务器 IP 或域名
+#   DEPLOY_HOST        - 服务器 IP 或域名
 #   ALIYUN_PORT        - SSH 端口（默认 22）
-#   ALIYUN_USER        - SSH 用户名
-#   ALIYUN_SSH_KEY     - SSH 私钥（完整内容）
-#   ALIYUN_DEPLOY_PATH - 部署目标路径（如 /home/deploy/mall-server）
+#   DEPLOY_USER        - SSH 用户名
+#   DEPLOY_SSH_KEY     - SSH 私钥（完整内容）
+#   SERVER_DEPLOY_PATH - 部署目标路径（如 /home/deploy/mall-server）
 
 name: Deploy Server
 
@@ -136,35 +136,35 @@ jobs:
       - name: Check deploy secrets
         run: |
           has_error=0
-          [[ -z "${{ secrets.ALIYUN_HOST }}" ]]        && echo "::error::缺少 ALIYUN_HOST"        && has_error=1
-          [[ -z "${{ secrets.ALIYUN_USER }}" ]]        && echo "::error::缺少 ALIYUN_USER"        && has_error=1
-          [[ -z "${{ secrets.ALIYUN_SSH_KEY }}" ]]     && echo "::error::缺少 ALIYUN_SSH_KEY"     && has_error=1
-          [[ -z "${{ secrets.ALIYUN_DEPLOY_PATH }}" ]] && echo "::error::缺少 ALIYUN_DEPLOY_PATH" && has_error=1
+          [[ -z "${{ secrets.DEPLOY_HOST }}" ]]        && echo "::error::缺少 DEPLOY_HOST"        && has_error=1
+          [[ -z "${{ secrets.DEPLOY_USER }}" ]]        && echo "::error::缺少 DEPLOY_USER"        && has_error=1
+          [[ -z "${{ secrets.DEPLOY_SSH_KEY }}" ]]     && echo "::error::缺少 DEPLOY_SSH_KEY"     && has_error=1
+          [[ -z "${{ secrets.SERVER_DEPLOY_PATH }}" ]] && echo "::error::缺少 SERVER_DEPLOY_PATH" && has_error=1
           [ $has_error -eq 1 ] && exit 1 || echo "Secrets 配置检查通过"
 
       - name: Sync deploy files to server
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.ALIYUN_HOST }}
-          port: ${{ secrets.ALIYUN_PORT || 22 }}
-          username: ${{ secrets.ALIYUN_USER }}
-          key: ${{ secrets.ALIYUN_SSH_KEY }}
+          host: ${{ secrets.DEPLOY_HOST }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
           source: 'apps/server/deploy/docker-compose.prod.yaml,apps/server/deploy/manage.sh'
-          target: ${{ secrets.ALIYUN_DEPLOY_PATH }}
+          target: ${{ secrets.SERVER_DEPLOY_PATH }}
           strip_components: 2
 
       - name: Deploy to server via SSH
         uses: appleboy/ssh-action@v1.2.0
         env:
-          DEPLOY_PATH: ${{ secrets.ALIYUN_DEPLOY_PATH }}
+          DEPLOY_PATH: ${{ secrets.SERVER_DEPLOY_PATH }}
           GHCR_USERNAME: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IMAGE_FULL_NAME: ${{ env.GHCR_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.git_hash }}
         with:
-          host: ${{ secrets.ALIYUN_HOST }}
-          port: ${{ secrets.ALIYUN_PORT || 22 }}
-          username: ${{ secrets.ALIYUN_USER }}
-          key: ${{ secrets.ALIYUN_SSH_KEY }}
+          host: ${{ secrets.DEPLOY_HOST }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
           timeout: 60s
           command_timeout: 30m
           envs: DEPLOY_PATH,GHCR_USERNAME,GHCR_TOKEN,IMAGE_FULL_NAME

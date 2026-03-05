@@ -2,16 +2,16 @@
 # 构建 H5 并通过 rsync 部署到服务器；构建微信小程序并上传体验版
 #
 # 触发条件:
-#   1. 推送 tag (mobile-v*.*.*)  - 自动构建全部目标并部署/上传
+#   1. push 到 main / master / release/**（mobile 相关路径变更时）
 #   2. 手动触发                   - 可选择目标平台和操作类型
 #
 # 配置步骤:
 #   在 GitHub 仓库 Settings -> Secrets and variables -> Actions 中添加:
 #     H5 部署:
-#       - ALIYUN_HOST:        服务器 IP 或域名
-#       - ALIYUN_PORT:        SSH 端口（可选，默认 22）
-#       - ALIYUN_USER:        SSH 用户名
-#       - ALIYUN_SSH_KEY:     SSH 私钥（完整内容，包括 BEGIN/END 行）
+#       - DEPLOY_HOST:        服务器 IP 或域名
+#       - DEPLOY_PORT:        SSH 端口（可选，默认 22）
+#       - DEPLOY_USER:        SSH 用户名
+#       - DEPLOY_SSH_KEY:     SSH 私钥（完整内容，包括 BEGIN/END 行）
 #       - H5_DEPLOY_PATH:     部署目标路径（如 /var/www/mall-h5）
 #     微信小程序:
 #       - WEIXIN_APPID:       微信小程序 AppID
@@ -203,9 +203,9 @@ jobs:
       - name: Check secrets
         run: |
           has_error=0
-          [[ -z "${{ secrets.ALIYUN_HOST }}" ]]    && echo "::error::缺少 ALIYUN_HOST"    && has_error=1
-          [[ -z "${{ secrets.ALIYUN_USER }}" ]]    && echo "::error::缺少 ALIYUN_USER"    && has_error=1
-          [[ -z "${{ secrets.ALIYUN_SSH_KEY }}" ]] && echo "::error::缺少 ALIYUN_SSH_KEY" && has_error=1
+          [[ -z "${{ secrets.DEPLOY_HOST }}" ]]    && echo "::error::缺少 DEPLOY_HOST"    && has_error=1
+          [[ -z "${{ secrets.DEPLOY_USER }}" ]]    && echo "::error::缺少 DEPLOY_USER"    && has_error=1
+          [[ -z "${{ secrets.DEPLOY_SSH_KEY }}" ]] && echo "::error::缺少 DEPLOY_SSH_KEY" && has_error=1
           [[ -z "${{ secrets.H5_DEPLOY_PATH }}" ]] && echo "::error::缺少 H5_DEPLOY_PATH" && has_error=1
           [[ $has_error -eq 1 ]] && exit 1
           echo "H5 Secrets 配置正确"
@@ -219,16 +219,16 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.ALIYUN_SSH_KEY }}" > ~/.ssh/deploy_key
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -p "${{ secrets.ALIYUN_PORT || 22 }}" -H "${{ secrets.ALIYUN_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
+          ssh-keyscan -p "${{ secrets.DEPLOY_PORT || 22 }}" -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
 
       - name: Deploy via rsync
         run: |
           rsync -avz --delete \
-            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.ALIYUN_PORT || 22 }} -o StrictHostKeyChecking=no" \
+            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.DEPLOY_PORT || 22 }} -o StrictHostKeyChecking=no" \
             dist/build/h5/ \
-            ${{ secrets.ALIYUN_USER }}@${{ secrets.ALIYUN_HOST }}:${{ secrets.H5_DEPLOY_PATH }}/
+            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ secrets.H5_DEPLOY_PATH }}/
 
       - name: Cleanup SSH key
         if: always()
@@ -239,7 +239,7 @@ jobs:
         run: |
           echo "H5 部署成功!"
           echo "版本: ${{ needs.build.outputs.version }}"
-          echo "服务器: ${{ secrets.ALIYUN_HOST }}"
+          echo "服务器: ${{ secrets.DEPLOY_HOST }}"
           echo "路径: ${{ secrets.H5_DEPLOY_PATH }}"
 
   # ==================== 微信小程序上传 ====================
