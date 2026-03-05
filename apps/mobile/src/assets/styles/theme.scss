@@ -1,0 +1,115 @@
+/**
+ * 主题系统 - CSS Variables
+ * 亮色 / 暗色双主题，供全局样式和页面使用
+ */
+
+/* ==================== 基础 Token ==================== */
+
+:root,
+page {
+  /* 品牌色 */
+  --color-primary: #fa436a;
+  --color-primary-dark: #e03058;
+  --color-primary-light: #fde8ed;
+  --color-secondary: #4399fc;
+  --color-secondary-dark: #2d7fe8;
+
+  /* 功能色 */
+  --color-success: #4cd964;
+  --color-success-light: #e8f9ec;
+  --color-warning: #f0ad4e;
+  --color-warning-light: #fdf3e0;
+  --color-danger: #dd524d;
+  --color-danger-light: #fde9e8;
+  --color-info: #909399;
+
+  /* 背景色 */
+  --color-background: #f8f8f8;
+  --color-background-secondary: #f2f2f2;
+  --color-background-tertiary: #ebebeb;
+  --color-background-disabled: #f5f5f5;
+  --color-white: #fff;
+
+  /* 文字色 */
+  --color-text-primary: #303133;
+  --color-text-secondary: #606266;
+  --color-text-tertiary: #909399;
+  --color-text-disabled: #c0c4cc;
+  --color-text-placeholder: #999;
+
+  /* 边框色 */
+  --color-border: #e4e7ed;
+  --color-border-light: #ebeef5;
+  --color-border-dark: #dcdfe6;
+
+  /* 其他 */
+  --color-skeleton: #eee;
+  --color-focus: #007aff;
+  --color-scrollbar: #ccc;
+  --color-scrollbar-hover: #999;
+
+  /* ==================== 间距系统 (rpx) ==================== */
+  --spacing-1: 8rpx;
+  --spacing-2: 16rpx;
+  --spacing-3: 24rpx;
+  --spacing-4: 32rpx;
+  --spacing-5: 40rpx;
+  --spacing-6: 48rpx;
+  --spacing-8: 64rpx;
+  --spacing-10: 80rpx;
+
+  /* ==================== 圆角 ==================== */
+  --border-radius-sm: 4rpx;
+  --border-radius-base: 8rpx;
+  --border-radius-lg: 16rpx;
+  --border-radius-xl: 24rpx;
+  --border-radius-round: 9999rpx;
+
+  /* ==================== 字体尺寸 (rpx) ==================== */
+  --font-size-xs: 20rpx;
+  --font-size-sm: 24rpx;
+  --font-size-base: 28rpx;
+  --font-size-lg: 32rpx;
+  --font-size-xl: 36rpx;
+  --font-size-2xl: 40rpx;
+
+  /* 行高 */
+  --line-height-base: 1.5;
+  --line-height-tight: 1.25;
+
+  /* ==================== 阴影 ==================== */
+  --shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
+  --shadow-base: 0 4rpx 16rpx rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8rpx 32rpx rgba(0, 0, 0, 0.16);
+
+  /* ==================== 安全区 ==================== */
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-top: env(safe-area-inset-top, 0px);
+}
+
+/* ==================== 暗色主题 ==================== */
+
+@media (prefers-color-scheme: dark) {
+  :root,
+  page {
+    --color-background: #1a1a1a;
+    --color-background-secondary: #2a2a2a;
+    --color-background-tertiary: #3a3a3a;
+    --color-background-disabled: #2d2d2d;
+    --color-white: #1e1e1e;
+    --color-text-primary: #e0e0e0;
+    --color-text-secondary: #b0b0b0;
+    --color-text-tertiary: #808080;
+    --color-text-disabled: #505050;
+    --color-text-placeholder: #666;
+    --color-border: #3a3a3a;
+    --color-border-light: #2d2d2d;
+    --color-border-dark: #4a4a4a;
+    --color-skeleton: #333;
+    --color-scrollbar: #444;
+    --color-scrollbar-hover: #666;
+    --shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.3);
+    --shadow-base: 0 4rpx 16rpx rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8rpx 32rpx rgba(0, 0, 0, 0.5);
+  }
+}

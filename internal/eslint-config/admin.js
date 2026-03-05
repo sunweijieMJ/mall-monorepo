@@ -32,10 +32,6 @@ export const config = [
         parser: tseslint.parser,
         // 支持 .vue 文件扩展名
         extraFileExtensions: ['.vue'],
-        // 启用项目引用以支持 TypeScript 类型检查
-        project: './tsconfig.json',
-        // 设置 TypeScript 配置根目录
-        tsconfigRootDir: process.cwd(),
       },
     },
 

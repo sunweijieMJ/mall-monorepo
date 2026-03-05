@@ -1,0 +1,81 @@
+/**
+ * uni.scss - uni-app 全局样式变量
+ * 用于定义全局的主题色、字体、间距等样式变量
+ * 可以在页面和组件的 style 标签中通过 @import 引入使用
+ */
+
+/* ==================== 页面相关 ==================== */
+
+/* 页面左右间距 */
+$page-row-spacing: 30rpx;
+$page-color-base: #f8f8f8;
+$page-color-light: #f8f6fc;
+$base-color: #fa436a;
+
+/* ==================== 文字尺寸 ==================== */
+$font-sm: 24rpx;
+$font-base: 28rpx;
+$font-lg: 32rpx;
+
+/* ==================== 文字颜色 ==================== */
+$font-color-dark: #303133;
+$font-color-base: #606266;
+$font-color-light: #909399;
+$font-color-disabled: #c0c4cc;
+$font-color-spec: #4399fc;
+
+/* ==================== 边框颜色 ==================== */
+$border-color-dark: #dcdfe6;
+$border-color-base: #e4e7ed;
+$border-color-light: #ebeef5;
+
+/* ==================== 图片加载中颜色 ==================== */
+$image-bg-color: #eee;
+
+/* ==================== 行为相关颜色 ==================== */
+$uni-color-primary: #fa436a;
+$uni-color-success: #4cd964;
+$uni-color-warning: #f0ad4e;
+$uni-color-error: #dd524d;
+
+/* ==================== 常用CSS类 ==================== */
+
+/* 边框 */
+.b-b {
+  border-bottom: 1px solid $border-color-base;
+}
+
+.b-t {
+  border-top: 1px solid $border-color-base;
+}
+
+.b-l {
+  border-left: 1px solid $border-color-base;
+}
+
+.b-r {
+  border-right: 1px solid $border-color-base;
+}
+
+/* 文本截断 */
+.clamp {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clamp2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clamp3 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

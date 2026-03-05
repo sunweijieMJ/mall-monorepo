@@ -1,0 +1,158 @@
+@import './variables';
+@import './mixin';
+@import './transition';
+@import './element-ui';
+@import './sidebar';
+
+body {
+  font-family:
+    'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', Arial, sans-serif;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+html {
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+div:focus {
+  outline: none;
+}
+
+a:focus,
+a:active {
+  outline: none;
+}
+
+a,
+a:focus,
+a:hover {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.clearfix {
+  &::after {
+    content: ' ';
+    display: block;
+    visibility: hidden;
+    height: 0;
+    clear: both;
+    font-size: 0;
+  }
+}
+
+// main-container全局样式
+.app-main {
+  min-height: 100%;
+}
+
+.app-container {
+  padding: 20px;
+}
+
+// 搜索栏样式
+.filter-container {
+}
+
+// 操作栏样式
+.operate-container {
+  margin-top: 20px;
+}
+
+.operate-container .btn-add {
+  float: right;
+}
+
+// 表格栏样式
+.table-container {
+  margin-top: 20px;
+}
+
+// 批量操作栏样式
+.batch-operate-container {
+  display: inline-block;
+  margin-top: 20px;
+}
+
+// 分页栏样式
+.pagination-container {
+  display: inline-block;
+  margin-top: 20px;
+  float: right;
+}
+
+// 添加、更新表单样式
+.form-container {
+  position: absolute;
+  right: 0;
+  left: 0;
+  width: 720px;
+  margin: 20px auto;
+  padding: 35px 35px 15px;
+}
+
+// 主标题
+.font-extra-large {
+  color: #303133;
+  font-size: 20px;
+}
+
+// 标题
+.font-title-large {
+  color: #303133;
+  font-size: 18px;
+}
+
+// 小标题
+.font-title-medium {
+  color: #303133;
+  font-size: 16px;
+}
+
+// 正文
+.font-medium {
+  color: #606266;
+  font-size: 16px;
+}
+
+// 正文
+.font-small {
+  color: #606266;
+  font-size: 14px;
+}
+
+// 正文（小）
+.font-extra-small {
+  color: #606266;
+  font-size: 13px;
+}
+
+.color-main {
+  color: #409eff;
+}
+
+.color-success {
+  color: #67c23a;
+}
+
+.color-warning {
+  color: #e6a23c;
+}
+
+.color-danger {
+  color: #f56c6c;
+}
+
+.color-info {
+  color: #909399;
+}

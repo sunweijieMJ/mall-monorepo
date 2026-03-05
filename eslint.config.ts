@@ -8,6 +8,8 @@ const eslintConfig: Linter.Config[] = [
       '**/node_modules/**/*',
       '**/dist/**/*',
       '**/*.log',
+      'apps/admin/**/*',
+      'apps/mobile/**/*',
     ],
   },
 ];

@@ -54,11 +54,11 @@
         "__test__/**/*.{ts,tsx,js,jsx,vue}",
         "__tests__/**/*.{ts,tsx,js,jsx}",
         "test/**/*.{ts,tsx,js,jsx}",
-        "vitest.config.ts",
+        "tests/**/*.{ts,tsx,js,jsx}",
         "../../vitest.config.ts",
         "../../vitest.setup.ts"
       ],
-      "outputs": ["coverage/**"]
+      "outputs": []
     }
   }
 }

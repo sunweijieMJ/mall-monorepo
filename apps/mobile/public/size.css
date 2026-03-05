@@ -1,0 +1,223 @@
+/**
+ * Mall App Web - 尺寸变量系统
+ * 统一管理项目中的所有尺寸值，提供一致的设计规范
+ * 支持uni-app的upx响应式单位和Web端的px单位
+ */
+
+:root {
+  /* =============================================
+   * 字体大小系统 (Font Size)
+   * ============================================= */
+
+  /* 基础字体大小 - upx单位（uni-app响应式） */
+  --font-size-xs: 20upx; /* 极小文字：标签、角标 */
+  --font-size-sm: 24upx; /* 小文字：辅助信息、说明文字 */
+  --font-size-base: 28upx; /* 基础文字：正文内容 */
+  --font-size-lg: 32upx; /* 大文字：标题、重要信息 */
+  --font-size-xl: 36upx; /* 超大文字：页面标题 */
+  --font-size-xxl: 40upx; /* 巨大文字：主标题、价格 */
+  --font-size-xxxl: 48upx; /* 特大文字：突出标题、Logo */
+
+  /* 扩展字体大小 */
+  --font-size-mini: 18upx; /* 微型文字：时间戳、细节信息 */
+  --font-size-small: 22upx; /* 较小文字：提示信息 */
+  --font-size-medium: 26upx; /* 中等文字：副标题 */
+  --font-size-normal: 30upx; /* 普通文字：次级标题 */
+  --font-size-large: 34upx; /* 较大文字：重点标题 */
+  --font-size-huge: 42upx; /* 巨型文字：价格、数字 */
+  --font-size-giant: 56upx; /* 超巨文字：特殊场景 */
+
+  /* Web端字体大小 - px单位 */
+  --font-size-web-xs: 12px; /* Web端极小文字 */
+  --font-size-web-sm: 14px; /* Web端小文字 */
+  --font-size-web-base: 16px; /* Web端基础文字 */
+  --font-size-web-lg: 18px; /* Web端大文字 */
+  --font-size-web-xl: 20px; /* Web端超大文字 */
+  --font-size-web-xxl: 24px; /* Web端巨大文字 */
+
+  /* =============================================
+   * 间距系统 (Spacing)
+   * ============================================= */
+
+  /* 基础间距 - upx单位 */
+  --spacing-xs: 8upx; /* 极小间距：紧密排列 */
+  --spacing-sm: 16upx; /* 小间距：相关元素 */
+  --spacing-base: 30upx; /* 基础间距：页面标准间距 */
+  --spacing-lg: 48upx; /* 大间距：区块分离 */
+  --spacing-xl: 64upx; /* 超大间距：页面段落 */
+  --spacing-xxl: 80upx; /* 巨大间距：页面分区 */
+
+  /* 扩展间距 */
+  --spacing-mini: 4upx; /* 微小间距：边框、线条 */
+  --spacing-tiny: 6upx; /* 极小间距：文字间隙 */
+  --spacing-small: 10upx; /* 较小间距：按钮内边距 */
+  --spacing-medium: 12upx; /* 中等间距：表单元素 */
+  --spacing-normal: 20upx; /* 普通间距：列表项 */
+  --spacing-large: 24upx; /* 较大间距：卡片内容 */
+  --spacing-big: 32upx; /* 大间距：组件间隔 */
+  --spacing-huge: 40upx; /* 巨型间距：页面内容 */
+  --spacing-giant: 60upx; /* 超巨间距：页面头部 */
+  --spacing-massive: 100upx; /* 超大间距：特殊场景 */
+
+  /* 页面级间距 */
+  --page-padding-horizontal: 30upx; /* 页面左右边距 */
+  --page-padding-vertical: 20upx; /* 页面上下边距 */
+  --page-gap: 40upx; /* 页面区块间距 */
+
+  /* 组件级间距 */
+  --component-padding: 24upx; /* 组件内边距 */
+  --component-margin: 16upx; /* 组件外边距 */
+  --component-gap: 12upx; /* 组件元素间隙 */
+
+  /* 向后兼容的数字命名间距（已废弃，建议使用语义化命名） */
+  --spacing-0: 0;
+  --spacing-1: 8upx;
+  --spacing-2: 16upx;
+  --spacing-3: 24upx;
+  --spacing-4: 32upx;
+  --spacing-5: 40upx;
+  --spacing-6: 48upx;
+  --spacing-8: 64upx;
+  --spacing-10: 80upx;
+  --spacing-12: 96upx;
+  --spacing-16: 128upx;
+
+  /* =============================================
+   * 圆角系统 (Border Radius)
+   * ============================================= */
+
+  /* 基础圆角 */
+  --border-radius-none: 0; /* 无圆角：直角元素 */
+  --border-radius-xs: 2upx; /* 极小圆角：细节元素 */
+  --border-radius-sm: 4upx; /* 小圆角：输入框、标签 */
+  --border-radius-base: 8upx; /* 基础圆角：按钮、卡片 */
+  --border-radius-lg: 16upx; /* 大圆角：面板、模态框 */
+  --border-radius-xl: 24upx; /* 超大圆角：特殊卡片 */
+  --border-radius-xxl: 32upx; /* 巨大圆角：装饰元素 */
+
+  /* 扩展圆角 */
+  --border-radius-tiny: 3upx; /* 微小圆角：分割线 */
+  --border-radius-small: 6upx; /* 较小圆角：小按钮 */
+  --border-radius-medium: 10upx; /* 中等圆角：中型组件 */
+  --border-radius-large: 12upx; /* 较大圆角：大型组件 */
+  --border-radius-big: 20upx; /* 大圆角：面板元素 */
+
+  /* 特殊圆角 */
+  --border-radius-round: 50%; /* 圆形：头像、图标 */
+  --border-radius-pill: 100upx; /* 胶囊形：按钮、标签 */
+  --border-radius-full: 9999upx; /* 完全圆角：特殊按钮 */
+
+  /* =============================================
+   * 边框系统 (Border Width)
+   * ============================================= */
+
+  --border-width-none: 0; /* 无边框 */
+  --border-width-thin: 1upx; /* 细边框：分割线、输入框 */
+  --border-width-base: 2upx; /* 基础边框：按钮、卡片 */
+  --border-width-thick: 4upx; /* 粗边框：强调元素 */
+  --border-width-heavy: 6upx; /* 重边框：特殊装饰 */
+
+  /* =============================================
+   * 尺寸系统 (Size)
+   * ============================================= */
+
+  /* 图标尺寸 */
+  --icon-size-xs: 32upx; /* 极小图标：状态图标 */
+  --icon-size-sm: 40upx; /* 小图标：按钮图标 */
+  --icon-size-base: 48upx; /* 基础图标：功能图标 */
+  --icon-size-lg: 64upx; /* 大图标：主要图标 */
+  --icon-size-xl: 80upx; /* 超大图标：特色图标 */
+  --icon-size-xxl: 100upx; /* 巨大图标：装饰图标 */
+
+  /* 头像尺寸 */
+  --avatar-size-xs: 60upx; /* 极小头像 */
+  --avatar-size-sm: 80upx; /* 小头像 */
+  --avatar-size-base: 100upx; /* 基础头像 */
+  --avatar-size-lg: 120upx; /* 大头像 */
+  --avatar-size-xl: 160upx; /* 超大头像 */
+  --avatar-size-xxl: 200upx; /* 巨大头像 */
+
+  /* 按钮高度 */
+  --button-height-xs: 60upx; /* 极小按钮 */
+  --button-height-sm: 70upx; /* 小按钮 */
+  --button-height-base: 80upx; /* 基础按钮 */
+  --button-height-lg: 90upx; /* 大按钮 */
+  --button-height-xl: 100upx; /* 超大按钮 */
+
+  /* 输入框高度 */
+  --input-height-xs: 60upx; /* 极小输入框 */
+  --input-height-sm: 70upx; /* 小输入框 */
+  --input-height-base: 80upx; /* 基础输入框 */
+  --input-height-lg: 90upx; /* 大输入框 */
+  --input-height-xl: 100upx; /* 超大输入框 */
+
+  /* 容器最小高度 */
+  --container-min-height-sm: 200upx; /* 小容器 */
+  --container-min-height-base: 400upx; /* 基础容器 */
+  --container-min-height-lg: 600upx; /* 大容器 */
+  --container-min-height-xl: 800upx; /* 超大容器 */
+
+  /* 页面宽度（基于750upx设计稿） */
+  --page-width-full: 750upx; /* 全宽 */
+  --page-width-content: 690upx; /* 内容区域宽度 */
+  --page-width-compact: 600upx; /* 紧凑宽度 */
+
+  /* =============================================
+   * 阴影系统 (Box Shadow)
+   * ============================================= */
+
+  /* 基础阴影 */
+  --shadow-none: none; /* 无阴影 */
+  --shadow-xs: 0 1upx 2upx rgba(0, 0, 0, 0.05); /* 极轻阴影 */
+  --shadow-sm: 0 2upx 4upx rgba(0, 0, 0, 0.08); /* 轻阴影 */
+  --shadow-base: 0 4upx 8upx rgba(0, 0, 0, 0.1); /* 基础阴影 */
+  --shadow-lg: 0 8upx 16upx rgba(0, 0, 0, 0.12); /* 重阴影 */
+  --shadow-xl: 0 16upx 32upx rgba(0, 0, 0, 0.15); /* 超重阴影 */
+  --shadow-xxl: 0 24upx 48upx rgba(0, 0, 0, 0.18); /* 巨重阴影 */
+
+  /* 扩展阴影 */
+  --shadow-tiny: 0 1upx 1upx rgba(0, 0, 0, 0.04); /* 微小阴影 */
+  --shadow-small: 0 2upx 6upx rgba(0, 0, 0, 0.06); /* 小阴影 */
+  --shadow-medium: 0 6upx 12upx rgba(0, 0, 0, 0.08); /* 中阴影 */
+  --shadow-large: 0 12upx 24upx rgba(0, 0, 0, 0.14); /* 大阴影 */
+  --shadow-huge: 0 20upx 40upx rgba(0, 0, 0, 0.16); /* 巨大阴影 */
+
+  /* 特殊阴影 */
+  --shadow-inset: inset 0 2upx 4upx rgba(0, 0, 0, 0.1); /* 内阴影 */
+  --shadow-outline: 0 0 0 3upx rgba(64, 153, 255, 0.2); /* 轮廓阴影 */
+  --shadow-colored: 0 4upx 12upx rgba(250, 67, 106, 0.3); /* 彩色阴影 */
+
+  /* =============================================
+   * 动画持续时间 (Animation Duration)
+   * ============================================= */
+
+  --duration-fast: 0.1s; /* 快速动画：按钮点击 */
+  --duration-base: 0.2s; /* 基础动画：悬停效果 */
+  --duration-slow: 0.3s; /* 慢速动画：页面切换 */
+  --duration-slower: 0.5s; /* 更慢动画：复杂转场 */
+
+  /* =============================================
+   * 层级系统 (Z-Index)
+   * ============================================= */
+
+  --z-index-dropdown: 1000; /* 下拉菜单 */
+  --z-index-sticky: 1020; /* 粘性定位 */
+  --z-index-fixed: 1030; /* 固定定位 */
+  --z-index-modal-backdrop: 1040; /* 模态框背景 */
+  --z-index-modal: 1050; /* 模态框 */
+  --z-index-popover: 1060; /* 弹出框 */
+  --z-index-tooltip: 1070; /* 提示框 */
+  --z-index-toast: 1080; /* 消息提示 */
+  --z-index-loading: 1090; /* 加载遮罩 */
+
+  /* =============================================
+   * 透明度系统 (Opacity)
+   * ============================================= */
+
+  --opacity-disabled: 0.4; /* 禁用状态 */
+  --opacity-muted: 0.6; /* 弱化状态 */
+  --opacity-fade: 0.7; /* 淡化状态 */
+  --opacity-semi: 0.8; /* 半透明状态 */
+  --opacity-visible: 0.9; /* 可见状态 */
+  --opacity-full: 1; /* 完全不透明 */
+}

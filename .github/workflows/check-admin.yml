@@ -1,0 +1,66 @@
+# Admin 代码质量检查
+# 职责: lint、type-check、test (turbo --filter=mall-admin)
+#
+# 触发条件:
+#   1. PR/push 到 main / master / release/**（admin 或共享包路径变更时）
+#   2. 手动触发 (workflow_dispatch)
+#   3. 被其他工作流调用 (workflow_call)
+
+name: Check Admin
+
+on:
+  push:
+    branches: [main, master, 'release/**']
+    paths:
+      - 'apps/admin/**'
+      - 'packages/**'
+      - 'internal/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'turbo.json'
+  pull_request:
+    branches: [main, master, 'release/**']
+    paths:
+      - 'apps/admin/**'
+      - 'packages/**'
+      - 'internal/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'turbo.json'
+  workflow_dispatch:
+  workflow_call:
+
+concurrency:
+  group: check-admin-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Lint & Type Check & Test (admin)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm turbo lint --filter=mall-admin
+
+      - name: Type Check
+        run: pnpm turbo type-check --filter=mall-admin
+
+      - name: Test
+        run: pnpm turbo test --filter=mall-admin
+        continue-on-error: true

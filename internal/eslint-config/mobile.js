@@ -21,6 +21,8 @@ export const config = [
         getCurrentPages: 'readonly',
         getApp: 'readonly',
         UniApp: 'readonly',
+        // UniApp 页面配置宏（类似 Vue 的 defineProps）
+        definePage: 'readonly',
       },
     },
     rules: {

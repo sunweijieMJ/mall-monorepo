@@ -1,6 +1,5 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import vue from '@vitejs/plugin-vue';
 import { defineConfig } from 'vitest/config';
 
 const dirname =
@@ -12,37 +11,22 @@ export default defineConfig({
   test: {
     passWithNoTests: true,
     projects: [
-      // Vue 应用测试（admin / mobile）- jsdom 浏览器环境
-      {
-        plugins: [vue()],
-        test: {
-          name: 'browser',
-          globals: true,
-          environment: 'jsdom',
-          setupFiles: [path.resolve(dirname, 'vitest.setup.ts')],
-          include: [
-            'apps/admin/**/__test__/*.{test,spec}.?(c|m)[jt]s?(x)',
-            'apps/mobile/**/__test__/*.{test,spec}.?(c|m)[jt]s?(x)',
-            'packages/**/__test__/*.{test,spec}.?(c|m)[jt]s?(x)',
-          ],
-          exclude: [
-            '**/node_modules/**',
-            '**/dist/**',
-            '**/build/**',
-            '**/coverage/**',
-          ],
-        },
-      },
-      // Node.js 后端测试（backend）- 纯 Node 环境
+      // 各 app 的 defineProject 配置（include 路径相对各自目录）
+      'apps/admin/vitest.config.ts',
+      'apps/mobile/vitest.config.ts',
+      // backend - 纯 Node 环境（待 backend 应用创建后可改为 'apps/backend/vitest.config.ts'）
       {
         test: {
-          name: 'node',
+          name: 'backend',
           globals: true,
           environment: 'node',
+          root: path.resolve(dirname),
           include: [
-            'apps/backend/**/__test__/*.{test,spec}.?(c|m)[jt]s?(x)',
-            'apps/backend/**/__tests__/*.{test,spec}.?(c|m)[jt]s?(x)',
-            'apps/backend/**/test/*.{test,spec}.?(c|m)[jt]s?(x)',
+            'apps/backend/src/**/*.{test,spec}.?(c|m)[jt]s?(x)',
+            'apps/backend/**/__test__/**/*.{test,spec}.?(c|m)[jt]s?(x)',
+            'apps/backend/**/__tests__/**/*.{test,spec}.?(c|m)[jt]s?(x)',
+            'apps/backend/**/test/**/*.{test,spec}.?(c|m)[jt]s?(x)',
+            'apps/backend/**/tests/**/*.{test,spec}.?(c|m)[jt]s?(x)',
           ],
           exclude: [
             '**/node_modules/**',

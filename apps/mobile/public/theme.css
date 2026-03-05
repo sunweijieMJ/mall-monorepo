@@ -1,0 +1,287 @@
+/**
+ * Mall App Web - 主题颜色变量
+ * 统一管理项目中的所有颜色值，提供一致的设计规范
+ * Light 主题统一定义在 :root 下
+ */
+
+:root {
+  /* =============================================
+   * 品牌色系统
+   * ============================================= */
+
+  /* 主品牌色 */
+  --color-primary: #fa436a;
+  --color-primary-light: #fb6b85;
+  --color-primary-lighter: #fcc2d0;
+  --color-primary-lightest: #fee7ed;
+  --color-primary-dark: #e73355;
+  --color-primary-darker: #d42749;
+
+  /* 辅助品牌色 */
+  --color-secondary: #6c757d;
+  --color-secondary-light: #9ca4ab;
+  --color-secondary-lighter: #d1d5db;
+  --color-secondary-dark: #495057;
+  --color-secondary-darker: #343a40;
+
+  /* =============================================
+   * 功能色系统
+   * ============================================= */
+
+  /* 成功色 */
+  --color-success: #4cd964;
+  --color-success-light: #81e397;
+  --color-success-lighter: #b8f0ca;
+  --color-success-dark: #28a745;
+  --color-success-darker: #1e7e34;
+
+  /* 警告色 */
+  --color-warning: #f0ad4e;
+  --color-warning-light: #f4c481;
+  --color-warning-lighter: #f8d7a3;
+  --color-warning-dark: #d58512;
+  --color-warning-darker: #b8690a;
+
+  /* 危险色 */
+  --color-danger: #dd524d;
+  --color-danger-light: #e6807c;
+  --color-danger-lighter: #f0a9a6;
+  --color-danger-dark: #c53030;
+  --color-danger-darker: #9c1c1c;
+
+  /* 信息色 */
+  --color-info: #4399fc;
+  --color-info-light: #7bb3fd;
+  --color-info-lighter: #a8ccfe;
+  --color-info-dark: #06c;
+  --color-info-darker: #049;
+
+  /* 系统蓝色 */
+  --color-system-blue: #007aff;
+  --color-system-blue-light: #409eff;
+  --color-system-blue-lighter: #79bbff;
+  --color-system-blue-lightest: rgba(0, 122, 255, 0.1);
+  --color-system-blue-dark: #0056cc;
+  --color-system-blue-darker: #003d99;
+  --color-system-blue-transparent: rgba(0, 122, 255, 0);
+
+  /* =============================================
+   * 中性色系统
+   * ============================================= */
+
+  /* 文本色 */
+  --color-text-primary: #333;
+  --color-text-secondary: #666;
+  --color-text-tertiary: #999;
+  --color-text-quaternary: #c0c4cc;
+  --color-text-placeholder: #c0c4cc;
+  --color-text-disabled: #dcdfe6;
+  --color-text-inverse: #fff;
+
+  /* 背景色 */
+  --color-bg-primary: #fff;
+  --color-bg-secondary: #f8f9fa;
+  --color-bg-tertiary: #f5f5f5;
+  --color-bg-quaternary: #f0f0f0;
+  --color-bg-light: #fafafa;
+  --color-bg-lighter: #fcfcfc;
+  --color-bg-page: #f8f6fc;
+  --color-bg-section: #f3f3f3;
+
+  /* 边框色 */
+  --color-border-primary: #e0e0e0;
+  --color-border-secondary: #ebeef5;
+  --color-border-tertiary: #f0f0f0;
+  --color-border-light: #f7f8fa;
+  --color-border-lighter: #fafbfc;
+  --color-border-base: #dcdfe6;
+
+  /* 分割线色 */
+  --color-divider-primary: #e0e0e0;
+  --color-divider-secondary: #f0f0f0;
+  --color-divider-tertiary: #f7f8fa;
+
+  /* =============================================
+   * 透明度和阴影色系统
+   * ============================================= */
+
+  /* 蒙层色 */
+  --color-mask-light: rgba(0, 0, 0, 0.3);
+  --color-mask-medium: rgba(0, 0, 0, 0.4);
+  --color-mask-heavy: rgba(0, 0, 0, 0.6);
+  --color-mask-dark: rgba(0, 0, 0, 0.8);
+
+  /* 阴影色 */
+  --color-shadow-light: rgba(0, 0, 0, 0.05);
+  --color-shadow-medium: rgba(0, 0, 0, 0.1);
+  --color-shadow-heavy: rgba(0, 0, 0, 0.15);
+  --color-shadow-dark: rgba(0, 0, 0, 0.25);
+
+  /* 白色透明 */
+  --color-white-alpha-10: rgba(255, 255, 255, 0.1);
+  --color-white-alpha-20: rgba(255, 255, 255, 0.2);
+  --color-white-alpha-30: rgba(255, 255, 255, 0.3);
+  --color-white-alpha-50: rgba(255, 255, 255, 0.5);
+  --color-white-alpha-70: rgba(255, 255, 255, 0.7);
+  --color-white-alpha-90: rgba(255, 255, 255, 0.9);
+
+  /* 黑色透明 */
+  --color-black-alpha-02: rgba(0, 0, 0, 0.02);
+  --color-black-alpha-05: rgba(0, 0, 0, 0.05);
+  --color-black-alpha-08: rgba(0, 0, 0, 0.08);
+  --color-black-alpha-10: rgba(0, 0, 0, 0.1);
+  --color-black-alpha-12: rgba(0, 0, 0, 0.12);
+  --color-black-alpha-15: rgba(0, 0, 0, 0.15);
+  --color-black-alpha-20: rgba(0, 0, 0, 0.2);
+  --color-black-alpha-30: rgba(0, 0, 0, 0.3);
+
+  /* =============================================
+   * 渐变色系统
+   * ============================================= */
+
+  /* 品牌渐变 */
+  --gradient-primary: linear-gradient(135deg, #fa436a 0%, #f56c6c 100%);
+  --gradient-primary-light: linear-gradient(135deg, #fb6b85 0%, #f77d7d 100%);
+  --gradient-primary-reverse: linear-gradient(135deg, #f56c6c 0%, #fa436a 100%);
+
+  /* 功能色渐变 */
+  --gradient-success: linear-gradient(135deg, #4cd964 0%, #3ab54a 100%);
+  --gradient-info: linear-gradient(135deg, #4399fc 0%, #007aff 100%);
+  --gradient-warning: linear-gradient(135deg, #f0ad4e 0%, #e09900 100%);
+  --gradient-danger: linear-gradient(135deg, #dd524d 0%, #dc3545 100%);
+
+  /* 中性渐变 */
+  --gradient-gray: linear-gradient(135deg, #f8f9fa 0%, #f5f5f5 100%);
+  --gradient-light: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+
+  /* =============================================
+   * 特殊场景颜色
+   * ============================================= */
+
+  /* 价格相关 */
+  --color-price-primary: #e74c3c;
+  --color-price-secondary: #f39c12;
+  --color-price-original: #999;
+  --color-price-discount: #27ae60;
+
+  /* 状态相关 */
+  --color-status-online: #4cd964;
+  --color-status-offline: #999;
+  --color-status-busy: #f0ad4e;
+  --color-status-error: #dd524d;
+
+  /* 等级相关 */
+  --color-level-bronze: #cd7f32;
+  --color-level-silver: #c0c0c0;
+  --color-level-gold: #ffd700;
+  --color-level-platinum: #e5e4e2;
+  --color-level-diamond: #b9f2ff;
+
+  /* VIP相关 */
+  --color-vip-gold: #f7d680;
+  --color-vip-bg: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.7),
+    rgba(0, 0, 0, 0.8)
+  );
+
+  /* 评分相关 */
+  --color-star-active: #ffa502;
+  --color-star-inactive: #dcdde1;
+
+  /* 标签相关 */
+  --color-tag-default: #909399;
+  --color-tag-hot: #ff4757;
+  --color-tag-new: #2ed573;
+  --color-tag-discount: #ffa502;
+  --color-tag-recommend: #409eff;
+
+  /* =============================================
+   * 语义化颜色别名
+   * ============================================= */
+
+  /* 链接色 */
+  --color-link: var(--color-system-blue);
+  --color-link-hover: var(--color-system-blue-light);
+  --color-link-active: var(--color-system-blue-dark);
+
+  /* 选中色 */
+  --color-selected: var(--color-primary);
+  --color-selected-bg: var(--color-primary-lightest);
+
+  /* 禁用色 */
+  --color-disabled: var(--color-text-disabled);
+  --color-disabled-bg: var(--color-bg-quaternary);
+
+  /* 焦点色 */
+  --color-focus: var(--color-primary);
+  --color-focus-shadow: var(--color-primary-lighter);
+
+  /* 高亮色 */
+  --color-highlight: var(--color-primary);
+  --color-highlight-bg: var(--color-primary-lightest);
+
+  /* =============================================
+   * 组件专用颜色
+   * ============================================= */
+
+  /* 按钮相关 */
+  --color-button-primary: var(--color-primary);
+  --color-button-primary-hover: var(--color-primary-light);
+  --color-button-primary-active: var(--color-primary-dark);
+  --color-button-secondary: var(--color-system-blue);
+  --color-button-default: var(--color-text-secondary);
+
+  /* 表单相关 */
+  --color-input-border: var(--color-border-primary);
+  --color-input-focus: var(--color-primary);
+  --color-input-placeholder: var(--color-text-placeholder);
+  --color-input-disabled: var(--color-bg-quaternary);
+
+  /* 卡片相关 */
+  --color-card-bg: var(--color-bg-primary);
+  --color-card-border: var(--color-border-secondary);
+  --color-card-shadow: var(--color-shadow-medium);
+
+  /* 导航相关 */
+  --color-nav-bg: var(--color-bg-primary);
+  --color-nav-active: var(--color-primary);
+  --color-nav-inactive: var(--color-text-tertiary);
+
+  /* 轮播相关 */
+  --color-carousel-indicator: var(--color-white-alpha-50);
+  --color-carousel-indicator-active: var(--color-bg-primary);
+  --color-carousel-mask: var(--color-black-alpha-30);
+
+  /* 空状态相关 */
+  --color-empty-icon: var(--color-text-quaternary);
+  --color-empty-text: var(--color-text-tertiary);
+  --color-empty-bg: var(--color-bg-secondary);
+
+  /* =============================================
+   * 注意：尺寸相关变量已移至 public/size.css
+   * 此文件仅包含颜色相关的变量
+   * ============================================= */
+
+  /* 其他系统颜色 */
+  --color-scrollbar: #ccc;
+  --color-scrollbar-hover: #999;
+  --color-scrollbar-track: #f8f9fa;
+  --color-skeleton: #f0f0f0;
+  --color-skeleton-active: #e0e0e0;
+
+  /* 业务特殊颜色 */
+  --color-order-waiting-payment: #fa436a;
+  --color-order-waiting-delivery: #007aff;
+  --color-order-waiting-receive: #007aff;
+  --color-order-completed: #28a745;
+  --color-order-closed: #6c757d;
+  --color-coupon-discount-primary: #fa436a;
+  --color-coupon-discount-secondary: #fff1f4;
+  --color-coupon-reduction-primary: #007aff;
+  --color-coupon-reduction-secondary: #f0f7ff;
+  --color-coupon-default-primary: #999;
+  --color-coupon-default-secondary: #f8f9fa;
+  --color-alipay: #01aaef;
+  --color-wechat: #07c160;
+}

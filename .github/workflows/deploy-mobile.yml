@@ -1,0 +1,321 @@
+# Mobile 构建与部署工作流
+# 构建 H5 并通过 rsync 部署到服务器；构建微信小程序并上传体验版
+#
+# 触发条件:
+#   1. 推送 tag (mobile-v*.*.*)  - 自动构建全部目标并部署/上传
+#   2. 手动触发                   - 可选择目标平台和操作类型
+#
+# 配置步骤:
+#   在 GitHub 仓库 Settings -> Secrets and variables -> Actions 中添加:
+#     H5 部署:
+#       - ALIYUN_HOST:        服务器 IP 或域名
+#       - ALIYUN_PORT:        SSH 端口（可选，默认 22）
+#       - ALIYUN_USER:        SSH 用户名
+#       - ALIYUN_SSH_KEY:     SSH 私钥（完整内容，包括 BEGIN/END 行）
+#       - H5_DEPLOY_PATH:     部署目标路径（如 /var/www/mall-h5）
+#     微信小程序:
+#       - WEIXIN_APPID:       微信小程序 AppID
+#       - WEIXIN_PRIVATE_KEY: 上传密钥（base64 编码）
+#                             编码方式: base64 -i private.wx.key | tr -d '\n'
+
+name: Deploy Mobile
+
+on:
+  push:
+    tags:
+      - 'mobile-v*.*.*'
+  workflow_dispatch:
+    inputs:
+      target:
+        description: '构建目标'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - h5
+          - mp-weixin
+      action:
+        description: '小程序操作类型'
+        required: true
+        default: 'upload'
+        type: choice
+        options:
+          - upload
+          - preview
+      deploy:
+        description: '是否部署/上传'
+        required: true
+        default: true
+        type: boolean
+      version:
+        description: '版本号（留空则从 tag 或 package.json 读取）'
+        required: false
+        type: string
+
+concurrency:
+  group: deploy-mobile-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '22'
+  APP_DIR: 'apps/mobile'
+
+jobs:
+  # ==================== 代码质量检查 ====================
+  check:
+    name: Check
+    uses: ./.github/workflows/check-mobile.yml
+
+  # ==================== 构建 ====================
+  build:
+    name: Build
+    needs: check
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      description: ${{ steps.version.outputs.description }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Get version info
+        id: version
+        run: |
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            VERSION="${GITHUB_REF#refs/tags/mobile-v}"
+            DESC="Release v${VERSION} - $(date '+%Y-%m-%d %H:%M')"
+          else
+            VERSION="${{ github.event.inputs.version }}"
+            if [[ -z "$VERSION" ]]; then
+              VERSION=$(node -p "require('./${{ env.APP_DIR }}/package.json').version")
+            fi
+            DESC="${{ github.event.inputs.description }}"
+            if [[ -z "$DESC" ]]; then
+              DESC="v${VERSION} - $(date '+%Y-%m-%d %H:%M')"
+            fi
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "description=$DESC" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+          echo "Description: $DESC"
+
+      - name: Build H5
+        if: |
+          github.event_name == 'push' ||
+          github.event.inputs.target == 'h5' ||
+          github.event.inputs.target == 'all'
+        working-directory: ${{ env.APP_DIR }}
+        run: pnpm build:h5
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+
+      - name: Build WeChat MiniProgram
+        if: |
+          github.event_name == 'push' ||
+          github.event.inputs.target == 'mp-weixin' ||
+          github.event.inputs.target == 'all'
+        working-directory: ${{ env.APP_DIR }}
+        run: pnpm build:mp-weixin
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+
+      - name: Check H5 build size
+        if: |
+          github.event_name == 'push' ||
+          github.event.inputs.target == 'h5' ||
+          github.event.inputs.target == 'all'
+        run: |
+          echo "H5 构建产物大小:"
+          du -sh ${{ env.APP_DIR }}/dist/build/h5
+          ls -la ${{ env.APP_DIR }}/dist/build/h5
+
+      - name: Check mp-weixin build size
+        if: |
+          github.event_name == 'push' ||
+          github.event.inputs.target == 'mp-weixin' ||
+          github.event.inputs.target == 'all'
+        run: |
+          DIST_PATH="${{ env.APP_DIR }}/dist/build/mp-weixin"
+          echo "微信小程序构建产物大小:"
+          du -sh "$DIST_PATH"
+
+          TOTAL_SIZE=$(du -sb "$DIST_PATH" | cut -f1)
+          TOTAL_MB=$(echo "scale=2; $TOTAL_SIZE / 1048576" | bc)
+          TOTAL_LIMIT=20971520  # 20MB
+
+          if [[ $TOTAL_SIZE -gt $TOTAL_LIMIT ]]; then
+            echo "::error::小程序总包超出 20MB 限制（当前 ${TOTAL_MB}MB），请检查分包配置"
+            exit 1
+          fi
+          echo "包体积检查通过（${TOTAL_MB}MB / 20MB）"
+
+      - name: Upload H5 artifact
+        if: |
+          github.event_name == 'push' ||
+          github.event.inputs.target == 'h5' ||
+          github.event.inputs.target == 'all'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-h5-build
+          path: ${{ env.APP_DIR }}/dist/build/h5
+          retention-days: 7
+
+      - name: Upload mp-weixin artifact
+        if: |
+          github.event_name == 'push' ||
+          github.event.inputs.target == 'mp-weixin' ||
+          github.event.inputs.target == 'all'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-mp-weixin-build
+          path: ${{ env.APP_DIR }}/dist/build/mp-weixin
+          retention-days: 1
+
+  # ==================== H5 部署 ====================
+  deploy-h5:
+    name: Deploy H5
+    needs: build
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'push' || github.event.inputs.deploy == 'true') &&
+      (github.event_name == 'push' || github.event.inputs.target == 'h5' || github.event.inputs.target == 'all')
+
+    steps:
+      - name: Check secrets
+        run: |
+          has_error=0
+          [[ -z "${{ secrets.ALIYUN_HOST }}" ]]    && echo "::error::缺少 ALIYUN_HOST"    && has_error=1
+          [[ -z "${{ secrets.ALIYUN_USER }}" ]]    && echo "::error::缺少 ALIYUN_USER"    && has_error=1
+          [[ -z "${{ secrets.ALIYUN_SSH_KEY }}" ]] && echo "::error::缺少 ALIYUN_SSH_KEY" && has_error=1
+          [[ -z "${{ secrets.H5_DEPLOY_PATH }}" ]] && echo "::error::缺少 H5_DEPLOY_PATH" && has_error=1
+          [[ $has_error -eq 1 ]] && exit 1
+          echo "H5 Secrets 配置正确"
+
+      - name: Download H5 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: mobile-h5-build
+          path: dist/build/h5
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.ALIYUN_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "${{ secrets.ALIYUN_PORT || 22 }}" -H "${{ secrets.ALIYUN_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Deploy via rsync
+        run: |
+          rsync -avz --delete \
+            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.ALIYUN_PORT || 22 }} -o StrictHostKeyChecking=no" \
+            dist/build/h5/ \
+            ${{ secrets.ALIYUN_USER }}@${{ secrets.ALIYUN_HOST }}:${{ secrets.H5_DEPLOY_PATH }}/
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
+
+      - name: Deployment notification
+        if: success()
+        run: |
+          echo "H5 部署成功!"
+          echo "版本: ${{ needs.build.outputs.version }}"
+          echo "服务器: ${{ secrets.ALIYUN_HOST }}"
+          echo "路径: ${{ secrets.H5_DEPLOY_PATH }}"
+
+  # ==================== 微信小程序上传 ====================
+  deploy-mp-weixin:
+    name: Deploy WeChat MiniProgram
+    needs: build
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'push' || github.event.inputs.deploy == 'true') &&
+      (github.event_name == 'push' || github.event.inputs.target == 'mp-weixin' || github.event.inputs.target == 'all')
+
+    steps:
+      - name: Check secrets
+        run: |
+          has_error=0
+          [[ -z "${{ secrets.WEIXIN_APPID }}" ]]       && echo "::error::缺少 WEIXIN_APPID"       && has_error=1
+          [[ -z "${{ secrets.WEIXIN_PRIVATE_KEY }}" ]] && echo "::error::缺少 WEIXIN_PRIVATE_KEY" && has_error=1
+          [[ $has_error -eq 1 ]] && exit 1
+          echo "微信小程序 Secrets 配置正确"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download mp-weixin artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: mobile-mp-weixin-build
+          path: ${{ env.APP_DIR }}/dist/build/mp-weixin
+
+      - name: Upload to WeChat
+        working-directory: ${{ env.APP_DIR }}
+        run: |
+          ACTION="${{ github.event.inputs.action || 'upload' }}"
+          pnpm tsx scripts/mp-upload.ts weixin "$ACTION"
+        env:
+          WEIXIN_APPID: ${{ secrets.WEIXIN_APPID }}
+          WEIXIN_PRIVATE_KEY: ${{ secrets.WEIXIN_PRIVATE_KEY }}
+          MP_VERSION: ${{ needs.build.outputs.version }}
+          MP_DESC: ${{ needs.build.outputs.description }}
+
+      - name: Upload result notification
+        if: success()
+        run: |
+          echo "微信小程序上传成功!"
+          echo "版本: ${{ needs.build.outputs.version }}"
+          echo "描述: ${{ needs.build.outputs.description }}"
+          echo ""
+          echo "后续操作:"
+          echo "1. 登录微信小程序后台: https://mp.weixin.qq.com"
+          echo "2. 进入「管理」->「版本管理」"
+          echo "3. 将体验版提交审核或设为正式版"
+
+  # ==================== 汇总通知 ====================
+  notify:
+    name: Notify
+    needs: [build, deploy-h5, deploy-mp-weixin]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Summary
+        run: |
+          {
+            echo "# Mobile 部署结果"
+            echo ""
+            echo "| 阶段 | 状态 |"
+            echo "|------|------|"
+            echo "| 版本 | ${{ needs.build.outputs.version }} |"
+            echo "| 构建 | ${{ needs.build.result }} |"
+            echo "| H5 部署 | ${{ needs.deploy-h5.result || 'skipped' }} |"
+            echo "| 微信小程序 | ${{ needs.deploy-mp-weixin.result || 'skipped' }} |"
+          } >> "$GITHUB_STEP_SUMMARY"

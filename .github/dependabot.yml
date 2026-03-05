@@ -1,0 +1,92 @@
+version: 2
+updates:
+  # 根目录依赖
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    groups:
+      eslint:
+        patterns:
+          - 'eslint*'
+          - '@eslint/*'
+          - 'typescript-eslint'
+      stylelint:
+        patterns:
+          - 'stylelint*'
+      vite:
+        patterns:
+          - 'vite'
+          - '@vitejs/*'
+          - 'vite-plugin-*'
+      vitest:
+        patterns:
+          - 'vitest'
+          - '@vitest/*'
+      turbo:
+        patterns:
+          - 'turbo'
+
+  # Admin 应用依赖
+  - package-ecosystem: npm
+    directory: /apps/admin
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    groups:
+      vue:
+        patterns:
+          - 'vue'
+          - 'vue-*'
+          - '@vue/*'
+          - 'pinia*'
+      element-plus:
+        patterns:
+          - 'element-plus'
+          - '@element-plus/*'
+      sentry:
+        patterns:
+          - '@sentry/*'
+      vite:
+        patterns:
+          - 'vite'
+          - '@vitejs/*'
+          - 'vite-plugin-*'
+      eslint:
+        patterns:
+          - 'eslint*'
+          - '@eslint/*'
+          - 'typescript-eslint'
+
+  # Mobile 应用依赖
+  - package-ecosystem: npm
+    directory: /apps/mobile
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    groups:
+      uniapp:
+        patterns:
+          - '@dcloudio/*'
+          - '@uni-helper/*'
+      vue:
+        patterns:
+          - 'vue'
+          - 'pinia*'
+      eslint:
+        patterns:
+          - 'eslint*'
+          - '@eslint/*'
+          - 'typescript-eslint'
+
+  # GitHub Actions
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
