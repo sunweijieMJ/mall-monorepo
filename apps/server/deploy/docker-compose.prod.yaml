@@ -1,0 +1,98 @@
+# 生产环境部署配置（阿里云 ECS / 任意 Linux 服务器）
+# 镜像由 CI/CD 构建并推送至 GHCR，服务器直接拉取
+#
+# 首次部署:
+#   1. 在服务器创建部署目录（对应 ALIYUN_DEPLOY_PATH secret）
+#   2. 将 .env 文件复制到部署目录（参考 .env.example）
+#   3. 后续部署由 CI/CD 自动执行（同步本文件 + manage.sh 并重启服务）
+#
+# 手动操作:
+#   ./deploy/manage.sh start|stop|restart|logs|status|health
+
+services:
+  api:
+    image: ${IMAGE_FULL_NAME:-mall-server:latest}
+    container_name: mall-server-api
+    ports:
+      - '${APP_PORT:-3001}:3001'
+    volumes:
+      - uploaded-files:/app/files
+    env_file:
+      - ../.env
+    environment:
+      NODE_ENV: production
+      ENV_MODE: prod
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'wget -q --spider http://localhost:3001/api/v1/health/ready || exit 1',
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - mall-network
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: mall-postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    env_file:
+      - ../.env
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME:-root}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-secret}
+      POSTGRES_DB: ${DATABASE_NAME:-mall}
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'pg_isready -U ${DATABASE_USERNAME:-root} -d ${DATABASE_NAME:-mall}',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - mall-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: mall-redis
+    volumes:
+      - redis-data:/data
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - mall-network
+
+volumes:
+  postgres-data:
+  redis-data:
+  uploaded-files:
+
+networks:
+  mall-network:
+    driver: bridge

@@ -2,3 +2,10 @@ packages:
   - 'apps/*'
   - 'packages/*'
   - 'internal/*'
+
+onlyBuiltDependencies:
+  - '@alicloud/openapi-core'
+  - '@nestjs/core'
+  - '@scarf/scarf'
+  - '@swc/core'
+  - msgpackr-extract

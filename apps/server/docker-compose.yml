@@ -1,0 +1,50 @@
+# 本地开发基础设施
+# 仅启动外部依赖（PostgreSQL + Redis），应用本身用 pnpm dev 在宿主机运行
+#
+# 用法: docker compose up -d
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: mall-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-mall}
+      POSTGRES_USER: ${DATABASE_USERNAME:-root}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-secret}
+    ports:
+      - '${DATABASE_PORT:-5432}:5432'
+    volumes:
+      - mall-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'pg_isready -U ${DATABASE_USERNAME:-root} -d ${DATABASE_NAME:-mall}',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: mall-redis
+    restart: unless-stopped
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - mall-redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  mall-postgres-data:
+  mall-redis-data:
