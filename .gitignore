@@ -1,0 +1,55 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Testing
+coverage
+
+# Turbo
+.turbo
+
+# claude
+settings.local.json
+
+# Changeset
+.changeset/pre.json
+
+# Vercel
+.vercel
+
+# Build Outputs
+.next/
+out/
+build
+dist
+
+# TypeScript
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+#lockfile
+package-lock.json
+# pnpm-lock.yaml  # 不应该忽略，需要提交以确保依赖版本一致
+yarn.lock
+
+# Misc
+.DS_Store
+*.pem
+
+# UniApp 构建产物
+unpackage/

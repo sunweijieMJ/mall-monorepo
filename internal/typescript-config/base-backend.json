@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./base.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2023"],
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": true,
+    "composite": false,
+    "inlineSources": false,
+    "emitDecoratorMetadata": true
+  }
+}

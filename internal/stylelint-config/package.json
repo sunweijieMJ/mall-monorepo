@@ -1,0 +1,17 @@
+{
+  "name": "@kit/stylelint-config",
+  "version": "0.0.1",
+  "type": "module",
+  "exports": {
+    "./base": "./base.js",
+    "./vue-app": "./vue-app.js"
+  },
+  "dependencies": {
+    "stylelint": "^17.1.1",
+    "stylelint-config-property-sort-order-smacss": "^11.1.0",
+    "stylelint-config-recommended-vue": "^1.6.1",
+    "stylelint-config-standard-scss": "^17.0.0",
+    "stylelint-order": "^7.0.1",
+    "stylelint-scss": "^7.0.0"
+  }
+}
