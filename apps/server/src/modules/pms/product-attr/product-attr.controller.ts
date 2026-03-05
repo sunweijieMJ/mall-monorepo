@@ -14,6 +14,12 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { ProductAttrService } from './product-attr.service';
 import { PageQueryDto } from '@/common/dto/page-result.dto';
+import {
+  CreateProductAttrCategoryDto,
+  UpdateProductAttrCategoryDto,
+  CreateProductAttrDto,
+  UpdateProductAttrDto,
+} from './dto/create-product-attr.dto';
 
 @ApiTags('管理端-PMS-属性分类')
 @ApiBearerAuth()
@@ -25,14 +31,17 @@ export class ProductAttrCategoryController {
   @Post('create')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '创建属性分类' })
-  create(@Body() dto: any) {
+  create(@Body() dto: CreateProductAttrCategoryDto) {
     return this.service.createAttrCategory(dto);
   }
 
   @Post('update/:id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '更新属性分类' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateProductAttrCategoryDto,
+  ) {
     return this.service.updateAttrCategory(id, dto);
   }
 
@@ -66,14 +75,17 @@ export class ProductAttrController {
   @Post('create')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '创建商品属性' })
-  create(@Body() dto: any) {
+  create(@Body() dto: CreateProductAttrDto) {
     return this.service.createAttr(dto);
   }
 
   @Post('update/:id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '更新商品属性' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateProductAttrDto,
+  ) {
     return this.service.updateAttr(id, dto);
   }
 

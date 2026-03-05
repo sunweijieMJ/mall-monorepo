@@ -17,6 +17,6 @@ export class PrefrenceAreaEntity {
   @Column({ name: 'show_status', default: 0 })
   showStatus: number;
 
-  @Column({ type: 'bytea', nullable: true, comment: '展示图片' })
-  pic: Buffer;
+  @Column({ length: 500, nullable: true, comment: '展示图片' })
+  pic: string;
 }

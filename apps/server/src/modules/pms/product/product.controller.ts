@@ -14,6 +14,8 @@ import { AuthGuard } from '@nestjs/passport';
 import { ProductService } from './product.service';
 import { PageQueryDto } from '@/common/dto/page-result.dto';
 import { CreateProductDto, UpdateProductDto } from './dto/product-param.dto';
+import { CurrentUser } from '@/core/auth/decorators/current-user.decorator';
+import { JwtPayload } from '@/core/auth/types/jwt-payload.type';
 
 @ApiTags('管理端-PMS-商品管理')
 @ApiBearerAuth()
@@ -85,6 +87,7 @@ export class ProductController {
     description: '更新商品审核状态，同时写入审核记录',
   })
   updateVerifyStatus(
+    @CurrentUser() user: JwtPayload,
     @Query('ids') ids: string,
     @Query('verifyStatus') verifyStatus: string,
     @Query('detail') detail: string,
@@ -93,6 +96,7 @@ export class ProductController {
       ids.split(',').map(Number),
       Number(verifyStatus),
       detail,
+      user.username,
     );
   }
 

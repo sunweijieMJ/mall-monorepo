@@ -12,6 +12,14 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { HomeContentService } from './home-content.service';
 import { PageQueryDto } from '@/common/dto/page-result.dto';
+import {
+  CreateHomeAdvertiseDto,
+  UpdateHomeAdvertiseDto,
+  CreateHomeBrandDto,
+  CreateHomeSubjectDto,
+  CreateHomeNewProductDto,
+  CreateHomeRecommendProductDto,
+} from './dto/home-content.dto';
 
 @ApiTags('管理端-SMS-首页广告')
 @ApiBearerAuth()
@@ -45,13 +53,16 @@ export class HomeAdvertiseController {
 
   @Post('create')
   @ApiOperation({ summary: '添加广告' })
-  create(@Body() dto: any) {
+  create(@Body() dto: CreateHomeAdvertiseDto) {
     return this.s.createAdvertise(dto);
   }
 
   @Post('update/:id')
   @ApiOperation({ summary: '修改广告' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateHomeAdvertiseDto,
+  ) {
     return this.s.updateAdvertise(id, dto);
   }
 
@@ -96,7 +107,7 @@ export class HomeBrandController {
 
   @Post('create')
   @ApiOperation({ summary: '批量添加推荐品牌' })
-  create(@Body() dto: any[]) {
+  create(@Body() dto: CreateHomeBrandDto[]) {
     return this.s.createHomeBrand(dto);
   }
 
@@ -153,7 +164,7 @@ export class HomeSubjectController {
 
   @Post('create')
   @ApiOperation({ summary: '批量添加推荐专题' })
-  create(@Body() dto: any[]) {
+  create(@Body() dto: CreateHomeSubjectDto[]) {
     return this.s.createSubject(dto);
   }
 
@@ -210,7 +221,7 @@ export class HomeNewProductController {
 
   @Post('create')
   @ApiOperation({ summary: '批量添加新品推荐' })
-  create(@Body() dto: any[]) {
+  create(@Body() dto: CreateHomeNewProductDto[]) {
     return this.s.createNewProduct(dto);
   }
 
@@ -267,7 +278,7 @@ export class HomeRecommendProductController {
 
   @Post('create')
   @ApiOperation({ summary: '批量添加人气推荐' })
-  create(@Body() dto: any[]) {
+  create(@Body() dto: CreateHomeRecommendProductDto[]) {
     return this.s.createHotProduct(dto);
   }
 

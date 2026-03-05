@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
+import { TransactionService } from '@/infrastructure/database/transaction/transaction.service';
 import {
   ProductAttrEntity,
   ProductAttrCategoryEntity,
@@ -14,6 +15,7 @@ export class ProductAttrService {
     private readonly attrRepo: Repository<ProductAttrEntity>,
     @InjectRepository(ProductAttrCategoryEntity)
     private readonly cateRepo: Repository<ProductAttrCategoryEntity>,
+    private readonly transactionService: TransactionService,
   ) {}
 
   // ---- 属性分类 ----
@@ -86,21 +88,23 @@ export class ProductAttrService {
   async createAttr(
     dto: Partial<ProductAttrEntity>,
   ): Promise<ProductAttrEntity> {
-    const entity = this.attrRepo.create(dto);
-    const saved = await this.attrRepo.save(entity);
-    // 更新属性分类的计数
-    const category = await this.cateRepo.findOneBy({
-      id: saved.productAttributeCategoryId,
-    });
-    if (category) {
-      if (saved.type === 0) {
-        category.attributeCount = (category.attributeCount || 0) + 1;
-      } else if (saved.type === 1) {
-        category.paramCount = (category.paramCount || 0) + 1;
+    return this.transactionService.run(async (manager) => {
+      const entity = manager.create(ProductAttrEntity, dto);
+      const saved = await manager.save(ProductAttrEntity, entity);
+      // 更新属性分类的计数
+      const category = await manager.findOneBy(ProductAttrCategoryEntity, {
+        id: saved.productAttributeCategoryId,
+      });
+      if (category) {
+        if (saved.type === 0) {
+          category.attributeCount = (category.attributeCount || 0) + 1;
+        } else if (saved.type === 1) {
+          category.paramCount = (category.paramCount || 0) + 1;
+        }
+        await manager.save(ProductAttrCategoryEntity, category);
       }
-      await this.cateRepo.save(category);
-    }
-    return saved;
+      return saved;
+    });
   }
 
   async updateAttr(id: number, dto: Partial<ProductAttrEntity>): Promise<void> {
@@ -109,25 +113,51 @@ export class ProductAttrService {
 
   async deleteAttr(ids: number[]): Promise<void> {
     if (ids.length === 0) return;
-    // 获取第一个属性以确定类型和分类
-    const firstAttr = await this.attrRepo.findOneBy({ id: ids[0] });
-    if (!firstAttr) return;
-    const count = ids.length;
-    await this.attrRepo.delete(ids);
-    // 更新属性分类的计数
-    const category = await this.cateRepo.findOneBy({
-      id: firstAttr.productAttributeCategoryId,
-    });
-    if (category) {
-      if (firstAttr.type === 0) {
-        category.attributeCount = Math.max(
-          0,
-          (category.attributeCount || 0) - count,
-        );
-      } else if (firstAttr.type === 1) {
-        category.paramCount = Math.max(0, (category.paramCount || 0) - count);
+    await this.transactionService.run(async (manager) => {
+      // 查询所有待删除的属性，按分类和类型分组后分别更新计数
+      const attrs = await manager.find(ProductAttrEntity, {
+        where: { id: In(ids) },
+      });
+      if (attrs.length === 0) return;
+
+      await manager.delete(ProductAttrEntity, ids);
+
+      // 按 (productAttributeCategoryId, type) 分组统计删除数量
+      const groupMap = new Map<
+        string,
+        { categoryId: number; type: number; count: number }
+      >();
+      for (const attr of attrs) {
+        const key = `${attr.productAttributeCategoryId}_${attr.type}`;
+        const existing = groupMap.get(key);
+        if (existing) {
+          existing.count += 1;
+        } else {
+          groupMap.set(key, {
+            categoryId: attr.productAttributeCategoryId,
+            type: attr.type,
+            count: 1,
+          });
+        }
       }
-      await this.cateRepo.save(category);
-    }
+
+      // 对每个分组分别更新对应分类的计数
+      for (const { categoryId, type, count } of groupMap.values()) {
+        const category = await manager.findOneBy(ProductAttrCategoryEntity, {
+          id: categoryId,
+        });
+        if (!category) continue;
+
+        if (type === 0) {
+          category.attributeCount = Math.max(
+            0,
+            (category.attributeCount || 0) - count,
+          );
+        } else if (type === 1) {
+          category.paramCount = Math.max(0, (category.paramCount || 0) - count);
+        }
+        await manager.save(ProductAttrCategoryEntity, category);
+      }
+    });
   }
 }

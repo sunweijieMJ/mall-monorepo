@@ -1,10 +1,19 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { ProductEntity } from './product.entity';
 
 @Entity('pms_product_attribute_value')
 export class ProductAttrValueEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @Column({ name: 'product_id', nullable: true })
   productId: number;
 
@@ -16,4 +25,14 @@ export class ProductAttrValueEntity {
     comment: '手动添加规格或参数的值，参数单值，规格有多个时以逗号隔开',
   })
   value: string;
+
+  // ---- Relations ----
+
+  @ManyToOne(() => ProductEntity, (product) => product.productAttrValues, {
+    createForeignKeyConstraints: false,
+    eager: false,
+    nullable: true,
+  })
+  @JoinColumn({ name: 'product_id' })
+  product: ProductEntity;
 }

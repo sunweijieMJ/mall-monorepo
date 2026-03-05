@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ReturnApplyEntity } from './infrastructure/persistence/relational/entities/return-apply.entity';
+import { OrderEntity } from '../order/infrastructure/persistence/relational/entities/order.entity';
 import { PageQueryDto, PageResult } from '@/common/dto/page-result.dto';
 
 /** 会员提交退货申请 DTO */
@@ -65,6 +66,8 @@ export class ReturnApplyService {
   constructor(
     @InjectRepository(ReturnApplyEntity)
     private readonly repo: Repository<ReturnApplyEntity>,
+    @InjectRepository(OrderEntity)
+    private readonly orderRepo: Repository<OrderEntity>,
   ) {}
 
   /**
@@ -175,6 +178,14 @@ export class ReturnApplyService {
     memberId: number,
     dto: PortalCreateReturnApplyDto,
   ): Promise<ReturnApplyEntity> {
+    // 校验订单归属权：只能对自己的订单申请退货
+    const order = await this.orderRepo.findOne({
+      where: { id: dto.orderId, memberId },
+    });
+    if (!order) {
+      throw new BadRequestException('订单不存在或无权操作');
+    }
+
     const entity = this.repo.create({
       memberId,
       orderId: dto.orderId,

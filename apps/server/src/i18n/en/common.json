@@ -1,0 +1,6 @@
+{
+  "serverError": "Internal server error",
+  "tooManyRequests": "Too many requests, please try again later",
+  "unauthorized": "Unauthorized",
+  "forbidden": "Forbidden"
+}

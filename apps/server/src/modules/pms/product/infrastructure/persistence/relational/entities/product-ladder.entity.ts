@@ -1,10 +1,19 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { ProductEntity } from './product.entity';
 
 @Entity('pms_product_ladder')
 export class ProductLadderEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @Column({ name: 'product_id', nullable: true })
   productId: number;
 
@@ -18,7 +27,7 @@ export class ProductLadderEntity {
     nullable: true,
     comment: '折扣',
   })
-  discount: string;
+  discount: number;
 
   @Column({
     type: 'decimal',
@@ -27,5 +36,15 @@ export class ProductLadderEntity {
     nullable: true,
     comment: '折后价格',
   })
-  price: string;
+  price: number;
+
+  // ---- Relations ----
+
+  @ManyToOne(() => ProductEntity, (product) => product.productLadders, {
+    createForeignKeyConstraints: false,
+    eager: false,
+    nullable: true,
+  })
+  @JoinColumn({ name: 'product_id' })
+  product: ProductEntity;
 }

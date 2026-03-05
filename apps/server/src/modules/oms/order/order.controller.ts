@@ -16,6 +16,14 @@ import { OrderService } from './order.service';
 import { PageQueryDto } from '@/common/dto/page-result.dto';
 import { CurrentUser } from '@/core/auth/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/auth/types/jwt-payload.type';
+import { AdminOrderQueryDto } from './dto/admin-order-query.dto';
+import { AdminOrderDeliveryDto } from './dto/admin-order-delivery.dto';
+import { AdminOrderReceiverDto } from './dto/admin-order-receiver.dto';
+import { AdminOrderMoneyDto } from './dto/admin-order-money.dto';
+import { AdminOrderNoteDto } from './dto/admin-order-note.dto';
+import { AdminOrderCloseDto } from './dto/admin-order-close.dto';
+import { PortalGenerateOrderDto } from './dto/portal-generate-order.dto';
+import { PortalConfirmOrderDto } from './dto/portal-confirm-order.dto';
 
 // ======================== 管理端 ========================
 
@@ -31,7 +39,7 @@ export class AdminOrderController {
     summary: '管理端订单列表',
     description: '对应前端 GET /order/list',
   })
-  list(@Query() query: any) {
+  list(@Query() query: AdminOrderQueryDto) {
     return this.orderService.adminList(query);
   }
 
@@ -58,7 +66,7 @@ export class AdminOrderController {
     summary: '批量发货',
     description: '对应前端 POST /order/delivery',
   })
-  delivery(@Body() deliveryList: any[]) {
+  delivery(@Body() deliveryList: AdminOrderDeliveryDto[]) {
     return this.orderService.delivery(deliveryList);
   }
 
@@ -67,7 +75,7 @@ export class AdminOrderController {
     summary: '关闭订单',
     description: '对应前端 POST /order/close',
   })
-  close(@Body() body: { ids: number[]; note: string }) {
+  close(@Body() body: AdminOrderCloseDto) {
     return this.orderService.close(body.ids, body.note);
   }
 
@@ -76,7 +84,10 @@ export class AdminOrderController {
     summary: '修改收货人信息',
     description: '对应前端 PUT /order/:id/receiverInfo',
   })
-  updateReceiverInfo(@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
+  updateReceiverInfo(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: AdminOrderReceiverDto,
+  ) {
     return this.orderService.updateReceiverInfo({ ...dto, orderId: id });
   }
 
@@ -85,7 +96,10 @@ export class AdminOrderController {
     summary: '修改费用信息',
     description: '对应前端 PUT /order/:id/moneyInfo',
   })
-  updateMoneyInfo(@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
+  updateMoneyInfo(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: AdminOrderMoneyDto,
+  ) {
     return this.orderService.updateMoneyInfo({ ...dto, orderId: id });
   }
 
@@ -96,7 +110,7 @@ export class AdminOrderController {
   })
   updateNote(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: { note: string; status: number },
+    @Body() body: AdminOrderNoteDto,
   ) {
     return this.orderService.updateNote(id, body.note, body.status);
   }
@@ -116,7 +130,10 @@ export class PortalOrderController {
     summary: '生成确认订单',
     description: '对应前端 POST /order/generateConfirmOrder',
   })
-  generateConfirmOrder(@CurrentUser() user: JwtPayload, @Body() dto: any) {
+  generateConfirmOrder(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: PortalConfirmOrderDto,
+  ) {
     return this.orderService.generateConfirmOrder(user.sub, dto.cartIds ?? []);
   }
 
@@ -125,7 +142,10 @@ export class PortalOrderController {
     summary: '提交订单',
     description: '对应前端 POST /order/generateOrder',
   })
-  generateOrder(@CurrentUser() user: JwtPayload, @Body() dto: any) {
+  generateOrder(
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: PortalGenerateOrderDto,
+  ) {
     return this.orderService.generateOrder(user.sub, dto);
   }
 
@@ -168,8 +188,11 @@ export class PortalOrderController {
     summary: '取消订单',
     description: '对应前端 POST /order/cancelUserOrder',
   })
-  cancelOrder(@CurrentUser() user: JwtPayload, @Body() dto: any) {
-    return this.orderService.cancelOrder(user.sub, dto.orderId);
+  cancelOrder(
+    @CurrentUser() user: JwtPayload,
+    @Body('orderId', ParseIntPipe) orderId: number,
+  ) {
+    return this.orderService.cancelOrder(user.sub, orderId);
   }
 
   @Post('confirmReceiveOrder')
@@ -177,8 +200,11 @@ export class PortalOrderController {
     summary: '确认收货',
     description: '对应前端 POST /order/confirmReceiveOrder',
   })
-  confirmReceive(@CurrentUser() user: JwtPayload, @Body() dto: any) {
-    return this.orderService.confirmReceive(user.sub, dto.orderId);
+  confirmReceive(
+    @CurrentUser() user: JwtPayload,
+    @Body('orderId', ParseIntPipe) orderId: number,
+  ) {
+    return this.orderService.confirmReceive(user.sub, orderId);
   }
 
   @Post('deleteOrder')
@@ -187,7 +213,10 @@ export class PortalOrderController {
     description:
       '仅允许删除已完成或已取消的订单，对应前端 POST /order/deleteOrder',
   })
-  deleteOrder(@CurrentUser() user: JwtPayload, @Body() dto: any) {
-    return this.orderService.deleteOrder(user.sub, Number(dto.orderId));
+  deleteOrder(
+    @CurrentUser() user: JwtPayload,
+    @Body('orderId', ParseIntPipe) orderId: number,
+  ) {
+    return this.orderService.deleteOrder(user.sub, orderId);
   }
 }

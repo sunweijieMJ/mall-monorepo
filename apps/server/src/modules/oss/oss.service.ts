@@ -44,8 +44,12 @@ export class OssService {
     const policyObj = {
       expiration,
       conditions: [
-        // 限制文件大小：0 ~ 1GB
-        ['content-length-range', 0, 1048576000],
+        // 限制文件大小：0 ~ 50MB
+        ['content-length-range', 0, 52428800],
+        // 限制上传目录前缀，防止覆盖系统文件
+        ['starts-with', '$key', dir],
+        // 限制 Content-Type 为常见安全类型
+        ['starts-with', '$Content-Type', 'image/'],
       ],
     };
 

@@ -226,7 +226,7 @@ export class OrderService {
     }
   > {
     const order = await this.orderRepo.findOneBy({ id });
-    if (!order) throw new Error(`订单 ${id} 不存在`);
+    if (!order) throw new NotFoundException(`订单 ${id} 不存在`);
 
     // 查询订单商品列表
     const orderItemList = await this.orderItemRepo.findBy({ orderId: id });
@@ -463,11 +463,9 @@ export class OrderService {
           const skuStock = productSkuList.find(
             (s) => s.id === item.productSkuId,
           );
-          const originalPrice = skuStock
-            ? parseFloat(skuStock.price as any)
-            : 0;
+          const originalPrice = skuStock ? Number(skuStock.price) : 0;
           const promotionPrice = skuStock?.promotionPrice
-            ? parseFloat(skuStock.promotionPrice as any)
+            ? Number(skuStock.promotionPrice)
             : originalPrice;
           const reduceAmount = originalPrice - promotionPrice;
           const realStock = skuStock ? skuStock.stock - skuStock.lockStock : 0;
@@ -505,16 +503,14 @@ export class OrderService {
         );
 
         if (matchedLadder) {
-          const discount = parseFloat(matchedLadder.discount as any);
+          const discount = Number(matchedLadder.discount);
           const message = `打折优惠：满${matchedLadder.count}件，打${(discount * 10).toFixed(1)}折`;
 
           for (const item of itemList) {
             const skuStock = productSkuList.find(
               (s) => s.id === item.productSkuId,
             );
-            const originalPrice = skuStock
-              ? parseFloat(skuStock.price as any)
-              : 0;
+            const originalPrice = skuStock ? Number(skuStock.price) : 0;
             const reduceAmount = originalPrice - discount * originalPrice;
             const realStock = skuStock
               ? skuStock.stock - skuStock.lockStock
@@ -564,7 +560,7 @@ export class OrderService {
           const skuStock = productSkuList.find(
             (s) => s.id === item.productSkuId,
           );
-          const price = skuStock ? parseFloat(skuStock.price as any) : 0;
+          const price = skuStock ? Number(skuStock.price) : 0;
           totalAmount += price * item.productQuantity;
         }
 
@@ -574,18 +570,14 @@ export class OrderService {
         );
 
         if (matchedFullReduction) {
-          const reducePrice = parseFloat(
-            matchedFullReduction.reducePrice as any,
-          );
+          const reducePrice = Number(matchedFullReduction.reducePrice);
           const message = `满减优惠：满${matchedFullReduction.fullPrice}元，减${matchedFullReduction.reducePrice}元`;
 
           for (const item of itemList) {
             const skuStock = productSkuList.find(
               (s) => s.id === item.productSkuId,
             );
-            const originalPrice = skuStock
-              ? parseFloat(skuStock.price as any)
-              : 0;
+            const originalPrice = skuStock ? Number(skuStock.price) : 0;
             // (商品原价 / 该商品总金额) * 满减金额
             const reduceAmount =
               totalAmount > 0 ? (originalPrice / totalAmount) * reducePrice : 0;
@@ -700,8 +692,7 @@ export class OrderService {
         })
         .filter(
           (item): item is NonNullable<typeof item> =>
-            item !== null &&
-            parseFloat(item.coupon.minPoint as any) <= totalAmount,
+            item !== null && Number(item.coupon.minPoint) <= totalAmount,
         );
     }
 
@@ -817,6 +808,9 @@ export class OrderService {
 
     // 5. 处理积分
     const member = await this.memberRepo.findOneBy({ id: memberId });
+    if (!member) {
+      throw new BadRequestException('会员信息不存在');
+    }
     if (dto.useIntegration && dto.useIntegration > 0) {
       const totalProductAmount = orderItems.reduce(
         (sum, item) =>
@@ -826,7 +820,7 @@ export class OrderService {
       const integrationAmount = await this.calcUsableIntegrationAmount(
         dto.useIntegration,
         totalProductAmount,
-        member!,
+        member,
         !!dto.couponId,
       );
       if (integrationAmount <= 0) {
@@ -969,15 +963,18 @@ export class OrderService {
 
       // 11. 扣减会员积分（事务内，失败可回滚）
       if (safeUseIntegration > 0 && member) {
-        await manager
+        const integrationResult = await manager
           .createQueryBuilder()
           .update(MemberEntity)
-          .set({ integration: () => `integration - ${safeUseIntegration}` })
-          .where('id = :id AND integration >= :useIntegration', {
+          .set({ integration: () => `integration - :deductIntegration` })
+          .where('id = :id AND integration >= :deductIntegration', {
             id: memberId,
-            useIntegration: safeUseIntegration,
+            deductIntegration: safeUseIntegration,
           })
           .execute();
+        if (integrationResult.affected === 0) {
+          throw new BadRequestException('会员积分不足，无法抵扣');
+        }
       }
 
       // 12. 软删除购物车商品（事务内，失败可回滚）
@@ -1046,23 +1043,51 @@ export class OrderService {
         throw new BadRequestException('订单不存在或订单状态不是未支付！');
       }
 
-      // 扣减真实库存（stock - qty, lock_stock - qty）
+      // 扣减真实库存（stock - qty, lock_stock - qty），使用悲观锁防止并发问题
       const orderItems = await manager.findBy(OrderItemEntity, { orderId });
-      for (const item of orderItems) {
-        const qty = Number(item.productQuantity);
+      // 按 skuId 升序加锁，防止死锁
+      const sortedItems = [...orderItems].sort(
+        (a, b) => (a.productSkuId ?? 0) - (b.productSkuId ?? 0),
+      );
+      for (const item of sortedItems) {
+        const qty = Number(item.productQuantity) || 0;
+        if (qty <= 0) continue;
+
+        // 悲观锁：SELECT ... FOR UPDATE
+        const sku = await manager
+          .createQueryBuilder(SkuStockEntity, 'sku')
+          .setLock('pessimistic_write')
+          .where('sku.id = :skuId', { skuId: item.productSkuId })
+          .getOne();
+
+        if (!sku || sku.lockStock < qty) {
+          throw new BadRequestException(
+            `SKU(${item.productSkuId}) 库存不足，无法完成支付`,
+          );
+        }
+
         await manager
           .createQueryBuilder()
           .update(SkuStockEntity)
           .set({
-            stock: () => `stock - ${qty}`,
-            lockStock: () => `lock_stock - ${qty}`,
+            stock: () => `stock - :deductQty`,
+            lockStock: () => `lock_stock - :deductQty`,
           })
-          .where('id = :skuId AND lock_stock >= :qty', {
+          .where('id = :skuId', {
             skuId: item.productSkuId,
-            qty,
+            deductQty: qty,
           })
           .execute();
       }
+
+      // 记录操作历史
+      await manager.save(OrderOperateHistoryEntity, {
+        orderId,
+        operateMan: '系统',
+        orderStatus: OrderStatus.PAID,
+        note: `支付成功（支付方式: ${payType}）`,
+        createTime: new Date(),
+      });
     });
   }
 
@@ -1084,52 +1109,66 @@ export class OrderService {
     // 验证归属权（memberId=0 表示系统调用，跳过验证）
     if (memberId !== 0 && order.memberId !== memberId) return;
 
-    // 更新订单状态为已取消
-    await this.orderRepo
-      .createQueryBuilder()
-      .update()
-      .set({ status: OrderStatus.CANCELLED })
-      .where('id = :id', { id: orderId })
-      .execute();
+    const operateMan = memberId === 0 ? '系统' : '用户';
 
-    // 释放 SKU 锁定库存
-    const orderItems = await this.orderItemRepo.findBy({ orderId });
-    for (const item of orderItems) {
-      await this.skuStockRepo
+    // 事务：订单状态 + 释放库存 + 恢复优惠券 + 返还积分 + 操作历史，全部原子操作
+    await this.transactionService.run(async (manager) => {
+      // 更新订单状态为已取消
+      await manager
         .createQueryBuilder()
-        .update()
-        .set({
-          lockStock: () => `lock_stock - ${item.productQuantity}`,
-        })
-        .where('id = :skuId AND lock_stock >= :qty', {
-          skuId: item.productSkuId,
-          qty: item.productQuantity,
-        })
+        .update(OrderEntity)
+        .set({ status: OrderStatus.CANCELLED })
+        .where('id = :id', { id: orderId })
         .execute();
-    }
 
-    // 恢复优惠券状态
-    if (order.couponId) {
-      // 使用 couponHistoryRepo.manager 获取默认 EntityManager，避免直接依赖 DataSource
-      await this.updateCouponStatus(
-        this.couponHistoryRepo.manager,
-        order.couponId,
-        order.memberId,
-        0,
-      );
-    }
+      // 释放 SKU 锁定库存
+      const orderItems = await manager.findBy(OrderItemEntity, { orderId });
+      for (const item of orderItems) {
+        const releaseQty = Number(item.productQuantity) || 0;
+        if (releaseQty <= 0) continue;
+        await manager
+          .createQueryBuilder()
+          .update(SkuStockEntity)
+          .set({ lockStock: () => `lock_stock - :releaseQty` })
+          .where('id = :skuId AND lock_stock >= :releaseQty', {
+            skuId: item.productSkuId,
+            releaseQty,
+          })
+          .execute();
+      }
 
-    // 返还积分
-    if (order.useIntegration && order.useIntegration > 0) {
-      await this.memberRepo
-        .createQueryBuilder()
-        .update()
-        .set({
-          integration: () => `integration + ${order.useIntegration}`,
-        })
-        .where('id = :id', { id: order.memberId })
-        .execute();
-    }
+      // 恢复优惠券状态
+      if (order.couponId) {
+        await this.updateCouponStatus(
+          manager,
+          order.couponId,
+          order.memberId,
+          0,
+        );
+      }
+
+      // 返还积分
+      if (order.useIntegration && order.useIntegration > 0) {
+        await manager
+          .createQueryBuilder()
+          .update(MemberEntity)
+          .set({ integration: () => `integration + :restoreIntegration` })
+          .where('id = :id', {
+            id: order.memberId,
+            restoreIntegration: order.useIntegration,
+          })
+          .execute();
+      }
+
+      // 记录操作历史
+      await manager.save(OrderOperateHistoryEntity, {
+        orderId,
+        operateMan,
+        orderStatus: OrderStatus.CANCELLED,
+        note: memberId === 0 ? '超时未支付，系统自动取消' : '用户取消订单',
+        createTime: new Date(),
+      });
+    });
   }
 
   /**
@@ -1158,6 +1197,15 @@ export class OrderService {
       })
       .where('id = :id', { id: orderId })
       .execute();
+
+    // 记录操作历史
+    await this.historyRepo.save({
+      orderId,
+      operateMan: '用户',
+      orderStatus: OrderStatus.COMPLETED,
+      note: '确认收货',
+      createTime: new Date(),
+    });
   }
 
   /**
@@ -1268,8 +1316,8 @@ export class OrderService {
     giftGrowth: number,
   ): CartPromotionItem {
     const originalPrice = skuStock
-      ? parseFloat(skuStock.price as any)
-      : parseFloat(item.productPrice as any);
+      ? Number(skuStock.price)
+      : Number(item.productPrice);
     const realStock = skuStock ? skuStock.stock - skuStock.lockStock : 0;
 
     return {
@@ -1318,10 +1366,10 @@ export class OrderService {
     fullReductionList: ProductFullReductionEntity[],
   ): ProductFullReductionEntity | null {
     const sorted = [...fullReductionList].sort(
-      (a, b) => parseFloat(b.fullPrice as any) - parseFloat(a.fullPrice as any),
+      (a, b) => Number(b.fullPrice) - Number(a.fullPrice),
     );
     for (const fr of sorted) {
-      if (totalAmount >= parseFloat(fr.fullPrice as any)) {
+      if (totalAmount >= Number(fr.fullPrice)) {
         return fr;
       }
     }
@@ -1352,31 +1400,49 @@ export class OrderService {
   }
 
   /**
-   * 锁定库存：UPDATE sku_stock SET lock_stock=lock_stock+qty WHERE id=skuId AND stock-lock_stock>=qty
-   * 接受 EntityManager 以便在事务中执行，确保库存锁定与订单插入的原子性
+   * 锁定库存：先用 SELECT ... FOR UPDATE 加行锁，再更新 lock_stock
+   * 按 skuId 升序加锁，防止死锁；同一事务内执行，确保原子性
    */
   private async lockStock(
     manager: EntityManager,
     cartPromotionItemList: CartPromotionItem[],
   ): Promise<void> {
-    for (const item of cartPromotionItemList) {
-      const result = await manager
-        .createQueryBuilder()
-        .update(SkuStockEntity)
-        .set({
-          lockStock: () => `lock_stock + ${item.quantity}`,
-        })
-        .where('id = :skuId AND (stock - lock_stock) >= :qty', {
-          skuId: item.productSkuId,
-          qty: item.quantity,
-        })
-        .execute();
+    // 按 skuId 升序排列，固定加锁顺序防止死锁
+    const sorted = [...cartPromotionItemList].sort(
+      (a, b) => a.productSkuId - b.productSkuId,
+    );
 
-      if (result.affected === 0) {
+    for (const item of sorted) {
+      const qty = Number(item.quantity);
+      if (!qty || qty <= 0) {
+        throw new BadRequestException(`商品「${item.productName}」数量无效`);
+      }
+
+      // 悲观锁：SELECT ... FOR UPDATE
+      const sku = await manager
+        .createQueryBuilder(SkuStockEntity, 'sku')
+        .setLock('pessimistic_write')
+        .where('sku.id = :skuId', { skuId: item.productSkuId })
+        .getOne();
+
+      if (!sku) {
+        throw new BadRequestException(`商品「${item.productName}」SKU 不存在`);
+      }
+
+      const available = sku.stock - sku.lockStock;
+      if (available < qty) {
         throw new BadRequestException(
-          `商品「${item.productName}」库存不足，无法下单`,
+          `商品「${item.productName}」库存不足（可用: ${available}，需要: ${qty}）`,
         );
       }
+
+      // 更新锁定库存
+      await manager
+        .createQueryBuilder()
+        .update(SkuStockEntity)
+        .set({ lockStock: () => `lock_stock + :addQty` })
+        .where('id = :skuId', { skuId: item.productSkuId, addQty: qty })
+        .execute();
     }
   }
 
@@ -1413,10 +1479,10 @@ export class OrderService {
     // 积分抵扣金额 = useIntegration / useUnit（每 useUnit 积分抵扣 1 元）
     const integrationAmount = useIntegration / setting.useUnit;
 
-    // 是否超过订单最高抵用百分比
+    // 是否超过订单最高抵用百分比，超过则按上限值返回
     const maxPercent = setting.maxPercentPerOrder / 100;
     if (integrationAmount > totalAmount * maxPercent) {
-      return 0;
+      return totalAmount * maxPercent;
     }
 
     return integrationAmount;
@@ -1443,7 +1509,7 @@ export class OrderService {
       (sum, item) => sum + item.price * item.quantity,
       0,
     );
-    if (parseFloat(coupon.minPoint as any) > totalAmount) return null;
+    if (Number(coupon.minPoint) > totalAmount) return null;
 
     // 查询关联关系
     const productRelationList = await this.couponProductRelRepo.findBy({
@@ -1465,7 +1531,7 @@ export class OrderService {
     couponDetail: CouponHistoryDetail,
   ): void {
     const { coupon, productRelationList, categoryRelationList } = couponDetail;
-    const couponAmount = parseFloat(coupon.amount as any);
+    const couponAmount = Number(coupon.amount);
 
     if (coupon.useType === 0) {
       // 全场通用：按价格比例分摊

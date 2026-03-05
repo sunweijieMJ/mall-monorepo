@@ -6,12 +6,10 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
+import { TransactionService } from '@/infrastructure/database/transaction/transaction.service';
 import {
   MemberEntity,
   MemberAddressEntity,
-  MemberProductCollectionEntity,
-  MemberBrandAttentionEntity,
-  MemberReadHistoryEntity,
 } from './infrastructure/persistence/relational/entities/member.entity';
 import { CouponEntity } from '@/modules/sms/coupon/infrastructure/persistence/relational/entities/coupon.entity';
 import { CouponHistoryEntity } from '@/modules/sms/coupon/infrastructure/persistence/relational/entities/coupon-history.entity';
@@ -28,15 +26,6 @@ export class MemberService {
     @InjectRepository(MemberAddressEntity)
     private readonly addressRepo: Repository<MemberAddressEntity>,
 
-    @InjectRepository(MemberProductCollectionEntity)
-    private readonly productCollectionRepo: Repository<MemberProductCollectionEntity>,
-
-    @InjectRepository(MemberBrandAttentionEntity)
-    private readonly brandAttentionRepo: Repository<MemberBrandAttentionEntity>,
-
-    @InjectRepository(MemberReadHistoryEntity)
-    private readonly readHistoryRepo: Repository<MemberReadHistoryEntity>,
-
     @InjectRepository(CouponEntity)
     private readonly couponRepo: Repository<CouponEntity>,
 
@@ -51,6 +40,8 @@ export class MemberService {
 
     @InjectRepository(CouponProductCategoryRelationEntity)
     private readonly couponCategoryRelRepo: Repository<CouponProductCategoryRelationEntity>,
+
+    private readonly transactionService: TransactionService,
   ) {}
 
   /**
@@ -158,188 +149,6 @@ export class MemberService {
     await this.addressRepo.delete({ id, memberId });
   }
 
-  // ========== 商品收藏 ==========
-
-  /**
-   * 添加商品收藏
-   * 若已收藏则不重复插入
-   */
-  async addProductCollection(
-    memberId: number,
-    data: Record<string, unknown>,
-  ): Promise<void> {
-    const productId = data.productId as number;
-    const existing = await this.productCollectionRepo.findOne({
-      where: { memberId, productId },
-    });
-    if (existing) return;
-    const record = this.productCollectionRepo.create({
-      ...(data as Partial<MemberProductCollectionEntity>),
-      memberId,
-      createTime: new Date(),
-    });
-    await this.productCollectionRepo.save(record);
-  }
-
-  /**
-   * 删除商品收藏
-   */
-  async deleteProductCollection(
-    memberId: number,
-    productId: number,
-  ): Promise<void> {
-    await this.productCollectionRepo.delete({ memberId, productId });
-  }
-
-  /**
-   * 获取商品收藏列表（分页）
-   */
-  async listProductCollection(
-    memberId: number,
-    pageNum: number,
-    pageSize: number,
-  ): Promise<unknown> {
-    const page = Number(pageNum) || 1;
-    const size = Number(pageSize) || 10;
-    const [list, total] = await this.productCollectionRepo.findAndCount({
-      where: { memberId },
-      skip: (page - 1) * size,
-      take: size,
-    });
-    return { list, total };
-  }
-
-  /**
-   * 获取商品收藏详情
-   */
-  async getProductCollectionDetail(
-    memberId: number,
-    productId: number,
-  ): Promise<unknown> {
-    return this.productCollectionRepo.findOne({
-      where: { memberId, productId },
-    });
-  }
-
-  /**
-   * 清空商品收藏
-   */
-  async clearProductCollection(memberId: number): Promise<void> {
-    await this.productCollectionRepo.delete({ memberId });
-  }
-
-  // ========== 品牌关注 ==========
-
-  /**
-   * 添加品牌关注
-   * 若已关注则不重复插入
-   */
-  async addBrandAttention(
-    memberId: number,
-    data: Record<string, unknown>,
-  ): Promise<void> {
-    const brandId = data.brandId as number;
-    const existing = await this.brandAttentionRepo.findOne({
-      where: { memberId, brandId },
-    });
-    if (existing) return;
-    const record = this.brandAttentionRepo.create({
-      ...(data as Partial<MemberBrandAttentionEntity>),
-      memberId,
-      createTime: new Date(),
-    });
-    await this.brandAttentionRepo.save(record);
-  }
-
-  /**
-   * 删除品牌关注
-   */
-  async deleteBrandAttention(memberId: number, brandId: number): Promise<void> {
-    await this.brandAttentionRepo.delete({ memberId, brandId });
-  }
-
-  /**
-   * 获取品牌关注列表（分页）
-   */
-  async listBrandAttention(
-    memberId: number,
-    pageNum: number,
-    pageSize: number,
-  ): Promise<unknown> {
-    const page = Number(pageNum) || 1;
-    const size = Number(pageSize) || 10;
-    const [list, total] = await this.brandAttentionRepo.findAndCount({
-      where: { memberId },
-      skip: (page - 1) * size,
-      take: size,
-    });
-    return { list, total };
-  }
-
-  /**
-   * 获取品牌关注详情
-   */
-  async getBrandAttentionDetail(
-    memberId: number,
-    brandId: number,
-  ): Promise<unknown> {
-    return this.brandAttentionRepo.findOne({ where: { memberId, brandId } });
-  }
-
-  /**
-   * 清空品牌关注
-   */
-  async clearBrandAttention(memberId: number): Promise<void> {
-    await this.brandAttentionRepo.delete({ memberId });
-  }
-
-  // ========== 浏览历史 ==========
-
-  /**
-   * 创建浏览记录
-   * 先删除同一会员对同一商品的旧记录，再插入新记录（保证最新时间排序）
-   */
-  async createReadHistory(
-    memberId: number,
-    data: Record<string, unknown>,
-  ): Promise<void> {
-    const productId = data.productId as number;
-    // 删除旧记录，避免重复
-    await this.readHistoryRepo.delete({ memberId, productId });
-    const record = this.readHistoryRepo.create({
-      ...(data as Partial<MemberReadHistoryEntity>),
-      memberId,
-      createTime: new Date(),
-    });
-    await this.readHistoryRepo.save(record);
-  }
-
-  /**
-   * 获取浏览历史列表（分页），按浏览时间倒序
-   */
-  async listReadHistory(
-    memberId: number,
-    pageNum: number,
-    pageSize: number,
-  ): Promise<unknown> {
-    const page = Number(pageNum) || 1;
-    const size = Number(pageSize) || 10;
-    const [list, total] = await this.readHistoryRepo.findAndCount({
-      where: { memberId },
-      order: { createTime: 'DESC' },
-      skip: (page - 1) * size,
-      take: size,
-    });
-    return { list, total };
-  }
-
-  /**
-   * 清空浏览历史
-   */
-  async clearReadHistory(memberId: number): Promise<void> {
-    await this.readHistoryRepo.delete({ memberId });
-  }
-
   // ========== 会员优惠券 ==========
 
   /**
@@ -370,31 +179,34 @@ export class MemberService {
       throw new BadRequestException('超出领取限制');
     }
 
-    // 先扣库存（乐观锁），affected 为 0 说明库存不足
-    const result = await this.couponRepo
-      .createQueryBuilder()
-      .update()
-      .set({
-        count: () => 'count - 1',
-        receiveCount: () => 'receive_count + 1',
-      })
-      .where('id = :id AND count > 0', { id: couponId })
-      .execute();
+    // 事务：库存扣减 + 领取记录插入，确保原子性
+    await this.transactionService.run(async (manager) => {
+      // 乐观锁扣库存，affected 为 0 说明库存不足（并发安全）
+      const result = await manager
+        .createQueryBuilder()
+        .update(CouponEntity)
+        .set({
+          count: () => 'count - 1',
+          receiveCount: () => 'receive_count + 1',
+        })
+        .where('id = :id AND count > 0', { id: couponId })
+        .execute();
 
-    if (result.affected === 0) {
-      throw new BadRequestException('优惠券已经领完了');
-    }
+      if (result.affected === 0) {
+        throw new BadRequestException('优惠券已经领完了');
+      }
 
-    // 库存扣减成功后再插入领取记录
-    const history = this.couponHistoryRepo.create({
-      memberId,
-      couponId,
-      couponCode: randomUUID().replace(/-/g, '').substring(0, 32),
-      createTime: now,
-      useStatus: 0,
-      getType: 1,
+      // 插入领取记录
+      const history = manager.create(CouponHistoryEntity, {
+        memberId,
+        couponId,
+        couponCode: randomUUID().replace(/-/g, '').substring(0, 32),
+        createTime: now,
+        useStatus: 0,
+        getType: 1,
+      });
+      await manager.save(CouponHistoryEntity, history);
     });
-    await this.couponHistoryRepo.save(history);
   }
 
   /**
@@ -497,13 +309,5 @@ export class MemberService {
     if (couponIds.length === 0) return [];
 
     return this.couponRepo.findBy({ id: In(couponIds) });
-  }
-
-  /**
-   * 按 ID 删除浏览记录
-   * 迁移自 MemberReadHistoryServiceImpl.delete()
-   */
-  async deleteReadHistoryByIds(memberId: number, ids: number[]): Promise<void> {
-    await this.readHistoryRepo.delete({ memberId, id: In(ids) });
   }
 }

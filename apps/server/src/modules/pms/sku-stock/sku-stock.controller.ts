@@ -13,7 +13,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { SkuStockService } from './sku-stock.service';
-import { SkuStockEntity } from './infrastructure/persistence/relational/entities/sku-stock.entity';
+import { SkuStockItemDto } from './dto/update-sku-stock.dto';
 
 @ApiTags('管理端-PMS-SKU库存')
 @ApiBearerAuth()
@@ -36,7 +36,7 @@ export class SkuStockController {
   @ApiOperation({ summary: '批量更新SKU库存' })
   update(
     @Param('pid', ParseIntPipe) pid: number,
-    @Body() stocks: SkuStockEntity[],
+    @Body() stocks: SkuStockItemDto[],
   ) {
     return this.service.update(pid, stocks);
   }

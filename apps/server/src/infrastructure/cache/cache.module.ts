@@ -3,9 +3,7 @@ import { CacheModule as NestCacheModule } from '@nestjs/cache-manager';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { redisStore } from 'cache-manager-redis-yet';
 import { AllConfigType } from '../../config/config.type';
-
-/** 默认缓存 TTL：1 小时（cache-manager v7 单位毫秒） */
-const CACHE_TTL_MS = 3600 * 1000;
+import { CACHE_TTL_MS } from '@/common/constants';
 
 @Global()
 @Module({

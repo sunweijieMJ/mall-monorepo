@@ -12,6 +12,10 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminResourceService } from './admin-resource.service';
 import { PageQueryDto } from '@/common/dto/page-result.dto';
+import { CreateAdminResourceDto } from './dto/create-admin-resource.dto';
+import { UpdateAdminResourceDto } from './dto/update-admin-resource.dto';
+import { CreateResourceCategoryDto } from './dto/create-resource-category.dto';
+import { UpdateResourceCategoryDto } from './dto/update-resource-category.dto';
 
 @ApiTags('后台资源管理')
 @ApiBearerAuth()
@@ -22,13 +26,16 @@ export class AdminResourceController {
 
   @Post('create')
   @ApiOperation({ summary: '添加后台资源' })
-  create(@Body() dto: any) {
+  create(@Body() dto: CreateAdminResourceDto) {
     return this.service.create(dto);
   }
 
   @Post('update/:id')
   @ApiOperation({ summary: '修改后台资源' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateAdminResourceDto,
+  ) {
     return this.service.update(id, dto);
   }
 
@@ -76,13 +83,16 @@ export class AdminResourceCategoryController {
 
   @Post('create')
   @ApiOperation({ summary: '添加后台资源分类' })
-  create(@Body() dto: any) {
+  create(@Body() dto: CreateResourceCategoryDto) {
     return this.service.createCategory(dto);
   }
 
   @Post('update/:id')
   @ApiOperation({ summary: '修改后台资源分类' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateResourceCategoryDto,
+  ) {
     return this.service.updateCategory(id, dto);
   }
 

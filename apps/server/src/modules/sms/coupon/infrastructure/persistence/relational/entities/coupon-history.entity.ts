@@ -1,13 +1,23 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { CouponEntity } from './coupon.entity';
 
 @Entity('sms_coupon_history')
 export class CouponHistoryEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @Column({ name: 'coupon_id', nullable: true })
   couponId: number;
 
+  @Index()
   @Column({ name: 'member_id', nullable: true })
   memberId: number;
 
@@ -61,4 +71,14 @@ export class CouponHistoryEntity {
     comment: '订单号码',
   })
   orderSn: string;
+
+  // ---- Relations ----
+
+  @ManyToOne(() => CouponEntity, (coupon) => coupon.couponHistories, {
+    createForeignKeyConstraints: false,
+    eager: false,
+    nullable: true,
+  })
+  @JoinColumn({ name: 'coupon_id' })
+  coupon: CouponEntity;
 }

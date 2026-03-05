@@ -41,7 +41,8 @@ export class ResourceGuard implements CanActivate {
 
     if (request.method === 'OPTIONS') return true;
 
-    const requestPath = request.path as string;
+    // 移除全局前缀和版本前缀后再匹配（资源表中存储不含前缀的路径）
+    const requestPath = (request.path as string).replace(/^\/api\/v\d+/, '');
 
     // 获取全局资源 Map（URL pattern -> resourceId:name）
     const resourceMap = await this.adminCacheService.getAllResourceMap();

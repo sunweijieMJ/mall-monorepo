@@ -16,11 +16,10 @@ export class AdminMenuService {
     // 计算 level
     if (dto.parentId !== 0 && dto.parentId != null) {
       const parent = await this.menuRepo.findOneBy({ id: dto.parentId });
-      if (parent) {
-        dto.level = parent.level + 1;
-      } else {
-        dto.level = 0;
+      if (!parent) {
+        throw new NotFoundException(`父菜单 ${dto.parentId} 不存在`);
       }
+      dto.level = parent.level + 1;
     } else {
       dto.level = 0;
     }
@@ -34,7 +33,10 @@ export class AdminMenuService {
       dto.level = 0;
     } else {
       const parent = await this.menuRepo.findOneBy({ id: dto.parentId });
-      dto.level = parent ? parent.level + 1 : 0;
+      if (!parent) {
+        throw new NotFoundException(`父菜单 ${dto.parentId} 不存在`);
+      }
+      dto.level = parent.level + 1;
     }
     await this.menuRepo.update(id, dto);
     return 1;
@@ -47,10 +49,35 @@ export class AdminMenuService {
     return menu;
   }
 
-  /** 删除菜单 */
+  /** 删除菜单（级联删除所有子菜单） */
   async delete(id: number): Promise<number> {
-    await this.menuRepo.delete(id);
-    return 1;
+    // 递归收集所有后代菜单 ID
+    const idsToDelete = await this.collectDescendantIds(id);
+    idsToDelete.push(id);
+    await this.menuRepo.delete(idsToDelete);
+    return idsToDelete.length;
+  }
+
+  /** 收集所有后代菜单 ID（一次查询全部菜单，内存递归，避免 N+1） */
+  private async collectDescendantIds(parentId: number): Promise<number[]> {
+    const allMenus = await this.menuRepo.find({ select: ['id', 'parentId'] });
+    // 构建 parentId -> children 映射
+    const childrenMap = new Map<number, number[]>();
+    for (const menu of allMenus) {
+      const list = childrenMap.get(menu.parentId) ?? [];
+      list.push(menu.id);
+      childrenMap.set(menu.parentId, list);
+    }
+    // BFS 收集所有后代
+    const result: number[] = [];
+    const queue = childrenMap.get(parentId) ?? [];
+    while (queue.length > 0) {
+      const id = queue.shift()!;
+      result.push(id);
+      const children = childrenMap.get(id);
+      if (children) queue.push(...children);
+    }
+    return result;
   }
 
   /** 分页查询菜单（按 parentId） */

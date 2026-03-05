@@ -6,6 +6,7 @@ import { Cache } from 'cache-manager';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { AllConfigType } from '@/config/config.type';
 import { JwtPayload } from '../types/jwt-payload.type';
+import { JWT_VALID_CACHE_TTL_MS } from '@/common/constants';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -22,22 +23,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(request: any, payload: JwtPayload): Promise<JwtPayload> {
-    // 从 Authorization header 提取原始 token
     const authHeader = request.headers['authorization'] as string;
     const token = authHeader?.startsWith('Bearer ')
       ? authHeader.slice(7)
       : null;
 
-    if (!token) return payload;
-
-    // 1. 先检查 30 秒"token 有效"缓存，命中则跳过黑名单查询（减少 Redis 负载）
-    const validCacheKey = `mall:jwt_valid:${token}`;
-    const isValidCached = await this.cacheManager.get<string>(validCacheKey);
-    if (isValidCached) {
-      return payload;
+    if (!token) {
+      throw new UnauthorizedException('Missing token');
     }
 
-    // 2. 检查 token 是否在黑名单中
+    // 1. 先检查黑名单（优先级最高，确保登出后立即失效）
     const blacklisted = await this.cacheManager.get(
       `mall:token_blacklist:${token}`,
     );
@@ -45,9 +40,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('token 已失效');
     }
 
-    // 3. 验证通过，缓存结果 30 秒，下次同 token 请求直接命中缓存
-    // 注意：logout 时需同时删除此 key（在 auth.service.logout 中处理）
-    await this.cacheManager.set(validCacheKey, '1', 30_000);
+    // 2. 检查有效缓存，命中则跳过后续查询（减少 Redis 负载）
+    const validCacheKey = `mall:jwt_valid:${token}`;
+    const isValidCached = await this.cacheManager.get<string>(validCacheKey);
+    if (!isValidCached) {
+      // 3. 验证通过，缓存结果（避免每次请求都查 Redis 黑名单）
+      await this.cacheManager.set(validCacheKey, '1', JWT_VALID_CACHE_TTL_MS);
+    }
 
     return payload;
   }

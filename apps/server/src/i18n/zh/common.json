@@ -1,0 +1,6 @@
+{
+  "serverError": "服务器内部错误",
+  "tooManyRequests": "请求过于频繁，请稍后再试",
+  "unauthorized": "未授权",
+  "forbidden": "无权限访问"
+}

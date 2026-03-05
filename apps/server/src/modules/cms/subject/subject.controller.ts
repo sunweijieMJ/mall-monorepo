@@ -12,12 +12,9 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import {
-  SubjectService,
-  CreateSubjectDto,
-  SubjectQueryDto,
-} from './subject.service';
+import { SubjectService } from './subject.service';
 import { PageQueryDto } from '@/common/dto/page-result.dto';
+import { CreateSubjectDto, SubjectQueryDto } from './dto/create-subject.dto';
 
 @ApiTags('管理端-CMS-专题')
 @ApiBearerAuth()

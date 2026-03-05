@@ -10,6 +10,8 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { CompanyAddressService } from './company-address.service';
+import { CreateCompanyAddressDto } from './dto/create-company-address.dto';
+import { UpdateCompanyAddressDto } from './dto/update-company-address.dto';
 
 @ApiTags('管理端-公司收发货地址')
 @ApiBearerAuth()
@@ -20,13 +22,16 @@ export class CompanyAddressController {
 
   @Post('create')
   @ApiOperation({ summary: '添加公司收发货地址' })
-  create(@Body() dto: any) {
+  create(@Body() dto: CreateCompanyAddressDto) {
     return this.service.create(dto);
   }
 
   @Post('update/:id')
   @ApiOperation({ summary: '修改公司收发货地址' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateCompanyAddressDto,
+  ) {
     return this.service.update(id, dto);
   }
 

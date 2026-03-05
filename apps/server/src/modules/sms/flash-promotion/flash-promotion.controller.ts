@@ -11,6 +11,14 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { FlashPromotionService } from './flash-promotion.service';
+import {
+  CreateFlashPromotionDto,
+  UpdateFlashPromotionDto,
+  CreateFlashSessionDto,
+  UpdateFlashSessionDto,
+  CreateFlashProductRelationDto,
+  UpdateFlashProductRelationDto,
+} from './dto/create-flash-promotion.dto';
 
 // ---- 秒杀活动 ----
 @ApiTags('管理端-SMS-秒杀活动')
@@ -22,13 +30,16 @@ export class FlashPromotionController {
 
   @Post('create')
   @ApiOperation({ summary: '添加秒杀活动' })
-  create(@Body() dto: any) {
+  create(@Body() dto: CreateFlashPromotionDto) {
     return this.service.createFlash(dto);
   }
 
   @Post('update/:id')
   @ApiOperation({ summary: '编辑秒杀活动' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateFlashPromotionDto,
+  ) {
     return this.service.updateFlash(id, dto);
   }
 
@@ -78,13 +89,16 @@ export class FlashSessionController {
 
   @Post('create')
   @ApiOperation({ summary: '添加场次' })
-  create(@Body() dto: any) {
+  create(@Body() dto: CreateFlashSessionDto) {
     return this.service.createSession(dto);
   }
 
   @Post('update/:id')
   @ApiOperation({ summary: '修改场次' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateFlashSessionDto,
+  ) {
     return this.service.updateSession(id, dto);
   }
 
@@ -132,13 +146,16 @@ export class FlashProductRelationController {
 
   @Post('create')
   @ApiOperation({ summary: '批量选择商品添加关联' })
-  create(@Body() relationList: any[]) {
+  create(@Body() relationList: CreateFlashProductRelationDto[]) {
     return this.service.createRelation(relationList);
   }
 
   @Post('update/:id')
   @ApiOperation({ summary: '修改关联信息' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateFlashProductRelationDto,
+  ) {
     return this.service.updateRelation(id, dto);
   }
 

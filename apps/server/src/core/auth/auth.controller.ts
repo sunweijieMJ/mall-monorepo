@@ -7,8 +7,9 @@ import {
   Post,
   Query,
   Req,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { AdminLoginDto } from './dto/admin-login.dto';
 import { RegisterAdminDto } from './dto/register-admin.dto';
@@ -18,6 +19,7 @@ import {
   PortalSmsLoginDto,
 } from './dto/portal-login.dto';
 import { Public } from './decorators/public.decorator';
+import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 
 // ======================== 管理端认证 ========================
 
@@ -71,11 +73,28 @@ export class AdminAuthController {
   }
 
   @Public()
+  @UseGuards(JwtRefreshGuard)
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: '刷新 Token' })
-  refresh(@Body('refreshToken') refreshToken: string) {
-    return this.authService.refreshToken(refreshToken);
+  @ApiOperation({
+    summary: '刷新 Token',
+    description:
+      '使用 Refresh Token 获取新的 Access Token + Refresh Token 对（Rotation 机制，旧 Refresh Token 立即失效）',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        refreshToken: {
+          type: 'string',
+          description: 'Refresh Token',
+        },
+      },
+      required: ['refreshToken'],
+    },
+  })
+  refresh(@Req() req: any) {
+    return this.authService.refreshToken(req.user);
   }
 }
 
@@ -132,6 +151,31 @@ export class PortalAuthController {
   })
   getMemberInfo(@Req() req: any) {
     return this.authService.getMemberInfo(req.user.sub as number);
+  }
+
+  @Public()
+  @UseGuards(JwtRefreshGuard)
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: '刷新 Token',
+    description:
+      '使用 Refresh Token 获取新的 Access Token + Refresh Token 对（Rotation 机制，旧 Refresh Token 立即失效）',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        refreshToken: {
+          type: 'string',
+          description: 'Refresh Token',
+        },
+      },
+      required: ['refreshToken'],
+    },
+  })
+  portalRefresh(@Req() req: any) {
+    return this.authService.refreshToken(req.user);
   }
 
   @Post('logout')

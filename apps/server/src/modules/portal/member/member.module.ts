@@ -3,9 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   MemberEntity,
   MemberAddressEntity,
-  MemberProductCollectionEntity,
-  MemberBrandAttentionEntity,
-  MemberReadHistoryEntity,
 } from './infrastructure/persistence/relational/entities/member.entity';
 import { CouponEntity } from '@/modules/sms/coupon/infrastructure/persistence/relational/entities/coupon.entity';
 import { CouponHistoryEntity } from '@/modules/sms/coupon/infrastructure/persistence/relational/entities/coupon-history.entity';
@@ -16,9 +13,6 @@ import { MemberService } from './member.service';
 import {
   MemberInfoController,
   MemberAddressController,
-  MemberProductCollectionController,
-  MemberBrandAttentionController,
-  MemberReadHistoryController,
   MemberCouponController,
 } from './member.controller';
 
@@ -27,9 +21,6 @@ import {
     TypeOrmModule.forFeature([
       MemberEntity,
       MemberAddressEntity,
-      MemberProductCollectionEntity,
-      MemberBrandAttentionEntity,
-      MemberReadHistoryEntity,
       CouponEntity,
       CouponHistoryEntity,
       CouponProductRelationEntity,
@@ -40,9 +31,6 @@ import {
   controllers: [
     MemberInfoController,
     MemberAddressController,
-    MemberProductCollectionController,
-    MemberBrandAttentionController,
-    MemberReadHistoryController,
     MemberCouponController,
   ],
   providers: [MemberService],

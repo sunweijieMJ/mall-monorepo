@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Like, Repository } from 'typeorm';
+import { In, Like, Repository } from 'typeorm';
 import {
   FlashPromotionEntity,
   FlashSessionEntity,
@@ -166,19 +166,20 @@ export class FlashPromotionService {
       order: { sort: 'DESC' },
     });
 
-    // 联表查询商品信息
-    const list = await Promise.all(
-      relations.map(async (relation) => {
-        const product = await this.productRepo.findOne({
-          where: { id: relation.productId },
-          select: ['id', 'name', 'pic', 'price', 'productSn', 'stock'],
-        });
-        return {
-          ...relation,
-          product,
-        };
-      }),
-    );
+    // 批量查询商品信息（避免 N+1）
+    const productIds = relations.map((r) => r.productId).filter(Boolean);
+    const products =
+      productIds.length > 0
+        ? await this.productRepo.find({
+            where: { id: In(productIds) },
+            select: ['id', 'name', 'pic', 'price', 'productSn', 'stock'],
+          })
+        : [];
+    const productMap = new Map(products.map((p) => [p.id, p]));
+    const list = relations.map((relation) => ({
+      ...relation,
+      product: productMap.get(relation.productId) ?? null,
+    }));
 
     const query = new PageQueryDto();
     query.pageNum = pageNum;

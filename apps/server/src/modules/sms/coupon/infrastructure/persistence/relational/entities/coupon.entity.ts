@@ -2,8 +2,12 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { CouponHistoryEntity } from './coupon-history.entity';
+import { CouponProductRelationEntity } from './coupon-product-relation.entity';
+import { CouponProductCategoryRelationEntity } from './coupon-product-category-relation.entity';
 
 @Entity('sms_coupon')
 export class CouponEntity {
@@ -85,4 +89,15 @@ export class CouponEntity {
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
+
+  // ---- Relations ----
+
+  @OneToMany(() => CouponHistoryEntity, (history) => history.coupon)
+  couponHistories: CouponHistoryEntity[];
+
+  @OneToMany(() => CouponProductRelationEntity, (rel) => rel.coupon)
+  couponProductRelations: CouponProductRelationEntity[];
+
+  @OneToMany(() => CouponProductCategoryRelationEntity, (rel) => rel.coupon)
+  couponProductCategoryRelations: CouponProductCategoryRelationEntity[];
 }

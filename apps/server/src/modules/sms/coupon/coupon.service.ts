@@ -7,6 +7,7 @@ import { CouponHistoryEntity } from './infrastructure/persistence/relational/ent
 import { CouponProductRelationEntity } from './infrastructure/persistence/relational/entities/coupon-product-relation.entity';
 import { CouponProductCategoryRelationEntity } from './infrastructure/persistence/relational/entities/coupon-product-category-relation.entity';
 import { PageQueryDto, PageResult } from '@/common/dto/page-result.dto';
+import { CreateCouponDto, UpdateCouponDto } from './dto/create-coupon.dto';
 
 @Injectable()
 export class CouponService {
@@ -43,16 +44,17 @@ export class CouponService {
   }
 
   // 创建优惠券（含关联关系）
-  async create(dto: any): Promise<CouponEntity> {
+  async create(dto: CreateCouponDto): Promise<CouponEntity> {
     const { productRelationList, productCategoryRelationList, ...couponData } =
       dto;
 
-    couponData.count = couponData.publishCount;
-    couponData.useCount = 0;
-    couponData.receiveCount = 0;
-
     return this.transactionService.run(async (manager) => {
-      const coupon = await manager.save(CouponEntity, couponData);
+      const coupon = await manager.save(CouponEntity, {
+        ...couponData,
+        count: couponData.publishCount,
+        useCount: 0,
+        receiveCount: 0,
+      });
 
       // useType=2: 指定商品
       if (couponData.useType === 2 && productRelationList?.length) {
@@ -96,7 +98,7 @@ export class CouponService {
   }
 
   // 更新优惠券（含关联关系）
-  async update(id: number, dto: any): Promise<void> {
+  async update(id: number, dto: UpdateCouponDto): Promise<void> {
     const { productRelationList, productCategoryRelationList, ...couponData } =
       dto;
 

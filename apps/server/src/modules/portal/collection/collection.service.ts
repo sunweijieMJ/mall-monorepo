@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { MemberProductCollectionNewEntity } from './infrastructure/persistence/relational/entities/member-product-collection.entity';
@@ -9,7 +9,7 @@ export interface AddCollectionDto {
   productId: number;
   productName?: string;
   productPic?: string;
-  productPrice?: string;
+  productPrice?: number;
   productSubTitle?: string;
   productSkuCode?: string;
 }
@@ -30,7 +30,7 @@ export class CollectionService {
   async add(
     memberId: number,
     dto: AddCollectionDto,
-  ): Promise<MemberProductCollectionNewEntity | { message: string }> {
+  ): Promise<MemberProductCollectionNewEntity> {
     const { productId } = dto;
 
     // 检查是否已收藏
@@ -38,7 +38,7 @@ export class CollectionService {
       where: { memberId, productId },
     });
     if (existing) {
-      return { message: '已收藏该商品' };
+      throw new BadRequestException('已收藏该商品');
     }
 
     const entity = this.collectionRepo.create({

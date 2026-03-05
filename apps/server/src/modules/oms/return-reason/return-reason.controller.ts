@@ -12,6 +12,8 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { ReturnReasonService } from './return-reason.service';
 import { PageQueryDto } from '@/common/dto/page-result.dto';
+import { CreateReturnReasonDto } from './dto/create-return-reason.dto';
+import { UpdateReturnReasonDto } from './dto/update-return-reason.dto';
 
 @ApiTags('管理端-OMS-退货原因')
 @ApiBearerAuth()
@@ -22,13 +24,16 @@ export class ReturnReasonController {
 
   @Post('create')
   @ApiOperation({ summary: '添加退货原因' })
-  create(@Body() dto: any) {
+  create(@Body() dto: CreateReturnReasonDto) {
     return this.service.create(dto);
   }
 
   @Post('update/:id')
   @ApiOperation({ summary: '修改退货原因' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateReturnReasonDto,
+  ) {
     return this.service.update(id, dto);
   }
 

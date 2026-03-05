@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { CartItemEntity } from './infrastructure/persistence/relational/entities/cart-item.entity';
@@ -56,7 +60,7 @@ export class CartService {
         const sku = skuMap.get(item.productSkuId);
         if (sku) {
           // 可用库存 = 库存 - 锁定库存，若 <= 0 则标记为库存不足（deleteStatus=0）
-          const available = sku.stock - sku.lockStock;
+          const available = (sku.stock ?? 0) - (sku.lockStock ?? 0);
           if (available <= 0) {
             item.deleteStatus = 0;
           }
@@ -103,21 +107,6 @@ export class CartService {
       throw new NotFoundException(`商品 ${productId} 不存在`);
     }
 
-    // 解析 SKU 规格数据（spData JSON 格式：[{key, value}, ...]）
-    let sp1: string | undefined;
-    let sp2: string | undefined;
-    let sp3: string | undefined;
-    try {
-      const spList: Array<{ key: string; value: string }> = JSON.parse(
-        sku.spData ?? '[]',
-      );
-      sp1 = spList[0]?.value;
-      sp2 = spList[1]?.value;
-      sp3 = spList[2]?.value;
-    } catch {
-      // spData 解析失败则忽略
-    }
-
     // 构建新购物车条目
     const item = this.cartRepo.create({
       memberId,
@@ -133,12 +122,6 @@ export class CartService {
       productCategoryId: product.productCategoryId,
       deleteStatus: 1,
     });
-
-    // TypeORM 实体没有 sp1/sp2/sp3 字段，通过 productAttr 存储规格信息
-    // 如实际业务需要单独 sp 字段，请在 entity 中添加
-    void sp1;
-    void sp2;
-    void sp3;
 
     return this.cartRepo.save(item);
   }
@@ -217,7 +200,7 @@ export class CartService {
    */
   async updateAttr(
     memberId: number,
-    dto: { id: number; productSkuId: number; [key: string]: any },
+    dto: { id: number; productSkuId: number },
   ): Promise<void> {
     const cartItem = await this.cartRepo.findOne({
       where: { id: dto.id, memberId },
@@ -228,6 +211,14 @@ export class CartService {
       where: { id: dto.productSkuId },
     });
     if (!newSku) throw new NotFoundException(`SKU ${dto.productSkuId} 不存在`);
+
+    // 检查目标 SKU 可用库存是否充足
+    const available = (newSku.stock ?? 0) - (newSku.lockStock ?? 0);
+    if (available < cartItem.productQuantity) {
+      throw new BadRequestException(
+        `SKU ${dto.productSkuId} 可用库存不足（可用 ${available}，需要 ${cartItem.productQuantity}）`,
+      );
+    }
 
     // 检查目标 SKU 是否已存在同一商品的购物车条目
     const existingItem = await this.cartRepo.findOne({

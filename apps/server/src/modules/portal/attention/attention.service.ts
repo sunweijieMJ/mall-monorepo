@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { MemberBrandAttentionNewEntity } from './infrastructure/persistence/relational/entities/member-brand-attention.entity';
@@ -30,7 +30,7 @@ export class AttentionService {
   async add(
     memberId: number,
     dto: AddAttentionDto,
-  ): Promise<MemberBrandAttentionNewEntity | { message: string }> {
+  ): Promise<MemberBrandAttentionNewEntity> {
     const { brandId } = dto;
 
     // 检查是否已关注
@@ -38,7 +38,7 @@ export class AttentionService {
       where: { memberId, brandId },
     });
     if (existing) {
-      return { message: '已关注该品牌' };
+      throw new BadRequestException('已关注该品牌');
     }
 
     const entity = this.attentionRepo.create({

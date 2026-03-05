@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -11,6 +12,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { CartService, AddCartDto } from './cart.service';
+import { UpdateCartAttrDto } from './dto/update-cart-attr.dto';
 import { OrderService } from '@/modules/oms/order/order.service';
 import { CurrentUser } from '@/core/auth/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/auth/types/jwt-payload.type';
@@ -65,7 +67,17 @@ export class CartController {
     description: '对应前端 POST /cart/delete?ids=1,2',
   })
   delete(@CurrentUser() user: JwtPayload, @Query('ids') ids: string) {
-    return this.service.delete(user.sub, ids.split(',').map(Number));
+    if (!ids) {
+      throw new BadRequestException('ids 参数不能为空');
+    }
+    const idList = ids
+      .split(',')
+      .map(Number)
+      .filter((n) => !isNaN(n));
+    if (!idList.length) {
+      throw new BadRequestException('ids 参数格式无效');
+    }
+    return this.service.delete(user.sub, idList);
   }
 
   @Post('clear')
@@ -102,7 +114,7 @@ export class CartController {
     summary: '修改购物车商品规格',
     description: '对应前端 POST /cart/update/attr',
   })
-  updateAttr(@CurrentUser() user: JwtPayload, @Body() dto: any) {
+  updateAttr(@CurrentUser() user: JwtPayload, @Body() dto: UpdateCartAttrDto) {
     return this.service.updateAttr(user.sub, dto);
   }
 }

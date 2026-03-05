@@ -10,7 +10,7 @@ export interface SaveReadHistoryDto {
   productName?: string;
   productPic?: string;
   productSubTitle?: string;
-  productPrice?: string;
+  productPrice?: number;
   productSkuCode?: string;
 }
 

@@ -39,9 +39,10 @@ export class PortalRegisterDto {
   @Matches(/^1[3-9]\d{9}$/, { message: '手机号格式不正确' })
   telephone: string;
 
-  @ApiProperty({ example: '123456', description: '短信验证码' })
+  @ApiProperty({ example: '123456', description: '短信验证码（6位数字）' })
   @IsString()
   @IsNotEmpty()
+  @Matches(/^\d{6}$/, { message: '验证码必须为6位数字' })
   authCode: string;
 }
 

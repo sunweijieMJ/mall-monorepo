@@ -12,11 +12,9 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import {
-  PrefrenceAreaService,
-  CreatePrefrenceAreaDto,
-} from './prefrence-area.service';
+import { PrefrenceAreaService } from './prefrence-area.service';
 import { PageQueryDto } from '@/common/dto/page-result.dto';
+import { CreatePrefrenceAreaDto } from './dto/create-prefrence-area.dto';
 
 @ApiTags('管理端-CMS-优选专区')
 @ApiBearerAuth()

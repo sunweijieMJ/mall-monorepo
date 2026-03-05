@@ -12,6 +12,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { CouponService } from './coupon.service';
 import { PageQueryDto } from '@/common/dto/page-result.dto';
+import { CreateCouponDto, UpdateCouponDto } from './dto/create-coupon.dto';
 
 @ApiTags('管理端-SMS-优惠券')
 @ApiBearerAuth()
@@ -43,13 +44,13 @@ export class CouponController {
 
   @Post('create')
   @ApiOperation({ summary: '添加优惠券' })
-  create(@Body() dto: any) {
+  create(@Body() dto: CreateCouponDto) {
     return this.service.create(dto);
   }
 
   @Post('update/:id')
   @ApiOperation({ summary: '修改优惠券' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateCouponDto) {
     return this.service.update(id, dto);
   }
 

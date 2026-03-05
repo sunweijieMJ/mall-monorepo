@@ -1,4 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { CouponEntity } from './coupon.entity';
 
 @Entity('sms_coupon_product_category_relation')
 export class CouponProductCategoryRelationEntity {
@@ -26,4 +33,18 @@ export class CouponProductCategoryRelationEntity {
     comment: '父分类名称',
   })
   parentCategoryName: string;
+
+  // ---- Relations ----
+
+  @ManyToOne(
+    () => CouponEntity,
+    (coupon) => coupon.couponProductCategoryRelations,
+    {
+      createForeignKeyConstraints: false,
+      eager: false,
+      nullable: true,
+    },
+  )
+  @JoinColumn({ name: 'coupon_id' })
+  coupon: CouponEntity;
 }

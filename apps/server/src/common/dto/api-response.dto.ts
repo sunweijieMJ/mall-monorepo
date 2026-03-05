@@ -23,10 +23,3 @@ export class ApiErrorResponse {
   @ApiProperty()
   data: Record<string, unknown> | null;
 }
-
-export function createApiResponse<T>(
-  data: T,
-  message = 'success',
-): ApiResponse<T> {
-  return { code: 200, message, data };
-}

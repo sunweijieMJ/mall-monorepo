@@ -1,10 +1,17 @@
 import { randomUUID } from 'crypto';
+import * as path from 'path';
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BullModule } from '@nestjs/bullmq';
 import { LoggerModule } from 'nestjs-pino';
+import {
+  I18nModule,
+  AcceptLanguageResolver,
+  HeaderResolver,
+  QueryResolver,
+} from 'nestjs-i18n';
 
 import appConfig from './config/app.config';
 import authConfig from './core/auth/config/auth.config';
@@ -12,11 +19,19 @@ import databaseConfig from './infrastructure/database/config/database.config';
 import redisConfig from './infrastructure/redis/config/redis.config';
 import throttlerConfig from './infrastructure/throttler/throttler.config';
 import loggerConfig from './infrastructure/logger/config/logger.config';
+import metricsConfig from './infrastructure/metrics/metrics.config';
 import { TypeOrmConfigService } from './infrastructure/database/typeorm-config.service';
 import { AllConfigType } from './config/config.type';
 import { CacheModule } from './infrastructure/cache/cache.module';
 import { ThrottlerModule } from './infrastructure/throttler/throttler.module';
 import { TransactionModule } from './infrastructure/database/transaction/transaction.module';
+import { TransactionInterceptor } from './infrastructure/database/transaction/transaction.interceptor';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { AuditModule } from './infrastructure/audit/audit.module';
+import { AuditInterceptor } from './infrastructure/audit/audit.interceptor';
+import { NotificationModule } from './infrastructure/notification/notification.module';
+import { SchedulerModule } from './infrastructure/scheduler/scheduler.module';
+import { MetricsModule } from './infrastructure/metrics/metrics.module';
 
 // Core
 import { AuthModule } from './core/auth/auth.module';
@@ -61,6 +76,7 @@ import { AttentionModule } from './modules/portal/attention/attention.module';
 import { CollectionModule } from './modules/portal/collection/collection.module';
 import { ReadHistoryModule } from './modules/portal/read-history/read-history.module';
 import { PortalProductModule } from './modules/portal/product/portal-product.module';
+import { PaymentModule } from './modules/portal/payment/payment.module';
 
 // 其他
 import { OssModule } from './modules/oss/oss.module';
@@ -78,8 +94,27 @@ import { HealthModule } from './infrastructure/health/health.module';
         redisConfig,
         throttlerConfig,
         loggerConfig,
+        metricsConfig,
       ],
       envFilePath: ['.env'],
+    }),
+
+    // i18n 国际化（全局）
+    I18nModule.forRootAsync({
+      useFactory: (configService: ConfigService<AllConfigType>) => ({
+        fallbackLanguage:
+          configService.get('app.fallbackLanguage', { infer: true }) || 'zh',
+        loaderOptions: {
+          path: path.join(__dirname, '/i18n/'),
+          watch: true,
+        },
+      }),
+      resolvers: [
+        new HeaderResolver(['x-custom-lang']),
+        new QueryResolver(['lang']),
+        AcceptLanguageResolver,
+      ],
+      inject: [ConfigService],
     }),
 
     // Pino 结构化日志（全局）
@@ -119,11 +154,31 @@ import { HealthModule } from './infrastructure/health/health.module';
             // 自动脱敏敏感字段
             redact: {
               paths: [
+                // 认证信息
                 'req.headers.authorization',
                 'req.headers.cookie',
-                'req.body.password',
-                'req.body.authCode',
                 'req.query.token',
+                // 密码类
+                'req.body.password',
+                'req.body.newPassword',
+                'req.body.oldPassword',
+                'req.body.confirmPassword',
+                // 验证码
+                'req.body.authCode',
+                'req.body.verificationCode',
+                'req.body.smsCode',
+                // 个人隐私
+                'req.body.phone',
+                'req.body.telephone',
+                'req.body.email',
+                'req.body.idCard',
+                'req.body.bankCard',
+                // 支付信息
+                'req.body.privateKey',
+                'req.body.secret',
+                // Token
+                'req.body.refreshToken',
+                'req.body.token',
               ],
               censor: '[REDACTED]',
             },
@@ -146,6 +201,18 @@ import { HealthModule } from './infrastructure/health/health.module';
 
     // 事务模块（全局，提供 TransactionService 替代直接注入 DataSource）
     TransactionModule,
+
+    // 审计日志模块（全局，提供 @Auditable 装饰器 + AuditInterceptor）
+    AuditModule,
+
+    // 消息通知模块（全局，基于 BullMQ 异步队列）
+    NotificationModule,
+
+    // 定时任务模块（基于 @nestjs/schedule，清理过期 Session / Token 黑名单）
+    SchedulerModule,
+
+    // Prometheus 指标模块（全局，提供 /metrics 端点 + HTTP 请求计数/延迟直方图）
+    MetricsModule,
 
     // BullMQ 队列模块（全局）
     BullModule.forRootAsync({
@@ -210,6 +277,7 @@ import { HealthModule } from './infrastructure/health/health.module';
     CollectionModule,
     ReadHistoryModule,
     PortalProductModule,
+    PaymentModule,
 
     // 其他
     OssModule,
@@ -225,6 +293,21 @@ import { HealthModule } from './infrastructure/health/health.module';
     {
       provide: APP_GUARD,
       useClass: ResourceGuard,
+    },
+    // 响应包装拦截器（全局，包装为 {code, message, data}）
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ResponseInterceptor,
+    },
+    // 声明式事务拦截器（全局，配合 @Transactional() 装饰器）
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TransactionInterceptor,
+    },
+    // 审计日志拦截器（全局，配合 @Auditable() 装饰器）
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AuditInterceptor,
     },
   ],
 })

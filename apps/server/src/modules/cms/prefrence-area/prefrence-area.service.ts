@@ -5,15 +5,8 @@ import { PrefrenceAreaEntity } from './infrastructure/persistence/relational/ent
 import { PrefrenceAreaProductRelationEntity } from './infrastructure/persistence/relational/entities/prefrence-area-product-relation.entity';
 import { ProductEntity } from '@/modules/pms/product/infrastructure/persistence/relational/entities/product.entity';
 import { PageQueryDto, PageResult } from '@/common/dto/page-result.dto';
-
-/** 创建/更新优选专区的 DTO */
-export interface CreatePrefrenceAreaDto {
-  name?: string;
-  subTitle?: string;
-  sort?: number;
-  showStatus?: number;
-  pic?: Buffer;
-}
+import { CreatePrefrenceAreaDto } from './dto/create-prefrence-area.dto';
+import { TransactionService } from '@/infrastructure/database/transaction/transaction.service';
 
 @Injectable()
 export class PrefrenceAreaService {
@@ -24,6 +17,7 @@ export class PrefrenceAreaService {
     private readonly relationRepo: Repository<PrefrenceAreaProductRelationEntity>,
     @InjectRepository(ProductEntity)
     private readonly productRepo: Repository<ProductEntity>,
+    private readonly transactionService: TransactionService,
   ) {}
 
   /**
@@ -56,10 +50,14 @@ export class PrefrenceAreaService {
    * @param ids 专区 ID 数组
    */
   async delete(ids: number[]): Promise<void> {
-    // 先删除关联关系
-    await this.relationRepo.delete({ prefrenceAreaId: In(ids) });
-    // 再删除专区
-    await this.areaRepo.delete(ids);
+    await this.transactionService.run(async (manager) => {
+      // 先删除关联关系
+      await manager.delete(PrefrenceAreaProductRelationEntity, {
+        prefrenceAreaId: In(ids),
+      });
+      // 再删除专区
+      await manager.delete(PrefrenceAreaEntity, ids);
+    });
   }
 
   /**
@@ -73,11 +71,7 @@ export class PrefrenceAreaService {
   ): Promise<PageResult<ProductEntity>> {
     const { page, limit } = query;
 
-    const totalCount = await this.relationRepo.count({
-      where: { prefrenceAreaId },
-    });
-
-    const relations = await this.relationRepo.find({
+    const [relations, totalCount] = await this.relationRepo.findAndCount({
       where: { prefrenceAreaId },
       skip: (page - 1) * limit,
       take: limit,

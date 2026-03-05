@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsOptional, Min } from 'class-validator';
+import { IsInt, IsOptional, Max, Min } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 /** 前端分页查询基类（适配 mall 前端传参规范：pageNum + pageSize） */
@@ -14,6 +14,7 @@ export class PageQueryDto {
   @ApiProperty({ description: '每页数量', default: 10 })
   @IsInt()
   @Min(1)
+  @Max(100)
   @IsOptional()
   @Transform(({ value }) => Number(value))
   pageSize?: number = 10;

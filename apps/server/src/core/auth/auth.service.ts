@@ -11,8 +11,10 @@ import { In, Repository } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import * as bcrypt from 'bcryptjs';
+import * as crypto from 'crypto';
 
 import { AllConfigType } from '@/config/config.type';
+import { CACHE_TTL_MS } from '@/common/constants';
 import { AdminLoginDto } from './dto/admin-login.dto';
 import { RegisterAdminDto } from './dto/register-admin.dto';
 import { PortalLoginDto, PortalRegisterDto } from './dto/portal-login.dto';
@@ -27,17 +29,24 @@ import { RoleMenuRelationEntity } from '@/modules/ums/admin-role/infrastructure/
 import { AdminMenuEntity } from '@/modules/ums/admin-menu/infrastructure/persistence/relational/entities/admin-menu.entity';
 import { MemberEntity } from '@/modules/portal/member/infrastructure/persistence/relational/entities/member.entity';
 import { MemberLevelEntity } from '@/modules/ums/member-level/infrastructure/persistence/relational/entities/member-level.entity';
+import { SessionEntity } from './infrastructure/persistence/relational/entities/session.entity';
 
 // Redis 缓存 Key 规范
 const CACHE_KEYS = {
   admin: (username: string) => `mall:admin:${username}`,
   resourceList: (adminId: number) => `mall:resourceList:${adminId}`,
   authCode: (phone: string) => `mall:authCode:${phone}`,
+  authCodeCooldown: (phone: string) => `mall:authCode:recent:${phone}`,
   tokenBlacklist: (token: string) => `mall:token_blacklist:${token}`,
   member: (username: string) => `mall:member:${username}`,
+  loginFail: (username: string) => `mall:login:fail:${username}`,
+  loginLock: (username: string) => `mall:login:lock:${username}`,
 };
-const CACHE_TTL = 3600 * 1000; // 1小时（cache-manager v5+ 使用毫秒）
 const AUTH_CODE_TTL = 900 * 1000; // 15分钟
+const AUTH_CODE_COOLDOWN = 60 * 1000; // 验证码发送冷却 60 秒
+const LOGIN_FAIL_MAX = 5; // 最大登录失败次数
+const LOGIN_LOCK_TTL = 15 * 60 * 1000; // 登录锁定时间 15 分钟
+const LOGIN_FAIL_TTL = 30 * 60 * 1000; // 失败计数窗口 30 分钟
 
 @Injectable()
 export class AuthService {
@@ -61,6 +70,8 @@ export class AuthService {
     private readonly memberRepo: Repository<MemberEntity>,
     @InjectRepository(MemberLevelEntity)
     private readonly memberLevelRepo: Repository<MemberLevelEntity>,
+    @InjectRepository(SessionEntity)
+    private readonly sessionRepo: Repository<SessionEntity>,
   ) {}
 
   /**
@@ -71,6 +82,14 @@ export class AuthService {
     dto: AdminLoginDto,
     ip = '0.0.0.0',
   ): Promise<LoginResponseDto> {
+    // 0. 检查账号是否被锁定（防暴力破解）
+    const isLocked = await this.cacheManager.get(
+      CACHE_KEYS.loginLock(dto.username),
+    );
+    if (isLocked) {
+      throw new UnauthorizedException('登录尝试过多，请 15 分钟后重试');
+    }
+
     // 1. 先从 Redis 缓存查 admin 信息
     let admin: AdminUserEntity | null =
       (await this.cacheManager.get<AdminUserEntity>(
@@ -86,12 +105,14 @@ export class AuthService {
 
     // 3. 不存在抛异常
     if (!admin) {
+      await this.recordLoginFailure(dto.username);
       throw new UnauthorizedException('用户名或密码错误');
     }
 
     // 4. bcrypt 验证密码
     const isPasswordValid = await bcrypt.compare(dto.password, admin.password);
     if (!isPasswordValid) {
+      await this.recordLoginFailure(dto.username);
       throw new UnauthorizedException('用户名或密码错误');
     }
 
@@ -100,22 +121,24 @@ export class AuthService {
       throw new UnauthorizedException('账号已被禁用');
     }
 
-    // 6. 写入 Redis 缓存（不存储密码 hash，防止 Redis 泄露后离线破解）
+    // 6. 登录成功，清除失败计数
+    await this.cacheManager.del(CACHE_KEYS.loginFail(dto.username));
+
+    // 7. 写入 Redis 缓存（不存储密码 hash，防止 Redis 泄露后离线破解）
     await this.cacheManager.set(
       CACHE_KEYS.admin(dto.username),
       { ...admin, password: '' },
-      CACHE_TTL,
+      CACHE_TTL_MS,
     );
 
-    // 7. 签发 JWT
-    const payload: JwtPayload = {
-      sub: admin.id,
-      username: admin.username,
-      type: 'admin',
-    };
-    const token = this.jwtService.sign(payload);
+    // 8. 签发 Token Pair (Access Token + Refresh Token)
+    const tokenPair = await this.generateTokenPair(
+      admin.id,
+      admin.username,
+      'admin',
+    );
 
-    // 8. 写入登录日志
+    // 9. 写入登录日志
     const loginLog = this.loginLogRepo.create({
       adminId: admin.id,
       ip,
@@ -123,10 +146,10 @@ export class AuthService {
     });
     await this.loginLogRepo.save(loginLog);
 
-    // 9. 更新登录时间
+    // 10. 更新登录时间
     await this.adminRepo.update(admin.id, { loginTime: new Date() });
 
-    return { token, tokenHead: 'Bearer' };
+    return tokenPair;
   }
 
   /**
@@ -212,7 +235,7 @@ export class AuthService {
     };
   }
 
-  /** 登出：token 加入黑名单，清除相关缓存 */
+  /** 登出：token 加入黑名单，删除 Session，清除相关缓存 */
   async logout(authorization: string): Promise<void> {
     const pureToken = authorization.replace(/^Bearer\s+/i, '');
     if (!pureToken) return;
@@ -234,6 +257,14 @@ export class AuthService {
     // 同步删除 JWT 有效性缓存，确保登出立即生效（不等 30 秒过期）
     await this.cacheManager.del(`mall:jwt_valid:${pureToken}`);
 
+    // 删除该用户的所有 Session，确保 Refresh Token 也同步失效
+    if (decoded.sub) {
+      await this.sessionRepo.delete({
+        userId: decoded.sub,
+        userType: decoded.type,
+      });
+    }
+
     if (decoded.username) {
       await this.cacheManager.del(CACHE_KEYS.admin(decoded.username));
       await this.cacheManager.del(CACHE_KEYS.member(decoded.username));
@@ -245,46 +276,48 @@ export class AuthService {
   }
 
   /**
-   * 刷新 Token
-   * 迁移自 mall JwtTokenUtil.refreshHeadToken()
+   * 刷新 Token（双 Token 机制）
+   * 使用 Refresh Token 签发新的 Access Token + Refresh Token 对
+   * Refresh Token 由 JwtRefreshGuard 预验证签名和过期时间，此处验证 Session 有效性
    */
-  async refreshToken(oldToken: string): Promise<LoginResponseDto> {
-    // 1. 提取纯 token
-    const pureToken = oldToken.replace(/^Bearer\s+/i, '');
+  async refreshToken(payload: JwtPayload): Promise<LoginResponseDto> {
+    // 1. 从 payload 中取出 sessionId（JwtRefreshStrategy 已验证其存在）
+    const { sessionId, sub, username, type } = payload;
 
-    // 2. 解析 payload（不验证过期）
-    const decoded = this.jwtService.decode(pureToken) as JwtPayload | null;
-    if (!decoded) {
-      throw new UnauthorizedException('无效的 Token');
+    // 2. 查找 Session 记录
+    const session = await this.sessionRepo.findOne({
+      where: { id: sessionId },
+    });
+
+    if (!session) {
+      throw new UnauthorizedException('Session 不存在或已失效，请重新登录');
     }
 
-    const now = Math.floor(Date.now() / 1000);
-
-    // 3. 超过宽限期（24小时）的过期 token，拒绝刷新
-    const REFRESH_WINDOW_SECONDS = 24 * 60 * 60;
-    if (decoded.exp && decoded.exp < now - REFRESH_WINDOW_SECONDS) {
-      throw new UnauthorizedException('Token 已过期太久，请重新登录');
+    // 3. 验证 Session 归属
+    if (session.userId !== sub || session.userType !== type) {
+      throw new UnauthorizedException('Session 信息不匹配');
     }
 
-    // 4. token 未过期且 30 分钟内刚签发过，直接返回原 token（不需要刷新）
-    if (
-      decoded.exp &&
-      decoded.exp > now &&
-      decoded.iat &&
-      now - decoded.iat < 30 * 60
-    ) {
-      return { token: pureToken, tokenHead: 'Bearer' };
+    // 4. 检查账号状态（防止禁用账号仍可刷新 Token）
+    if (type === 'admin') {
+      const admin = await this.adminRepo.findOne({ where: { id: sub } });
+      if (!admin || admin.status !== 1) {
+        await this.sessionRepo.delete({ id: sessionId });
+        throw new UnauthorizedException('账号已被禁用');
+      }
+    } else if (type === 'member') {
+      const member = await this.memberRepo.findOne({ where: { id: sub } });
+      if (!member || member.status !== 1) {
+        await this.sessionRepo.delete({ id: sessionId });
+        throw new UnauthorizedException('账号已被禁用');
+      }
     }
 
-    // 5. 重新签发
-    const payload: JwtPayload = {
-      sub: decoded.sub,
-      username: decoded.username,
-      type: decoded.type,
-    };
-    const newToken = this.jwtService.sign(payload);
+    // 5. 删除旧 Session（Rotation：每次刷新都使旧 Refresh Token 失效）
+    await this.sessionRepo.delete({ id: sessionId });
 
-    return { token: newToken, tokenHead: 'Bearer' };
+    // 6. 签发新的 Token Pair
+    return this.generateTokenPair(sub, username, type);
   }
 
   /**
@@ -292,6 +325,14 @@ export class AuthService {
    * 迁移自 mall UmsMemberServiceImpl.login()
    */
   async portalLogin(dto: PortalLoginDto): Promise<LoginResponseDto> {
+    // 0. 检查账号是否被锁定（防暴力破解）
+    const isLocked = await this.cacheManager.get(
+      CACHE_KEYS.loginLock(dto.username),
+    );
+    if (isLocked) {
+      throw new UnauthorizedException('登录尝试过多，请 15 分钟后重试');
+    }
+
     // 1. 先从 Redis 查
     let member: MemberEntity | null =
       (await this.cacheManager.get<MemberEntity>(
@@ -307,12 +348,14 @@ export class AuthService {
 
     // 3. 不存在
     if (!member) {
+      await this.recordLoginFailure(dto.username);
       throw new UnauthorizedException('用户名或密码错误');
     }
 
     // 4. 验证密码
     const isPasswordValid = await bcrypt.compare(dto.password, member.password);
     if (!isPasswordValid) {
+      await this.recordLoginFailure(dto.username);
       throw new UnauthorizedException('用户名或密码错误');
     }
 
@@ -321,22 +364,24 @@ export class AuthService {
       throw new UnauthorizedException('账号已被禁用');
     }
 
-    // 6. 缓存会员信息（不存储密码 hash，防止 Redis 泄露后离线破解）
+    // 6. 登录成功，清除失败计数
+    await this.cacheManager.del(CACHE_KEYS.loginFail(dto.username));
+
+    // 7. 缓存会员信息（不存储密码 hash，防止 Redis 泄露后离线破解）
     await this.cacheManager.set(
       CACHE_KEYS.member(dto.username),
       { ...member, password: '' },
-      CACHE_TTL,
+      CACHE_TTL_MS,
     );
 
-    // 7. 签发 JWT
-    const payload: JwtPayload = {
-      sub: member.id,
-      username: member.username,
-      type: 'member',
-    };
-    const token = this.jwtService.sign(payload);
+    // 8. 签发 Token Pair (Access Token + Refresh Token)
+    const tokenPair = await this.generateTokenPair(
+      member.id,
+      member.username,
+      'member',
+    );
 
-    return { token, tokenHead: 'Bearer' };
+    return tokenPair;
   }
 
   /**
@@ -409,14 +454,29 @@ export class AuthService {
    * 迁移自 mall UmsMemberServiceImpl.generateAuthCode()
    */
   async generateAuthCode(telephone: string): Promise<string> {
-    // 生成6位随机数字
+    // 1. 检查 60 秒冷却（防止频繁发送）
+    const recentSend = await this.cacheManager.get(
+      CACHE_KEYS.authCodeCooldown(telephone),
+    );
+    if (recentSend) {
+      throw new BadRequestException('验证码发送过于频繁，请 60 秒后再试');
+    }
+
+    // 2. 生成6位随机数字
     const code = String(Math.floor(100000 + Math.random() * 900000));
 
-    // 存入 Redis，15分钟过期
+    // 3. 存入 Redis，15分钟过期
     await this.cacheManager.set(
       CACHE_KEYS.authCode(telephone),
       code,
       AUTH_CODE_TTL,
+    );
+
+    // 4. 记录发送冷却（60 秒）
+    await this.cacheManager.set(
+      CACHE_KEYS.authCodeCooldown(telephone),
+      '1',
+      AUTH_CODE_COOLDOWN,
     );
 
     return code;
@@ -453,6 +513,95 @@ export class AuthService {
 
     // 清除缓存
     await this.cacheManager.del(CACHE_KEYS.member(member.username));
+  }
+
+  /**
+   * 生成 Token Pair (Access Token + Refresh Token)
+   * - Access Token: 短期，用 auth.secret 签名，不含 sessionId
+   * - Refresh Token: 长期，用 auth.refreshSecret 签名，包含 sessionId
+   */
+  private async generateTokenPair(
+    userId: number,
+    username: string,
+    userType: 'admin' | 'member',
+  ): Promise<LoginResponseDto> {
+    const refreshSecret =
+      this.configService.get('auth.refreshSecret', { infer: true }) ||
+      this.configService.getOrThrow('auth.secret', { infer: true });
+    const refreshExpires =
+      this.configService.get('auth.refreshExpires', { infer: true }) || '3650d';
+
+    // 1. 创建 Session 记录
+    const hash = crypto.randomBytes(32).toString('hex');
+    const session = this.sessionRepo.create({
+      userId,
+      userType,
+      hash,
+      expiresAt: this.parseExpiresDate(refreshExpires),
+    });
+    const savedSession = await this.sessionRepo.save(session);
+
+    // 2. 签发 Access Token（短期，不含 sessionId）
+    const accessPayload: JwtPayload = {
+      sub: userId,
+      username,
+      type: userType,
+    };
+    const token = this.jwtService.sign(accessPayload);
+
+    // 3. 签发 Refresh Token（长期，包含 sessionId，使用独立 secret）
+    const refreshPayload: JwtPayload = {
+      sub: userId,
+      username,
+      type: userType,
+      sessionId: savedSession.id,
+    };
+    const refreshToken = this.jwtService.sign(refreshPayload, {
+      secret: refreshSecret,
+      expiresIn: refreshExpires as any,
+    });
+
+    return { token, refreshToken, tokenHead: 'Bearer' };
+  }
+
+  /** 将 JWT 过期时间字符串（如 '3650d', '15m', '1h'）转换为 Date */
+  private parseExpiresDate(expires: string): Date {
+    const now = Date.now();
+    const match = expires.match(/^(\d+)(s|m|h|d)$/);
+    if (!match) {
+      // 默认 10 年
+      return new Date(now + 10 * 365 * 24 * 60 * 60 * 1000);
+    }
+
+    const value = parseInt(match[1], 10);
+    const unit = match[2];
+    const multipliers: Record<string, number> = {
+      s: 1000,
+      m: 60 * 1000,
+      h: 60 * 60 * 1000,
+      d: 24 * 60 * 60 * 1000,
+    };
+
+    return new Date(now + value * multipliers[unit]);
+  }
+
+  /** 记录登录失败次数，达到上限后锁定账号 */
+  private async recordLoginFailure(username: string): Promise<void> {
+    const failCount =
+      ((await this.cacheManager.get<number>(CACHE_KEYS.loginFail(username))) ??
+        0) + 1;
+    await this.cacheManager.set(
+      CACHE_KEYS.loginFail(username),
+      failCount,
+      LOGIN_FAIL_TTL,
+    );
+    if (failCount >= LOGIN_FAIL_MAX) {
+      await this.cacheManager.set(
+        CACHE_KEYS.loginLock(username),
+        '1',
+        LOGIN_LOCK_TTL,
+      );
+    }
   }
 
   /** 构建菜单树（parentId=0 为根节点，递归组装 children） */

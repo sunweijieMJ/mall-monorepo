@@ -1,10 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('ums_member_product_collection')
 export class MemberProductCollectionNewEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @Column({ name: 'member_id' })
   memberId: number;
 
@@ -24,7 +25,7 @@ export class MemberProductCollectionNewEntity {
     scale: 2,
     nullable: true,
   })
-  productPrice: string;
+  productPrice: number;
 
   @Column({ name: 'create_time', type: 'timestamp', nullable: true })
   createTime: Date;

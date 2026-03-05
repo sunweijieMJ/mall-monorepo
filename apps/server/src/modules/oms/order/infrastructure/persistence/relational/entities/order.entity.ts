@@ -2,9 +2,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { OrderItemEntity } from './order-item.entity';
+import { OrderOperateHistoryEntity } from './order-operate-history.entity';
 
 export enum OrderStatus {
   PENDING_PAYMENT = 0, // 待付款
@@ -16,10 +20,13 @@ export enum OrderStatus {
 }
 
 @Entity('oms_order')
+@Index(['memberId', 'createdAt'])
+@Index(['status', 'createdAt'])
 export class OrderEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @Column({ name: 'member_id' })
   memberId: number;
 
@@ -29,6 +36,7 @@ export class OrderEntity {
   @Column({ name: 'coupon_id', nullable: true })
   couponId: number;
 
+  @Index()
   @Column({ name: 'order_sn', length: 64, unique: true, comment: '订单号' })
   orderSn: string;
 
@@ -230,4 +238,12 @@ export class OrderEntity {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  // ---- Relations ----
+
+  @OneToMany(() => OrderItemEntity, (item) => item.order)
+  orderItems: OrderItemEntity[];
+
+  @OneToMany(() => OrderOperateHistoryEntity, (history) => history.order)
+  orderOperateHistories: OrderOperateHistoryEntity[];
 }

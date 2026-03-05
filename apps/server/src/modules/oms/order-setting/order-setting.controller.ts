@@ -10,6 +10,7 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { OrderSettingService } from './order-setting.service';
+import { UpdateOrderSettingDto } from './dto/update-order-setting.dto';
 
 @ApiTags('管理端-订单设置')
 @ApiBearerAuth()
@@ -26,7 +27,10 @@ export class OrderSettingController {
 
   @Post('update/:id')
   @ApiOperation({ summary: '更新订单设置' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() body: any) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateOrderSettingDto,
+  ) {
     return this.service.update(id, body);
   }
 }

@@ -31,6 +31,7 @@ import { AdminResourceEntity } from '@/modules/ums/admin-resource/infrastructure
 import { AdminMenuEntity } from '@/modules/ums/admin-menu/infrastructure/persistence/relational/entities/admin-menu.entity';
 import { MemberEntity } from '@/modules/portal/member/infrastructure/persistence/relational/entities/member.entity';
 import { MemberLevelEntity } from '@/modules/ums/member-level/infrastructure/persistence/relational/entities/member-level.entity';
+import { SessionEntity } from '@/core/auth/infrastructure/persistence/relational/entities/session.entity';
 
 import { createTestApp } from '../helpers/create-test-app';
 import {
@@ -61,6 +62,7 @@ describe('Auth API (e2e)', () => {
   const mockAdminMenuRepo = createMockRepository();
   const mockMemberRepo = createMockRepository();
   const mockMemberLevelRepo = createMockRepository();
+  const mockSessionRepo = createMockRepository();
   const mockCache = createMockCacheManager();
 
   beforeAll(async () => {
@@ -86,6 +88,8 @@ describe('Auth API (e2e)', () => {
         .useValue(mockMemberRepo)
         .overrideProvider(getRepositoryToken(MemberLevelEntity))
         .useValue(mockMemberLevelRepo)
+        .overrideProvider(getRepositoryToken(SessionEntity))
+        .useValue(mockSessionRepo)
         .overrideProvider(CACHE_MANAGER)
         .useValue(mockCache);
     });
@@ -105,6 +109,7 @@ describe('Auth API (e2e)', () => {
       vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
       mockLoginLogRepo.save.mockResolvedValue({});
       mockAdminRepo.update.mockResolvedValue({});
+      mockSessionRepo.save.mockResolvedValue({ id: 1 });
 
       const res = await request(app.getHttpServer())
         .post(url)
@@ -161,7 +166,7 @@ describe('Auth API (e2e)', () => {
         .expect(422);
 
       expect(res.body.code).toBe(422);
-      expect(res.body.data).toBeNull();
+      expect(res.body.data).toHaveProperty('username');
     });
 
     it('缺少 password 字段 → 422', async () => {
@@ -171,7 +176,7 @@ describe('Auth API (e2e)', () => {
         .expect(422);
 
       expect(res.body.code).toBe(422);
-      expect(res.body.data).toBeNull();
+      expect(res.body.data).toHaveProperty('password');
     });
   });
 
@@ -280,6 +285,7 @@ describe('Auth API (e2e)', () => {
     it('正确凭据 → 200 + token', async () => {
       mockMemberRepo.findOne.mockResolvedValue(createMemberFixture());
       vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+      mockSessionRepo.save.mockResolvedValue({ id: 1 });
 
       const res = await request(app.getHttpServer())
         .post(url)
@@ -323,7 +329,7 @@ describe('Auth API (e2e)', () => {
         .expect(422);
 
       expect(res.body.code).toBe(422);
-      expect(res.body.data).toBeNull();
+      expect(res.body.data).toHaveProperty('username');
     });
   });
 
@@ -375,7 +381,7 @@ describe('Auth API (e2e)', () => {
         .expect(422);
 
       expect(res.body.code).toBe(422);
-      expect(res.body.data).toBeNull();
+      expect(res.body.data).toHaveProperty('password');
     });
   });
 });

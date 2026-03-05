@@ -1,6 +1,131 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+  MaxLength,
+  ValidateNested,
+} from 'class-validator';
+
+/** SKU 库存子项 DTO */
+export class SkuStockItemDto {
+  @IsOptional()
+  @IsNumber()
+  id?: number;
+
+  @IsOptional()
+  @IsString()
+  skuCode?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  price?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  stock?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  lockStock?: number;
+
+  @IsOptional()
+  @IsString()
+  spData?: string;
+
+  @IsOptional()
+  @IsString()
+  pic?: string;
+
+  @IsOptional()
+  @IsNumber()
+  sale?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  promotionPrice?: number;
+}
+
+/** 商品属性值子项 DTO */
+export class ProductAttrValueItemDto {
+  @IsOptional()
+  @IsNumber()
+  id?: number;
+
+  @IsOptional()
+  @IsNumber()
+  productAttributeId?: number;
+
+  @IsOptional()
+  @IsString()
+  value?: string;
+}
+
+/** 阶梯价格子项 DTO */
+export class ProductLadderItemDto {
+  @IsOptional()
+  @IsNumber()
+  id?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  count?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  discount?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  price?: number;
+}
+
+/** 满减价格子项 DTO */
+export class ProductFullReductionItemDto {
+  @IsOptional()
+  @IsNumber()
+  id?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  fullPrice?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  reducePrice?: number;
+}
+
+/** 会员价格子项 DTO */
+export class MemberPriceItemDto {
+  @IsOptional()
+  @IsNumber()
+  id?: number;
+
+  @IsOptional()
+  @IsNumber()
+  memberLevelId?: number;
+
+  @IsOptional()
+  @IsString()
+  memberLevelName?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  memberPrice?: number;
+}
 
 /**
  * 创建商品 DTO
@@ -37,6 +162,7 @@ export class CreateProductDto {
 
   @ApiProperty({ description: '商品名称' })
   @IsString()
+  @MaxLength(64)
   name: string;
 
   @ApiPropertyOptional({ description: '商品图片' })
@@ -86,11 +212,13 @@ export class CreateProductDto {
 
   @ApiProperty({ description: '价格' })
   @IsNumber()
+  @Min(0)
   price: number;
 
   @ApiPropertyOptional({ description: '促销价格' })
   @IsOptional()
   @IsNumber()
+  @Min(0)
   promotionPrice?: number;
 
   @ApiPropertyOptional({ description: '赠送积分' })
@@ -121,16 +249,19 @@ export class CreateProductDto {
   @ApiPropertyOptional({ description: '市场价' })
   @IsOptional()
   @IsNumber()
+  @Min(0)
   originalPrice?: number;
 
   @ApiPropertyOptional({ description: '库存' })
   @IsOptional()
   @IsNumber()
+  @Min(0)
   stock?: number;
 
   @ApiPropertyOptional({ description: '预警库存' })
   @IsOptional()
   @IsNumber()
+  @Min(0)
   lowStock?: number;
 
   @ApiPropertyOptional({ description: '单位' })
@@ -212,47 +343,64 @@ export class CreateProductDto {
 
   // ===== 关联子表 =====
 
-  @ApiPropertyOptional({ description: 'SKU 库存列表', type: [Object] })
+  @ApiPropertyOptional({ description: 'SKU 库存列表', type: [SkuStockItemDto] })
   @IsOptional()
   @IsArray()
-  @Type(() => Object)
-  skuStockList?: any[];
+  @ValidateNested({ each: true })
+  @Type(() => SkuStockItemDto)
+  skuStockList?: SkuStockItemDto[];
 
-  @ApiPropertyOptional({ description: '商品属性值列表', type: [Object] })
+  @ApiPropertyOptional({
+    description: '商品属性值列表',
+    type: [ProductAttrValueItemDto],
+  })
   @IsOptional()
   @IsArray()
-  @Type(() => Object)
-  productAttributeValueList?: any[];
+  @ValidateNested({ each: true })
+  @Type(() => ProductAttrValueItemDto)
+  productAttributeValueList?: ProductAttrValueItemDto[];
 
-  @ApiPropertyOptional({ description: '阶梯价格列表', type: [Object] })
+  @ApiPropertyOptional({
+    description: '阶梯价格列表',
+    type: [ProductLadderItemDto],
+  })
   @IsOptional()
   @IsArray()
-  @Type(() => Object)
-  productLadderList?: any[];
+  @ValidateNested({ each: true })
+  @Type(() => ProductLadderItemDto)
+  productLadderList?: ProductLadderItemDto[];
 
-  @ApiPropertyOptional({ description: '满减价格列表', type: [Object] })
+  @ApiPropertyOptional({
+    description: '满减价格列表',
+    type: [ProductFullReductionItemDto],
+  })
   @IsOptional()
   @IsArray()
-  @Type(() => Object)
-  productFullReductionList?: any[];
+  @ValidateNested({ each: true })
+  @Type(() => ProductFullReductionItemDto)
+  productFullReductionList?: ProductFullReductionItemDto[];
 
-  @ApiPropertyOptional({ description: '会员价格列表', type: [Object] })
+  @ApiPropertyOptional({
+    description: '会员价格列表',
+    type: [MemberPriceItemDto],
+  })
   @IsOptional()
   @IsArray()
-  @Type(() => Object)
-  memberPriceList?: any[];
+  @ValidateNested({ each: true })
+  @Type(() => MemberPriceItemDto)
+  memberPriceList?: MemberPriceItemDto[];
 
   @ApiPropertyOptional({ description: '专题关联列表', type: [Object] })
   @IsOptional()
   @IsArray()
   @Type(() => Object)
-  subjectProductRelationList?: any[];
+  subjectProductRelationList?: Record<string, unknown>[];
 
   @ApiPropertyOptional({ description: '优选区域关联列表', type: [Object] })
   @IsOptional()
   @IsArray()
   @Type(() => Object)
-  prefrenceAreaProductRelationList?: any[];
+  prefrenceAreaProductRelationList?: Record<string, unknown>[];
 }
 
 /**

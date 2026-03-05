@@ -1,4 +1,4 @@
-import { NestFactory, Reflector } from '@nestjs/core';
+import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpAdapterHost } from '@nestjs/core';
@@ -7,7 +7,6 @@ import { Logger } from 'nestjs-pino';
 import helmet from 'helmet';
 import { useContainer } from 'class-validator';
 import { AppModule } from './app.module';
-import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import validationOptions from './common/validation-options';
 import { AllConfigType } from './config/config.type';
@@ -75,10 +74,6 @@ async function bootstrap() {
 
   // 全局管道（参数校验）
   app.useGlobalPipes(new ValidationPipe(validationOptions));
-
-  // 全局响应拦截器（包装为 {code, message, data}），需要 Reflector 来读取装饰器元数据
-  const reflector = app.get(Reflector);
-  app.useGlobalInterceptors(new ResponseInterceptor(reflector));
 
   // 全局异常过滤器
   const httpAdapterHost = app.get(HttpAdapterHost);

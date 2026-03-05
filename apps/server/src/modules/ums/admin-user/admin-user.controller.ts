@@ -12,6 +12,8 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminUserService } from './admin-user.service';
 import { PageQueryDto } from '@/common/dto/page-result.dto';
+import { UpdateAdminUserDto } from './dto/update-admin-user.dto';
+import { UpdateAdminPasswordDto } from './dto/update-admin-password.dto';
 
 @ApiTags('后台用户管理')
 @ApiBearerAuth()
@@ -34,7 +36,10 @@ export class AdminUserController {
 
   @Post('update/:id')
   @ApiOperation({ summary: '修改指定用户信息' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateAdminUserDto,
+  ) {
     return this.service.update(id, dto);
   }
 
@@ -55,9 +60,7 @@ export class AdminUserController {
 
   @Post('updatePassword')
   @ApiOperation({ summary: '修改密码' })
-  updatePassword(
-    @Body() dto: { username: string; oldPassword: string; newPassword: string },
-  ) {
+  updatePassword(@Body() dto: UpdateAdminPasswordDto) {
     return this.service.updatePassword(dto);
   }
 

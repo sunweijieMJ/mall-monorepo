@@ -5,29 +5,8 @@ import { SubjectEntity } from './infrastructure/persistence/relational/entities/
 import { SubjectProductRelationEntity } from './infrastructure/persistence/relational/entities/subject-product-relation.entity';
 import { ProductEntity } from '@/modules/pms/product/infrastructure/persistence/relational/entities/product.entity';
 import { PageQueryDto, PageResult } from '@/common/dto/page-result.dto';
-
-/** 创建/更新专题的 DTO */
-export interface CreateSubjectDto {
-  categoryId?: number;
-  title?: string;
-  pic?: string;
-  productCount?: number;
-  recommendStatus?: number;
-  collectCount?: number;
-  readCount?: number;
-  commentCount?: number;
-  albumPics?: string;
-  description?: string;
-  showStatus?: number;
-  forwardCount?: number;
-  categoryName?: string;
-  content?: string;
-}
-
-/** 专题列表查询条件 */
-export interface SubjectQueryDto extends PageQueryDto {
-  keyword?: string;
-}
+import { CreateSubjectDto, SubjectQueryDto } from './dto/create-subject.dto';
+import { TransactionService } from '@/infrastructure/database/transaction/transaction.service';
 
 @Injectable()
 export class SubjectService {
@@ -38,6 +17,7 @@ export class SubjectService {
     private readonly relationRepo: Repository<SubjectProductRelationEntity>,
     @InjectRepository(ProductEntity)
     private readonly productRepo: Repository<ProductEntity>,
+    private readonly transactionService: TransactionService,
   ) {}
 
   /**
@@ -82,10 +62,14 @@ export class SubjectService {
    * @param ids 专题 ID 数组
    */
   async delete(ids: number[]): Promise<void> {
-    // 先删除关联关系
-    await this.relationRepo.delete({ subjectId: In(ids) });
-    // 再删除专题
-    await this.subjectRepo.delete(ids);
+    await this.transactionService.run(async (manager) => {
+      // 先删除关联关系
+      await manager.delete(SubjectProductRelationEntity, {
+        subjectId: In(ids),
+      });
+      // 再删除专题
+      await manager.delete(SubjectEntity, ids);
+    });
   }
 
   /**
@@ -99,14 +83,12 @@ export class SubjectService {
   ): Promise<PageResult<ProductEntity>> {
     const { page, limit } = query;
 
-    // 先查关联表获取商品 ID 列表
-    const relations = await this.relationRepo.find({
+    // 查关联表获取商品 ID 列表（findAndCount 保证 count 与 find 一致）
+    const [relations, totalCount] = await this.relationRepo.findAndCount({
       where: { subjectId },
       skip: (page - 1) * limit,
       take: limit,
     });
-
-    const totalCount = await this.relationRepo.count({ where: { subjectId } });
 
     if (relations.length === 0) {
       return PageResult.of([], totalCount, query);

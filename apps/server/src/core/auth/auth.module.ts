@@ -15,9 +15,11 @@ import { AdminResourceEntity } from '@/modules/ums/admin-resource/infrastructure
 import { AdminMenuEntity } from '@/modules/ums/admin-menu/infrastructure/persistence/relational/entities/admin-menu.entity';
 import { MemberEntity } from '@/modules/portal/member/infrastructure/persistence/relational/entities/member.entity';
 import { MemberLevelEntity } from '@/modules/ums/member-level/infrastructure/persistence/relational/entities/member-level.entity';
+import { SessionEntity } from './infrastructure/persistence/relational/entities/session.entity';
 import { AuthService } from './auth.service';
 import { AdminAuthController, PortalAuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ResourceGuard } from './guards/resource.guard';
 import { AdminCacheService } from './services/admin-cache.service';
@@ -36,6 +38,7 @@ import { AdminCacheService } from './services/admin-cache.service';
       AdminMenuEntity,
       MemberEntity,
       MemberLevelEntity,
+      SessionEntity,
     ]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -52,6 +55,7 @@ import { AdminCacheService } from './services/admin-cache.service';
   providers: [
     AuthService,
     JwtStrategy,
+    JwtRefreshStrategy,
     JwtAuthGuard,
     ResourceGuard,
     AdminCacheService,

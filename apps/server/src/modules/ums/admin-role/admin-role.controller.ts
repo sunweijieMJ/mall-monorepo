@@ -12,6 +12,8 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminRoleService } from './admin-role.service';
 import { PageQueryDto } from '@/common/dto/page-result.dto';
+import { CreateAdminRoleDto } from './dto/create-admin-role.dto';
+import { UpdateAdminRoleDto } from './dto/update-admin-role.dto';
 
 @ApiTags('后台角色管理')
 @ApiBearerAuth()
@@ -22,13 +24,16 @@ export class AdminRoleController {
 
   @Post('create')
   @ApiOperation({ summary: '添加角色' })
-  create(@Body() dto: any) {
+  create(@Body() dto: CreateAdminRoleDto) {
     return this.service.create(dto);
   }
 
   @Post('update/:id')
   @ApiOperation({ summary: '修改角色' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateAdminRoleDto,
+  ) {
     return this.service.update(id, dto);
   }
 

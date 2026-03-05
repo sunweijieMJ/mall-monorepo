@@ -70,9 +70,10 @@ export class AdminUserService {
     const rawAdmin = await this.adminRepo.findOneBy({ id });
     if (!rawAdmin) throw new NotFoundException('管理员不存在');
 
-    // 密码处理逻辑：与原加密密码相同则不修改，不同则加密
+    // 密码处理逻辑：有新密码且与原密码不同则重新加密，否则跳过
     if (dto.password) {
-      if (dto.password === rawAdmin.password) {
+      const isSame = await bcrypt.compare(dto.password, rawAdmin.password);
+      if (isSame) {
         delete dto.password;
       } else {
         dto.password = await bcrypt.hash(dto.password, 10);

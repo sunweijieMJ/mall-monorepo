@@ -1,10 +1,20 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  VersionColumn,
+} from 'typeorm';
+import { ProductEntity } from '../../../../../product/infrastructure/persistence/relational/entities/product.entity';
 
 @Entity('pms_sku_stock')
 export class SkuStockEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @Column({ name: 'product_id' })
   productId: number;
 
@@ -45,4 +55,17 @@ export class SkuStockEntity {
     comment: '规格数据，JSON格式',
   })
   spData: string;
+
+  @VersionColumn({ comment: '乐观锁版本号' })
+  version: number;
+
+  // ---- Relations ----
+
+  @ManyToOne(() => ProductEntity, (product) => product.skuStocks, {
+    createForeignKeyConstraints: false,
+    eager: false,
+    nullable: true,
+  })
+  @JoinColumn({ name: 'product_id' })
+  product: ProductEntity;
 }

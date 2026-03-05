@@ -161,8 +161,11 @@ export class AdminRoleService {
     const relations = await this.adminRoleRelationRepo.find({
       where: { roleId: In(roleIds) },
     });
-    for (const rel of relations) {
-      await this.cacheManager.del(`mall:resourceList:${rel.adminId}`);
-    }
+    // 并行清除缓存，避免顺序 await 导致的性能问题
+    await Promise.all(
+      relations.map((rel) =>
+        this.cacheManager.del(`mall:resourceList:${rel.adminId}`),
+      ),
+    );
   }
 }

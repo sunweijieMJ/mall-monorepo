@@ -1,16 +1,26 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { OrderEntity } from './order.entity';
 
 @Entity('oms_order_item')
 export class OrderItemEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @Column({ name: 'order_id', nullable: true, comment: '订单id' })
   orderId: number;
 
   @Column({ name: 'order_sn', length: 64, nullable: true, comment: '订单编号' })
   orderSn: string;
 
+  @Index()
   @Column({ name: 'product_id', nullable: true })
   productId: number;
 
@@ -126,4 +136,14 @@ export class OrderItemEntity {
     comment: '商品销售属性',
   })
   productAttr: string;
+
+  // ---- Relations ----
+
+  @ManyToOne(() => OrderEntity, (order) => order.orderItems, {
+    createForeignKeyConstraints: false,
+    eager: false,
+    nullable: true,
+  })
+  @JoinColumn({ name: 'order_id' })
+  order: OrderEntity;
 }

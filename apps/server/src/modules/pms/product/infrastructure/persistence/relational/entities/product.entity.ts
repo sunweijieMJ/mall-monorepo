@@ -2,21 +2,34 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { BrandEntity } from '../../../../../brand/infrastructure/persistence/relational/entities/brand.entity';
+import { ProductCategoryEntity } from '../../../../../product-category/infrastructure/persistence/relational/entities/product-category.entity';
+import { SkuStockEntity } from '../../../../../sku-stock/infrastructure/persistence/relational/entities/sku-stock.entity';
+import { ProductAttrValueEntity } from './product-attr-value.entity';
+import { ProductLadderEntity } from './product-ladder.entity';
+import { ProductFullReductionEntity } from './product-full-reduction.entity';
+import { MemberPriceEntity } from './member-price.entity';
 
 @Entity('pms_product')
 export class ProductEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @Column({ name: 'brand_id', nullable: true })
   brandId: number;
 
   @Column({ name: 'brand_name', length: 255, default: '' })
   brandName: string;
 
+  @Index()
   @Column({ name: 'product_category_id', nullable: true })
   productCategoryId: number;
 
@@ -185,4 +198,49 @@ export class ProductEntity {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  // ---- Relations ----
+
+  @ManyToOne(() => BrandEntity, {
+    createForeignKeyConstraints: false,
+    eager: false,
+    nullable: true,
+  })
+  @JoinColumn({ name: 'brand_id' })
+  brand: BrandEntity;
+
+  @ManyToOne(() => ProductCategoryEntity, {
+    createForeignKeyConstraints: false,
+    eager: false,
+    nullable: true,
+  })
+  @JoinColumn({ name: 'product_category_id' })
+  productCategory: ProductCategoryEntity;
+
+  @OneToMany(() => SkuStockEntity, (sku) => sku.product, {
+    cascade: ['insert', 'update'],
+  })
+  skuStocks: SkuStockEntity[];
+
+  @OneToMany(() => ProductAttrValueEntity, (attr) => attr.product, {
+    cascade: ['insert', 'update'],
+  })
+  productAttrValues: ProductAttrValueEntity[];
+
+  @OneToMany(() => ProductLadderEntity, (ladder) => ladder.product, {
+    cascade: ['insert', 'update'],
+  })
+  productLadders: ProductLadderEntity[];
+
+  @OneToMany(
+    () => ProductFullReductionEntity,
+    (reduction) => reduction.product,
+    { cascade: ['insert', 'update'] },
+  )
+  productFullReductions: ProductFullReductionEntity[];
+
+  @OneToMany(() => MemberPriceEntity, (mp) => mp.product, {
+    cascade: ['insert', 'update'],
+  })
+  memberPrices: MemberPriceEntity[];
 }

@@ -1,10 +1,19 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { OrderEntity } from './order.entity';
 
 @Entity('oms_order_operate_history')
 export class OrderOperateHistoryEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @Column({ name: 'order_id', nullable: true, comment: '订单id' })
   orderId: number;
 
@@ -34,4 +43,14 @@ export class OrderOperateHistoryEntity {
 
   @Column({ length: 500, nullable: true, comment: '备注' })
   note: string;
+
+  // ---- Relations ----
+
+  @ManyToOne(() => OrderEntity, (order) => order.orderOperateHistories, {
+    createForeignKeyConstraints: false,
+    eager: false,
+    nullable: true,
+  })
+  @JoinColumn({ name: 'order_id' })
+  order: OrderEntity;
 }

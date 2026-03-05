@@ -6,9 +6,7 @@ import { In, Repository } from 'typeorm';
 import { AdminRoleRelationEntity } from '@/modules/ums/admin-user/infrastructure/persistence/relational/entities/admin-role-relation.entity';
 import { RoleResourceRelationEntity } from '@/modules/ums/admin-role/infrastructure/persistence/relational/entities/role-resource-relation.entity';
 import { AdminResourceEntity } from '@/modules/ums/admin-resource/infrastructure/persistence/relational/entities/admin-resource.entity';
-
-// 缓存过期时间：1小时（cache-manager v7 使用毫秒）
-const CACHE_TTL_MS = 3600 * 1000;
+import { CACHE_TTL_MS } from '@/common/constants';
 
 @Injectable()
 export class AdminCacheService {

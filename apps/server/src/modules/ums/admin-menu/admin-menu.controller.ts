@@ -12,6 +12,8 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminMenuService } from './admin-menu.service';
 import { PageQueryDto } from '@/common/dto/page-result.dto';
+import { CreateAdminMenuDto } from './dto/create-admin-menu.dto';
+import { UpdateAdminMenuDto } from './dto/update-admin-menu.dto';
 
 @ApiTags('后台菜单管理')
 @ApiBearerAuth()
@@ -22,13 +24,16 @@ export class AdminMenuController {
 
   @Post('create')
   @ApiOperation({ summary: '添加后台菜单' })
-  create(@Body() dto: any) {
+  create(@Body() dto: CreateAdminMenuDto) {
     return this.service.create(dto);
   }
 
   @Post('update/:id')
   @ApiOperation({ summary: '修改后台菜单' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateAdminMenuDto,
+  ) {
     return this.service.update(id, dto);
   }
 

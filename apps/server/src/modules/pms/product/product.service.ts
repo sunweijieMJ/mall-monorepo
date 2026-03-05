@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, Repository } from 'typeorm';
+import { TransactionService } from '@/infrastructure/database/transaction/transaction.service';
 
 import { ProductEntity } from './infrastructure/persistence/relational/entities/product.entity';
 import { ProductAttrValueEntity } from './infrastructure/persistence/relational/entities/product-attr-value.entity';
@@ -32,6 +33,8 @@ export class ProductService {
 
     @InjectDataSource()
     private readonly dataSource: DataSource,
+
+    private readonly transactionService: TransactionService,
   ) {}
 
   /**
@@ -113,7 +116,7 @@ export class ProductService {
    * 商品主表 + SKU + 属性值 + 阶梯价 + 满减价 + 会员价 + 专题关联 + 优选区域关联
    */
   async create(dto: CreateProductDto): Promise<ProductEntity> {
-    return this.dataSource.manager.transaction(async (manager) => {
+    return this.transactionService.run(async (manager) => {
       // 1. 插入商品主表（清空 id 避免主键冲突）
       const productEntity = manager.create(ProductEntity, {
         ...dto,
@@ -232,7 +235,13 @@ export class ProductService {
    * 更新商品（事务：先删后插 + SKU 增量更新）
    */
   async update(id: number, dto: UpdateProductDto): Promise<ProductEntity> {
-    return this.dataSource.manager.transaction(async (manager) => {
+    return this.transactionService.run(async (manager) => {
+      // 0. 校验商品是否存在
+      const existing = await manager.findOneBy(ProductEntity, { id });
+      if (!existing) {
+        throw new NotFoundException(`商品 ${id} 不存在`);
+      }
+
       // 1. 更新商品主表（排除子表字段，避免被 TypeORM 当作主表字段处理）
       await manager.update(ProductEntity, id, {
         ...dto,
@@ -460,12 +469,16 @@ export class ProductService {
    * 批量删除商品（软删除，设置 deleteStatus = 1）
    */
   async delete(ids: number[]): Promise<void> {
-    await this.productRepo
+    if (!ids.length) return;
+    const result = await this.productRepo
       .createQueryBuilder()
       .update()
       .set({ deleteStatus: 1 })
       .whereInIds(ids)
       .execute();
+    if (result.affected === 0) {
+      throw new NotFoundException('未找到要删除的商品');
+    }
   }
 
   /**
@@ -476,8 +489,9 @@ export class ProductService {
     ids: number[],
     verifyStatus: number,
     detail: string,
+    verifyMan: string,
   ): Promise<void> {
-    await this.dataSource.manager.transaction(async (manager) => {
+    await this.transactionService.run(async (manager) => {
       // 1. 批量更新商品审核状态
       await manager
         .createQueryBuilder()
@@ -486,7 +500,7 @@ export class ProductService {
         .whereInIds(ids)
         .execute();
 
-      // 2. 批量插入审核记录（vertifyMan 固定为 'test'，与 Java 实现一致）
+      // 2. 批量插入审核记录
       const now = new Date();
       const records = ids.map((productId) =>
         manager.create(ProductVertifyRecordEntity, {
@@ -494,7 +508,7 @@ export class ProductService {
           status: verifyStatus,
           detail,
           createTime: now,
-          vertifyMan: 'test',
+          vertifyMan: verifyMan,
         }),
       );
       await manager.save(ProductVertifyRecordEntity, records);

@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -11,9 +12,11 @@ export class CartItemEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @Column({ name: 'member_id' })
   memberId: number;
 
+  @Index()
   @Column({ name: 'product_id' })
   productId: number;
 

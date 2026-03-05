@@ -14,6 +14,10 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { ProductCategoryService } from './product-category.service';
 import { PageQueryDto } from '@/common/dto/page-result.dto';
+import {
+  CreateProductCategoryDto,
+  UpdateProductCategoryDto,
+} from './dto/create-product-category.dto';
 
 @ApiTags('管理端-PMS-商品分类')
 @ApiBearerAuth()
@@ -25,14 +29,17 @@ export class ProductCategoryController {
   @Post('create')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '创建分类' })
-  create(@Body() dto: any) {
+  create(@Body() dto: CreateProductCategoryDto) {
     return this.service.create(dto);
   }
 
   @Post('update/:id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '更新分类' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateProductCategoryDto,
+  ) {
     return this.service.update(id, dto);
   }
 
