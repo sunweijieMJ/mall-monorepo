@@ -1,3 +1,11 @@
+export type AliyunOssConfig = {
+  endpoint: string;
+  bucketName: string;
+  accessKeyId: string;
+  accessKeySecret: string;
+  dir: string;
+};
+
 export type AppConfig = {
   nodeEnv: string;
   name: string;
@@ -8,4 +16,7 @@ export type AppConfig = {
   apiPrefix: string;
   fallbackLanguage: string;
   headerLanguage: string;
+  aliyun: {
+    oss: AliyunOssConfig;
+  };
 };

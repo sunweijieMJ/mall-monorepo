@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, Matches } from 'class-validator';
+import { IsStrongPassword } from '@/common/validators/password-strength.validator';
 
 /** 移动端手机号+密码登录 DTO（对应前端 POST /sso/login） */
 export class PortalLoginDto {
@@ -17,16 +18,31 @@ export class PortalLoginDto {
 
 /** 移动端手机号注册 DTO（对应前端 POST /sso/register） */
 export class PortalRegisterDto {
-  @ApiProperty({ example: '13800138000' })
+  @ApiProperty({ example: '13800138000', description: '用户名（手机号）' })
   @IsString()
   @IsNotEmpty()
   @Matches(/^1[3-9]\d{9}$/, { message: '手机号格式不正确' })
   username: string;
 
-  @ApiProperty({ example: 'User@123' })
+  @ApiProperty({
+    example: 'User@123',
+    description: '密码（至少 8 位，包含大小写字母和数字）',
+  })
   @IsString()
   @IsNotEmpty()
+  @IsStrongPassword()
   password: string;
+
+  @ApiProperty({ example: '13800138000', description: '手机号' })
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^1[3-9]\d{9}$/, { message: '手机号格式不正确' })
+  telephone: string;
+
+  @ApiProperty({ example: '123456', description: '短信验证码' })
+  @IsString()
+  @IsNotEmpty()
+  authCode: string;
 }
 
 /** 短信验证码登录 DTO */

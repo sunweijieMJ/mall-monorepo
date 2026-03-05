@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -14,48 +13,39 @@ import { AuthGuard } from '@nestjs/passport';
 import { AdminUserService } from './admin-user.service';
 import { PageQueryDto } from '@/common/dto/page-result.dto';
 
-@ApiTags('管理端-UMS-管理员')
+@ApiTags('后台用户管理')
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
-@Controller({ path: 'admin/ums/admins', version: '1' })
+@Controller('admin')
 export class AdminUserController {
   constructor(private readonly service: AdminUserService) {}
 
   @Get('list')
-  @ApiOperation({
-    summary: '管理员列表',
-    description: '对应前端 GET /admin/list',
-  })
+  @ApiOperation({ summary: '根据用户名或姓名分页获取用户列表' })
   list(@Query('keyword') keyword: string, @Query() q: PageQueryDto) {
     return this.service.list(keyword, q);
   }
 
-  @Post('register')
-  @ApiOperation({
-    summary: '创建管理员',
-    description: '对应前端 POST /admin/register',
-  })
-  create(@Body() dto: any) {
-    return this.service.create(dto);
+  @Get(':id')
+  @ApiOperation({ summary: '获取指定用户信息' })
+  getItem(@Param('id', ParseIntPipe) id: number) {
+    return this.service.getItem(id);
   }
 
   @Post('update/:id')
-  @ApiOperation({
-    summary: '更新管理员',
-    description: '对应前端 POST /admin/update/:id',
-  })
+  @ApiOperation({ summary: '修改指定用户信息' })
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
     return this.service.update(id, dto);
   }
 
-  @Delete('delete/:id')
-  @ApiOperation({ summary: '删除管理员' })
+  @Post('delete/:id')
+  @ApiOperation({ summary: '删除指定用户信息' })
   delete(@Param('id', ParseIntPipe) id: number) {
-    return this.service.delete([id]);
+    return this.service.delete(id);
   }
 
   @Post('updateStatus/:id')
-  @ApiOperation({ summary: '修改启用状态' })
+  @ApiOperation({ summary: '修改帐号状态' })
   updateStatus(
     @Param('id', ParseIntPipe) id: number,
     @Query('status') status: string,
@@ -63,28 +53,27 @@ export class AdminUserController {
     return this.service.updateStatus(id, Number(status));
   }
 
-  @Get(':id/role')
-  @ApiOperation({ summary: '获取管理员角色列表' })
-  getRoles(@Param('id', ParseIntPipe) id: number) {
-    return this.service.getRoles(id);
-  }
-
-  @Post(':id/role/update')
-  @ApiOperation({ summary: '给管理员分配角色' })
-  assignRoles(
-    @Param('id', ParseIntPipe) id: number,
-    @Body('roleIds') roleIds: number[],
-  ) {
-    return this.service.assignRoles(id, roleIds);
-  }
-
   @Post('updatePassword')
   @ApiOperation({ summary: '修改密码' })
-  updatePassword(@Body() dto: any) {
-    return this.service.updatePassword(
-      dto.id,
-      dto.oldPassword,
-      dto.newPassword,
-    );
+  updatePassword(
+    @Body() dto: { username: string; oldPassword: string; newPassword: string },
+  ) {
+    return this.service.updatePassword(dto);
+  }
+
+  @Post('role/update')
+  @ApiOperation({ summary: '给用户分配角色' })
+  updateRole(
+    @Query('adminId', ParseIntPipe) adminId: number,
+    @Query('roleIds') roleIds: string,
+  ) {
+    const ids = roleIds ? roleIds.split(',').map(Number) : [];
+    return this.service.updateRole(adminId, ids);
+  }
+
+  @Get('role/:adminId')
+  @ApiOperation({ summary: '获取指定用户的角色' })
+  getRoleList(@Param('adminId', ParseIntPipe) adminId: number) {
+    return this.service.getRoleList(adminId);
   }
 }

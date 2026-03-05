@@ -3,7 +3,9 @@ import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpAdapterHost } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { Logger } from 'nestjs-pino';
 import helmet from 'helmet';
+import { useContainer } from 'class-validator';
 import { AppModule } from './app.module';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -15,15 +17,48 @@ async function bootstrap() {
     bufferLogs: true,
   });
 
+  // 使用 Pino 作为应用日志（替代默认 NestJS Logger）
+  app.useLogger(app.get(Logger));
+
+  // 支持 class-validator 自定义验证器使用 NestJS DI
+  useContainer(app.select(AppModule), { fallbackOnErrors: true });
+
+  // 优雅关闭：响应 SIGTERM/SIGINT（K8s/Docker 部署必需）
+  app.enableShutdownHooks();
+
   const configService = app.get(ConfigService<AllConfigType>);
   const port = configService.getOrThrow('app.port', { infer: true });
+  const nodeEnv = configService.getOrThrow('app.nodeEnv', { infer: true });
+  const frontendDomain = configService.get('app.frontendDomain', {
+    infer: true,
+  });
 
-  // 安全
-  app.use(helmet());
+  // 安全：helmet + CSP（允许 Swagger UI 加载内联样式/脚本）
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          imgSrc: ["'self'", 'data:', 'https:'],
+          scriptSrc: ["'self'", "'unsafe-inline'"],
+        },
+      },
+      crossOriginEmbedderPolicy: false,
+      crossOriginOpenerPolicy: false,
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+    }),
+  );
 
-  // CORS
+  // CORS：生产环境使用白名单，开发环境允许所有来源
+  const corsOrigin =
+    nodeEnv === 'production'
+      ? frontendDomain
+        ? frontendDomain.split(',').map((d: string) => d.trim())
+        : false // 生产环境未配置域名则拒绝跨域
+      : true; // 开发环境允许所有来源
   app.enableCors({
-    origin: true,
+    origin: corsOrigin,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
@@ -71,8 +106,9 @@ async function bootstrap() {
   });
 
   await app.listen(port);
-  console.log(`🚀 Server running on http://localhost:${port}`);
-  console.log(`📖 Swagger docs: http://localhost:${port}/docs`);
+  const logger = app.get(Logger);
+  logger.log(`Server running on http://localhost:${port}`, 'Bootstrap');
+  logger.log(`Swagger docs: http://localhost:${port}/docs`, 'Bootstrap');
 }
 
 bootstrap();

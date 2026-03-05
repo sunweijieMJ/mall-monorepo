@@ -24,6 +24,26 @@ class EnvironmentVariablesValidator {
   @IsString()
   @IsOptional()
   APP_HEADER_LANGUAGE: string;
+
+  @IsString()
+  @IsOptional()
+  ALIYUN_OSS_ENDPOINT: string;
+
+  @IsString()
+  @IsOptional()
+  ALIYUN_OSS_BUCKET_NAME: string;
+
+  @IsString()
+  @IsOptional()
+  ALIYUN_OSS_ACCESS_KEY_ID: string;
+
+  @IsString()
+  @IsOptional()
+  ALIYUN_OSS_ACCESS_KEY_SECRET: string;
+
+  @IsString()
+  @IsOptional()
+  ALIYUN_OSS_DIR: string;
 }
 
 export default registerAs<AppConfig>('app', () => {
@@ -38,5 +58,14 @@ export default registerAs<AppConfig>('app', () => {
     apiPrefix: process.env.API_PREFIX ?? 'api',
     fallbackLanguage: process.env.APP_FALLBACK_LANGUAGE ?? 'zh',
     headerLanguage: process.env.APP_HEADER_LANGUAGE ?? 'x-custom-lang',
+    aliyun: {
+      oss: {
+        endpoint: process.env.ALIYUN_OSS_ENDPOINT ?? '',
+        bucketName: process.env.ALIYUN_OSS_BUCKET_NAME ?? '',
+        accessKeyId: process.env.ALIYUN_OSS_ACCESS_KEY_ID ?? '',
+        accessKeySecret: process.env.ALIYUN_OSS_ACCESS_KEY_SECRET ?? '',
+        dir: process.env.ALIYUN_OSS_DIR ?? 'mall/',
+      },
+    },
   };
 });

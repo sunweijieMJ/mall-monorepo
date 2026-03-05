@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { TransactionService } from '@/infrastructure/database/transaction/transaction.service';
 import { CouponEntity } from './infrastructure/persistence/relational/entities/coupon.entity';
+import { CouponHistoryEntity } from './infrastructure/persistence/relational/entities/coupon-history.entity';
+import { CouponProductRelationEntity } from './infrastructure/persistence/relational/entities/coupon-product-relation.entity';
+import { CouponProductCategoryRelationEntity } from './infrastructure/persistence/relational/entities/coupon-product-category-relation.entity';
 import { PageQueryDto, PageResult } from '@/common/dto/page-result.dto';
 
 @Injectable()
@@ -9,44 +13,161 @@ export class CouponService {
   constructor(
     @InjectRepository(CouponEntity)
     private readonly repo: Repository<CouponEntity>,
+    @InjectRepository(CouponHistoryEntity)
+    private readonly historyRepo: Repository<CouponHistoryEntity>,
+    @InjectRepository(CouponProductRelationEntity)
+    private readonly productRelationRepo: Repository<CouponProductRelationEntity>,
+    @InjectRepository(CouponProductCategoryRelationEntity)
+    private readonly categoryRelationRepo: Repository<CouponProductCategoryRelationEntity>,
+    private readonly transactionService: TransactionService,
   ) {}
 
-  /** 分页列表 - TODO: 迁移自 SmsCouponServiceImpl.list() */
-  async list(query: PageQueryDto & any): Promise<PageResult<CouponEntity>> {
-    const [list, total] = await this.repo.findAndCount({
-      skip: (query.page - 1) * query.limit,
-      take: query.limit,
-      order: { id: 'DESC' },
-    });
+  // 分页列表
+  async list(
+    query: PageQueryDto & { name?: string; type?: number },
+  ): Promise<PageResult<CouponEntity>> {
+    const qb = this.repo.createQueryBuilder('c');
+
+    if (query.name) {
+      qb.andWhere('c.name LIKE :name', { name: `%${query.name}%` });
+    }
+    if (query.type != null) {
+      qb.andWhere('c.type = :type', { type: query.type });
+    }
+
+    qb.orderBy('c.id', 'DESC');
+    qb.skip((query.page - 1) * query.limit).take(query.limit);
+
+    const [list, total] = await qb.getManyAndCount();
     return PageResult.of(list, total, query);
   }
 
-  /** 创建优惠券 - TODO: 迁移自 SmsCouponServiceImpl.create()，包含商品/分类关联 */
+  // 创建优惠券（含关联关系）
   async create(dto: any): Promise<CouponEntity> {
-    // TODO: implement - 含 coupon_product_relation / coupon_product_category_relation 写入
-    throw new Error('TODO: CouponService.create');
+    const { productRelationList, productCategoryRelationList, ...couponData } =
+      dto;
+
+    couponData.count = couponData.publishCount;
+    couponData.useCount = 0;
+    couponData.receiveCount = 0;
+
+    return this.transactionService.run(async (manager) => {
+      const coupon = await manager.save(CouponEntity, couponData);
+
+      // useType=2: 指定商品
+      if (couponData.useType === 2 && productRelationList?.length) {
+        const relations = productRelationList.map((r: any) => ({
+          ...r,
+          couponId: coupon.id,
+        }));
+        await manager.insert(CouponProductRelationEntity, relations);
+      }
+
+      // useType=1: 指定分类
+      if (couponData.useType === 1 && productCategoryRelationList?.length) {
+        const relations = productCategoryRelationList.map((r: any) => ({
+          ...r,
+          couponId: coupon.id,
+        }));
+        await manager.insert(CouponProductCategoryRelationEntity, relations);
+      }
+
+      return coupon;
+    });
   }
 
-  /** 获取详情（含关联商品）- TODO */
+  // 获取详情（含关联商品/分类）
   async detail(id: number): Promise<any> {
-    // TODO: implement - 返回 SmsCouponParam（coupon + productList + productCategoryList）
-    throw new Error('TODO: CouponService.detail');
+    const coupon = await this.repo.findOneBy({ id });
+    if (!coupon) return null;
+
+    const productRelationList = await this.productRelationRepo.findBy({
+      couponId: id,
+    });
+    const productCategoryRelationList = await this.categoryRelationRepo.findBy({
+      couponId: id,
+    });
+
+    return {
+      ...coupon,
+      productRelationList,
+      productCategoryRelationList,
+    };
   }
 
-  /** 更新 - TODO */
+  // 更新优惠券（含关联关系）
   async update(id: number, dto: any): Promise<void> {
-    // TODO: implement
-    throw new Error('TODO: CouponService.update');
+    const { productRelationList, productCategoryRelationList, ...couponData } =
+      dto;
+
+    await this.transactionService.run(async (manager) => {
+      await manager.update(CouponEntity, id, couponData);
+
+      // useType=2: 先删后插商品关联
+      if (couponData.useType === 2) {
+        await manager.delete(CouponProductRelationEntity, { couponId: id });
+        if (productRelationList?.length) {
+          const relations = productRelationList.map((r: any) => ({
+            ...r,
+            couponId: id,
+          }));
+          await manager.insert(CouponProductRelationEntity, relations);
+        }
+      }
+
+      // useType=1: 先删后插分类关联
+      if (couponData.useType === 1) {
+        await manager.delete(CouponProductCategoryRelationEntity, {
+          couponId: id,
+        });
+        if (productCategoryRelationList?.length) {
+          const relations = productCategoryRelationList.map((r: any) => ({
+            ...r,
+            couponId: id,
+          }));
+          await manager.insert(CouponProductCategoryRelationEntity, relations);
+        }
+      }
+    });
   }
 
-  /** 删除 - TODO */
-  async delete(ids: number[]): Promise<void> {
-    await this.repo.delete(ids);
+  // 删除优惠券（含关联关系）
+  async delete(id: number): Promise<void> {
+    await this.transactionService.run(async (manager) => {
+      await manager.delete(CouponEntity, id);
+      await manager.delete(CouponProductRelationEntity, { couponId: id });
+      await manager.delete(CouponProductCategoryRelationEntity, {
+        couponId: id,
+      });
+    });
   }
 
-  /** 领取记录 - TODO: 迁移自 SmsCouponHistoryServiceImpl */
-  async listHistory(couponId: number, query: PageQueryDto & any): Promise<any> {
-    // TODO: implement - 查询 sms_coupon_history 表
-    return { list: [], total: 0 };
+  // 优惠券领取记录
+  async listHistory(
+    query: PageQueryDto & {
+      couponId?: number;
+      useStatus?: number;
+      orderSn?: string;
+    },
+  ): Promise<PageResult<CouponHistoryEntity>> {
+    const qb = this.historyRepo.createQueryBuilder('h');
+
+    if (query.couponId != null) {
+      qb.andWhere('h.couponId = :couponId', { couponId: query.couponId });
+    }
+    if (query.useStatus != null) {
+      qb.andWhere('h.useStatus = :useStatus', { useStatus: query.useStatus });
+    }
+    if (query.orderSn) {
+      qb.andWhere('h.orderSn LIKE :orderSn', {
+        orderSn: `%${query.orderSn}%`,
+      });
+    }
+
+    qb.orderBy('h.id', 'DESC');
+    qb.skip((query.page - 1) * query.limit).take(query.limit);
+
+    const [list, total] = await qb.getManyAndCount();
+    return PageResult.of(list, total, query);
   }
 }

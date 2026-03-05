@@ -1,10 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 /** 管理员登录 DTO（对应前端 POST /admin/login） */
 export class AdminLoginDto {
-  @ApiProperty({ example: 'admin@mall.com', description: '管理员账号（邮箱）' })
-  @IsEmail()
+  @ApiProperty({ example: 'admin', description: '管理员账号' })
+  @IsString()
   @IsNotEmpty()
   username: string;
 

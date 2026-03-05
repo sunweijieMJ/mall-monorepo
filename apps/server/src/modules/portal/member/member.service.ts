@@ -1,245 +1,509 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { In, Repository } from 'typeorm';
+import { randomUUID } from 'crypto';
+import {
+  MemberEntity,
+  MemberAddressEntity,
+  MemberProductCollectionEntity,
+  MemberBrandAttentionEntity,
+  MemberReadHistoryEntity,
+} from './infrastructure/persistence/relational/entities/member.entity';
+import { CouponEntity } from '@/modules/sms/coupon/infrastructure/persistence/relational/entities/coupon.entity';
+import { CouponHistoryEntity } from '@/modules/sms/coupon/infrastructure/persistence/relational/entities/coupon-history.entity';
+import { CouponProductRelationEntity } from '@/modules/sms/coupon/infrastructure/persistence/relational/entities/coupon-product-relation.entity';
+import { CouponProductCategoryRelationEntity } from '@/modules/sms/coupon/infrastructure/persistence/relational/entities/coupon-product-category-relation.entity';
+import { ProductEntity } from '@/modules/pms/product/infrastructure/persistence/relational/entities/product.entity';
 
 @Injectable()
 export class MemberService {
+  constructor(
+    @InjectRepository(MemberEntity)
+    private readonly memberRepo: Repository<MemberEntity>,
+
+    @InjectRepository(MemberAddressEntity)
+    private readonly addressRepo: Repository<MemberAddressEntity>,
+
+    @InjectRepository(MemberProductCollectionEntity)
+    private readonly productCollectionRepo: Repository<MemberProductCollectionEntity>,
+
+    @InjectRepository(MemberBrandAttentionEntity)
+    private readonly brandAttentionRepo: Repository<MemberBrandAttentionEntity>,
+
+    @InjectRepository(MemberReadHistoryEntity)
+    private readonly readHistoryRepo: Repository<MemberReadHistoryEntity>,
+
+    @InjectRepository(CouponEntity)
+    private readonly couponRepo: Repository<CouponEntity>,
+
+    @InjectRepository(CouponHistoryEntity)
+    private readonly couponHistoryRepo: Repository<CouponHistoryEntity>,
+
+    @InjectRepository(ProductEntity)
+    private readonly productRepo: Repository<ProductEntity>,
+
+    @InjectRepository(CouponProductRelationEntity)
+    private readonly couponProductRelRepo: Repository<CouponProductRelationEntity>,
+
+    @InjectRepository(CouponProductCategoryRelationEntity)
+    private readonly couponCategoryRelRepo: Repository<CouponProductCategoryRelationEntity>,
+  ) {}
+
   /**
-   * 获取会员信息
-   * TODO: 迁移自 UmsMemberServiceImpl.getCurrentMember()
-   *   - 从 JWT token 中获取 memberId，查询 ums_member
+   * 获取当前会员信息，返回时隐藏 password 字段
    */
   async getCurrentMember(
     memberId: number,
-  ): Promise<Record<string, unknown> | null> {
-    // TODO: implement
-    return null;
+  ): Promise<Omit<MemberEntity, 'password'> | null> {
+    const member = await this.memberRepo.findOne({ where: { id: memberId } });
+    if (!member) return null;
+    // 隐藏密码字段
+    const { password: _password, ...rest } = member;
+    return rest as Omit<MemberEntity, 'password'>;
   }
 
   /**
-   * 更新会员信息
-   * TODO: 迁移自 UmsMemberServiceImpl.updateInfo()
-   *   - UPDATE ums_member SET ... WHERE id = memberId
+   * 更新会员基本信息
    */
   async updateInfo(
     memberId: number,
     data: Record<string, unknown>,
   ): Promise<void> {
-    // TODO: implement
+    // 排除不允许客户端修改的字段
+    const {
+      id: _id,
+      password: _password,
+      status: _status,
+      ...safeData
+    } = data as Record<string, unknown>;
+    await this.memberRepo.update(
+      { id: memberId },
+      safeData as Partial<MemberEntity>,
+    );
   }
 
   // ========== 收货地址 ==========
 
   /**
    * 获取会员收货地址列表
-   * TODO: 迁移自 UmsMemberReceiveAddressServiceImpl.list()
-   *   - SELECT * FROM ums_member_receive_address WHERE member_id = memberId
    */
-  async listAddress(memberId: number): Promise<unknown[]> {
-    // TODO: implement
-    return [];
+  async listAddress(memberId: number): Promise<MemberAddressEntity[]> {
+    return this.addressRepo.find({ where: { memberId } });
   }
 
   /**
-   * 获取收货地址详情
-   * TODO: 迁移自 UmsMemberReceiveAddressServiceImpl.getItem()
-   *   - SELECT * FROM ums_member_receive_address WHERE id = id AND member_id = memberId
+   * 获取收货地址详情，不属于该会员则抛出 NotFoundException
    */
-  async getAddress(
-    id: number,
-    memberId: number,
-  ): Promise<Record<string, unknown> | null> {
-    // TODO: implement
-    return null;
+  async getAddress(id: number, memberId: number): Promise<MemberAddressEntity> {
+    const address = await this.addressRepo.findOne({ where: { id, memberId } });
+    if (!address) {
+      throw new NotFoundException(`收货地址不存在或无权访问`);
+    }
+    return address;
   }
 
   /**
    * 添加收货地址
-   * TODO: 迁移自 UmsMemberReceiveAddressServiceImpl.add()
-   *   - 如果 defaultStatus=1，先将该会员其他地址 defaultStatus 置为 0
-   *   - INSERT INTO ums_member_receive_address
+   * 若设置为默认地址，先将该会员其他地址的默认状态清除
    */
   async addAddress(
     memberId: number,
     data: Record<string, unknown>,
   ): Promise<void> {
-    // TODO: implement
+    if (data.defaultStatus === 1) {
+      // 清除该会员所有地址的默认状态
+      await this.addressRepo.update({ memberId }, { defaultStatus: 0 });
+    }
+    const address = this.addressRepo.create({
+      ...(data as Partial<MemberAddressEntity>),
+      memberId,
+    });
+    await this.addressRepo.save(address);
   }
 
   /**
    * 更新收货地址
-   * TODO: 迁移自 UmsMemberReceiveAddressServiceImpl.update()
-   *   - 如果 defaultStatus=1，先将该会员其他地址 defaultStatus 置为 0
-   *   - UPDATE ums_member_receive_address SET ... WHERE id = id AND member_id = memberId
+   * 若设置为默认地址，先将该会员其他地址的默认状态清除
    */
   async updateAddress(
     id: number,
     memberId: number,
     data: Record<string, unknown>,
   ): Promise<void> {
-    // TODO: implement
+    // 验证归属权
+    await this.getAddress(id, memberId);
+    if (data.defaultStatus === 1) {
+      // 清除该会员其他地址的默认状态（排除当前地址）
+      await this.addressRepo
+        .createQueryBuilder()
+        .update()
+        .set({ defaultStatus: 0 })
+        .where('member_id = :memberId AND id != :id', { memberId, id })
+        .execute();
+    }
+    await this.addressRepo.update(
+      { id, memberId },
+      data as Partial<MemberAddressEntity>,
+    );
   }
 
   /**
    * 删除收货地址
-   * TODO: 迁移自 UmsMemberReceiveAddressServiceImpl.delete()
-   *   - DELETE FROM ums_member_receive_address WHERE id = id AND member_id = memberId
    */
   async deleteAddress(id: number, memberId: number): Promise<void> {
-    // TODO: implement
+    await this.addressRepo.delete({ id, memberId });
   }
 
   // ========== 商品收藏 ==========
 
   /**
    * 添加商品收藏
-   * TODO: 迁移自 UmsMemberCollectionServiceImpl.addProduct()
-   *   - 检查是否已收藏（查 ums_member_product_collection），未收藏则插入
-   *   - 同时更新 pms_product 的 sale 字段（+1）
+   * 若已收藏则不重复插入
    */
   async addProductCollection(
     memberId: number,
     data: Record<string, unknown>,
   ): Promise<void> {
-    // TODO: implement
+    const productId = data.productId as number;
+    const existing = await this.productCollectionRepo.findOne({
+      where: { memberId, productId },
+    });
+    if (existing) return;
+    const record = this.productCollectionRepo.create({
+      ...(data as Partial<MemberProductCollectionEntity>),
+      memberId,
+      createTime: new Date(),
+    });
+    await this.productCollectionRepo.save(record);
   }
 
   /**
    * 删除商品收藏
-   * TODO: 迁移自 UmsMemberCollectionServiceImpl.deleteProduct()
-   *   - DELETE FROM ums_member_product_collection WHERE member_id = memberId AND product_id = productId
    */
   async deleteProductCollection(
     memberId: number,
     productId: number,
   ): Promise<void> {
-    // TODO: implement
+    await this.productCollectionRepo.delete({ memberId, productId });
   }
 
   /**
    * 获取商品收藏列表（分页）
-   * TODO: 迁移自 UmsMemberCollectionServiceImpl.listProduct()
-   *   - SELECT * FROM ums_member_product_collection WHERE member_id = memberId
    */
   async listProductCollection(
     memberId: number,
     pageNum: number,
     pageSize: number,
   ): Promise<unknown> {
-    // TODO: implement
-    return { list: [], total: 0 };
+    const page = Number(pageNum) || 1;
+    const size = Number(pageSize) || 10;
+    const [list, total] = await this.productCollectionRepo.findAndCount({
+      where: { memberId },
+      skip: (page - 1) * size,
+      take: size,
+    });
+    return { list, total };
   }
 
   /**
    * 获取商品收藏详情
-   * TODO: 迁移自 UmsMemberCollectionServiceImpl.getProduct()
-   *   - SELECT * FROM ums_member_product_collection WHERE member_id = memberId AND product_id = productId
    */
   async getProductCollectionDetail(
     memberId: number,
     productId: number,
   ): Promise<unknown> {
-    // TODO: implement
-    return null;
+    return this.productCollectionRepo.findOne({
+      where: { memberId, productId },
+    });
   }
 
   /**
    * 清空商品收藏
-   * TODO: 迁移自 UmsMemberCollectionServiceImpl.clearProduct()
-   *   - DELETE FROM ums_member_product_collection WHERE member_id = memberId
    */
   async clearProductCollection(memberId: number): Promise<void> {
-    // TODO: implement
+    await this.productCollectionRepo.delete({ memberId });
   }
 
   // ========== 品牌关注 ==========
 
   /**
    * 添加品牌关注
-   * TODO: 迁移自 UmsMemberCollectionServiceImpl.addBrand()
-   *   - 检查是否已关注，未关注则插入 ums_member_brand_attention
+   * 若已关注则不重复插入
    */
   async addBrandAttention(
     memberId: number,
     data: Record<string, unknown>,
   ): Promise<void> {
-    // TODO: implement
+    const brandId = data.brandId as number;
+    const existing = await this.brandAttentionRepo.findOne({
+      where: { memberId, brandId },
+    });
+    if (existing) return;
+    const record = this.brandAttentionRepo.create({
+      ...(data as Partial<MemberBrandAttentionEntity>),
+      memberId,
+      createTime: new Date(),
+    });
+    await this.brandAttentionRepo.save(record);
   }
 
   /**
    * 删除品牌关注
-   * TODO: 迁移自 UmsMemberCollectionServiceImpl.deleteBrand()
-   *   - DELETE FROM ums_member_brand_attention WHERE member_id = memberId AND brand_id = brandId
    */
   async deleteBrandAttention(memberId: number, brandId: number): Promise<void> {
-    // TODO: implement
+    await this.brandAttentionRepo.delete({ memberId, brandId });
   }
 
   /**
    * 获取品牌关注列表（分页）
-   * TODO: 迁移自 UmsMemberCollectionServiceImpl.listBrand()
    */
   async listBrandAttention(
     memberId: number,
     pageNum: number,
     pageSize: number,
   ): Promise<unknown> {
-    // TODO: implement
-    return { list: [], total: 0 };
+    const page = Number(pageNum) || 1;
+    const size = Number(pageSize) || 10;
+    const [list, total] = await this.brandAttentionRepo.findAndCount({
+      where: { memberId },
+      skip: (page - 1) * size,
+      take: size,
+    });
+    return { list, total };
   }
 
   /**
    * 获取品牌关注详情
-   * TODO: 迁移自 UmsMemberCollectionServiceImpl.getBrand()
    */
   async getBrandAttentionDetail(
     memberId: number,
     brandId: number,
   ): Promise<unknown> {
-    // TODO: implement
-    return null;
+    return this.brandAttentionRepo.findOne({ where: { memberId, brandId } });
   }
 
   /**
    * 清空品牌关注
-   * TODO: 迁移自 UmsMemberCollectionServiceImpl.clearBrand()
    */
   async clearBrandAttention(memberId: number): Promise<void> {
-    // TODO: implement
+    await this.brandAttentionRepo.delete({ memberId });
   }
 
   // ========== 浏览历史 ==========
 
   /**
    * 创建浏览记录
-   * TODO: 迁移自 UmsMemberReadHistoryServiceImpl.save()
-   *   - 先删除旧记录（同一会员+商品），再插入新记录
+   * 先删除同一会员对同一商品的旧记录，再插入新记录（保证最新时间排序）
    */
   async createReadHistory(
     memberId: number,
     data: Record<string, unknown>,
   ): Promise<void> {
-    // TODO: implement
+    const productId = data.productId as number;
+    // 删除旧记录，避免重复
+    await this.readHistoryRepo.delete({ memberId, productId });
+    const record = this.readHistoryRepo.create({
+      ...(data as Partial<MemberReadHistoryEntity>),
+      memberId,
+      createTime: new Date(),
+    });
+    await this.readHistoryRepo.save(record);
   }
 
   /**
-   * 获取浏览历史列表（分页）
-   * TODO: 迁移自 UmsMemberReadHistoryServiceImpl.list()
-   *   - SELECT * FROM ums_member_product_history WHERE member_id = memberId ORDER BY create_time DESC
+   * 获取浏览历史列表（分页），按浏览时间倒序
    */
   async listReadHistory(
     memberId: number,
     pageNum: number,
     pageSize: number,
   ): Promise<unknown> {
-    // TODO: implement
-    return { list: [], total: 0 };
+    const page = Number(pageNum) || 1;
+    const size = Number(pageSize) || 10;
+    const [list, total] = await this.readHistoryRepo.findAndCount({
+      where: { memberId },
+      order: { createTime: 'DESC' },
+      skip: (page - 1) * size,
+      take: size,
+    });
+    return { list, total };
   }
 
   /**
    * 清空浏览历史
-   * TODO: 迁移自 UmsMemberReadHistoryServiceImpl.clear()
-   *   - DELETE FROM ums_member_product_history WHERE member_id = memberId
    */
   async clearReadHistory(memberId: number): Promise<void> {
-    // TODO: implement
+    await this.readHistoryRepo.delete({ memberId });
+  }
+
+  // ========== 会员优惠券 ==========
+
+  /**
+   * 领取优惠券
+   * 1. 验证优惠券是否存在
+   * 2. 检查每人领取限制
+   * 3. 先扣减库存（乐观锁），再插入领取记录
+   */
+  async addCoupon(memberId: number, couponId: number): Promise<void> {
+    const coupon = await this.couponRepo.findOne({ where: { id: couponId } });
+    if (!coupon) {
+      throw new NotFoundException(`优惠券 ${couponId} 不存在`);
+    }
+
+    if (coupon.count <= 0) {
+      throw new BadRequestException('优惠券已经领完了');
+    }
+
+    const now = new Date();
+    if (coupon.enableTime && now < coupon.enableTime) {
+      throw new BadRequestException('优惠券还没到领取时间');
+    }
+
+    const receivedCount = await this.couponHistoryRepo.count({
+      where: { memberId, couponId },
+    });
+    if (coupon.perLimit > 0 && receivedCount >= coupon.perLimit) {
+      throw new BadRequestException('超出领取限制');
+    }
+
+    // 先扣库存（乐观锁），affected 为 0 说明库存不足
+    const result = await this.couponRepo
+      .createQueryBuilder()
+      .update()
+      .set({
+        count: () => 'count - 1',
+        receiveCount: () => 'receive_count + 1',
+      })
+      .where('id = :id AND count > 0', { id: couponId })
+      .execute();
+
+    if (result.affected === 0) {
+      throw new BadRequestException('优惠券已经领完了');
+    }
+
+    // 库存扣减成功后再插入领取记录
+    const history = this.couponHistoryRepo.create({
+      memberId,
+      couponId,
+      couponCode: randomUUID().replace(/-/g, '').substring(0, 32),
+      createTime: now,
+      useStatus: 0,
+      getType: 1,
+    });
+    await this.couponHistoryRepo.save(history);
+  }
+
+  /**
+   * 查询会员优惠券历史列表
+   * useStatus: 0->未使用；1->已使用；2->已过期
+   */
+  async listMemberCoupons(
+    memberId: number,
+    useStatus?: number,
+  ): Promise<CouponHistoryEntity[]> {
+    const qb = this.couponHistoryRepo
+      .createQueryBuilder('ch')
+      .where('ch.member_id = :memberId', { memberId });
+
+    if (useStatus !== undefined && useStatus !== null) {
+      qb.andWhere('ch.use_status = :useStatus', {
+        useStatus: Number(useStatus),
+      });
+    }
+
+    qb.orderBy('ch.id', 'DESC');
+
+    return qb.getMany();
+  }
+
+  /**
+   * 查询指定商品可用的优惠券列表（最多返回 3 条）
+   * 规则：全场通用(useType=0) / 指定分类(useType=1) / 指定商品(useType=2)
+   * 且 endTime > now（尚未过期）
+   */
+  async listCouponsByProduct(
+    memberId: number,
+    productId: number,
+  ): Promise<CouponEntity[]> {
+    // 查商品获取分类 ID
+    const product = await this.productRepo.findOne({
+      where: { id: productId },
+    });
+    if (!product) {
+      throw new NotFoundException(`商品 ${productId} 不存在`);
+    }
+
+    const now = new Date();
+
+    // 查询全场通用或者指定该商品/分类的优惠券，且在有效期内（startTime < now < endTime）
+    const coupons = await this.couponRepo
+      .createQueryBuilder('c')
+      .where('(c.use_type = 0 OR c.use_type = 1 OR c.use_type = 2)')
+      .andWhere('(c.start_time IS NULL OR c.start_time < :now)', { now })
+      .andWhere('(c.end_time IS NULL OR c.end_time > :now)', { now })
+      .orderBy('c.id', 'DESC')
+      .take(3)
+      .getMany();
+
+    // 查指定商品的优惠券关联（useType=2）
+    const productRelations = await this.couponProductRelRepo.find({
+      where: { productId },
+    });
+    const couponIdsForProduct = new Set(
+      productRelations.map((r) => r.couponId),
+    );
+
+    // 查指定分类的优惠券关联（useType=1）
+    const categoryRelations = await this.couponCategoryRelRepo.find({
+      where: { productCategoryId: product.productCategoryId },
+    });
+    const couponIdsForCategory = new Set(
+      categoryRelations.map((r) => r.couponId),
+    );
+
+    // 按 useType 过滤：0=全场通用；1=指定分类；2=指定商品
+    return coupons.filter((c) => {
+      if (c.useType === 0) return true;
+      if (c.useType === 1) return couponIdsForCategory.has(c.id);
+      if (c.useType === 2) return couponIdsForProduct.has(c.id);
+      return false;
+    });
+  }
+
+  /**
+   * 获取会员已领优惠券列表（返回优惠券对象，含使用状态过滤）
+   * 迁移自 UmsMemberCouponServiceImpl.list()
+   * useStatus: 0->未使用；1->已使用；2->已过期
+   */
+  async listCouponObjects(
+    memberId: number,
+    useStatus?: number,
+  ): Promise<CouponEntity[]> {
+    // 查询该会员的领取记录
+    const qb = this.couponHistoryRepo
+      .createQueryBuilder('ch')
+      .where('ch.member_id = :memberId', { memberId });
+
+    if (useStatus !== undefined && useStatus !== null) {
+      qb.andWhere('ch.use_status = :useStatus', { useStatus });
+    }
+
+    const histories = await qb.getMany();
+    const couponIds = [...new Set(histories.map((h) => h.couponId))];
+    if (couponIds.length === 0) return [];
+
+    return this.couponRepo.findBy({ id: In(couponIds) });
+  }
+
+  /**
+   * 按 ID 删除浏览记录
+   * 迁移自 MemberReadHistoryServiceImpl.delete()
+   */
+  async deleteReadHistoryByIds(memberId: number, ids: number[]): Promise<void> {
+    await this.readHistoryRepo.delete({ memberId, id: In(ids) });
   }
 }

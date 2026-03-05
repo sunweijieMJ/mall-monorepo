@@ -61,4 +61,3 @@ jobs:
 
       - name: Test
         run: pnpm turbo test --filter=mall-server
-        continue-on-error: true

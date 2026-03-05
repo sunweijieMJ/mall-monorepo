@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -17,32 +16,46 @@ import { PageQueryDto } from '@/common/dto/page-result.dto';
 @ApiTags('管理端-OMS-退货原因')
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
-@Controller({ path: 'admin/oms/return-reasons', version: '1' })
+@Controller({ path: 'returnReason', version: '1' })
 export class ReturnReasonController {
   constructor(private readonly service: ReturnReasonService) {}
 
-  @Get('list') list(@Query() q: PageQueryDto) {
-    return this.service.list(q);
-  }
-  @Post('create') create(@Body() dto: any) {
+  @Post('create')
+  @ApiOperation({ summary: '添加退货原因' })
+  create(@Body() dto: any) {
     return this.service.create(dto);
   }
-  @Post('update/:id') update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: any,
-  ) {
+
+  @Post('update/:id')
+  @ApiOperation({ summary: '修改退货原因' })
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
     return this.service.update(id, dto);
   }
-  @Delete('delete') delete(@Query('ids') ids: string) {
+
+  @Post('delete')
+  @ApiOperation({ summary: '批量删除退货原因' })
+  delete(@Query('ids') ids: string) {
     return this.service.delete(ids.split(',').map(Number));
   }
-  @Post('update/status') updateStatus(
-    @Query('ids') ids: string,
-    @Query('status') status: string,
-  ) {
+
+  @Post('update/status')
+  @ApiOperation({ summary: '修改退货原因启用状态' })
+  updateStatus(@Query('ids') ids: string, @Query('status') status: string) {
     return this.service.updateStatus(
       ids.split(',').map(Number),
       Number(status),
     );
+  }
+
+  @Get('list')
+  @ApiOperation({ summary: '分页查询退货原因' })
+  list(@Query() q: PageQueryDto) {
+    return this.service.list(q);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: '获取退货原因详情' })
+  getItem(@Param('id', ParseIntPipe) id: number) {
+    return this.service.getItem(id);
   }
 }

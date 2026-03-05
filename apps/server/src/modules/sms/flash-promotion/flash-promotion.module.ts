@@ -5,6 +5,7 @@ import {
   FlashSessionEntity,
   FlashProductRelationEntity,
 } from './infrastructure/persistence/relational/entities/flash-promotion.entity';
+import { ProductEntity } from '@/modules/pms/product/infrastructure/persistence/relational/entities/product.entity';
 import { FlashPromotionService } from './flash-promotion.service';
 import {
   FlashPromotionController,
@@ -18,6 +19,7 @@ import {
       FlashPromotionEntity,
       FlashSessionEntity,
       FlashProductRelationEntity,
+      ProductEntity,
     ]),
   ],
   controllers: [

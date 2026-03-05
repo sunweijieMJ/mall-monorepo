@@ -5,33 +5,28 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
 import { OrderSettingService } from './order-setting.service';
 
 @ApiTags('管理端-订单设置')
-@Controller({ path: 'admin/oms/orderSetting', version: '1' })
+@ApiBearerAuth()
+@UseGuards(AuthGuard('jwt'))
+@Controller({ path: 'orderSetting', version: '1' })
 export class OrderSettingController {
-  constructor(private readonly orderSettingService: OrderSettingService) {}
+  constructor(private readonly service: OrderSettingService) {}
 
   @Get(':id')
-  @ApiOperation({
-    summary: '获取订单设置',
-    description: '对应前端 GET /orderSetting/:id',
-  })
+  @ApiOperation({ summary: '获取订单设置' })
   getItem(@Param('id', ParseIntPipe) id: number) {
-    return this.orderSettingService.getItem(id);
+    return this.service.getItem(id);
   }
 
   @Post('update/:id')
-  @ApiOperation({
-    summary: '更新订单设置',
-    description: '对应前端 POST /orderSetting/update/:id',
-  })
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() body: Record<string, unknown>,
-  ) {
-    return this.orderSettingService.update(id, body);
+  @ApiOperation({ summary: '更新订单设置' })
+  update(@Param('id', ParseIntPipe) id: number, @Body() body: any) {
+    return this.service.update(id, body);
   }
 }

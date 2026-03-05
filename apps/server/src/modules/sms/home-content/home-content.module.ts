@@ -12,7 +12,8 @@ import {
   HomeAdvertiseController,
   HomeBrandController,
   HomeSubjectController,
-  HomeProductController,
+  HomeNewProductController,
+  HomeRecommendProductController,
 } from './home-content.controller';
 
 @Module({
@@ -29,7 +30,8 @@ import {
     HomeAdvertiseController,
     HomeBrandController,
     HomeSubjectController,
-    HomeProductController,
+    HomeNewProductController,
+    HomeRecommendProductController,
   ],
   providers: [HomeContentService],
   exports: [HomeContentService],

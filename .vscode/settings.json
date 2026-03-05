@@ -48,5 +48,5 @@
   "i18n-ally.enabledParsers": ["json"],
   "i18n-ally.enabledFrameworks": ["vue", "vue-sfc"],
   "i18n-ally.keystyle": "flat",
-  "i18n-ally.localesPaths": ["apps/admin/public/locale"]
+  "i18n-ally.localesPaths": ["apps/admin/src/locale", "apps/mobile/src/locale"]
 }

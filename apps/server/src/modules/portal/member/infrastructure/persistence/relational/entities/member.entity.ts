@@ -119,7 +119,7 @@ export class MemberAddressEntity {
 
   @Column({
     name: 'detail_address',
-    length: 128,
+    length: 500,
     nullable: true,
     comment: '详细地址(街道)',
   })

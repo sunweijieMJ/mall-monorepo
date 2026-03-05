@@ -1,29 +1,70 @@
+import * as crypto from 'crypto';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AllConfigType } from '@/config/config.type';
+
+/** OSS 直传策略响应结构 */
+export interface OssPolicyResponse {
+  accessKeyId: string;
+  policy: string;
+  signature: string;
+  dir: string;
+  host: string;
+  expire: string;
+}
 
 @Injectable()
 export class OssService {
   constructor(private readonly configService: ConfigService<AllConfigType>) {}
 
   /**
-   * 获取阿里云 OSS 上传策略
-   * TODO: 迁移自 OssController.policy()（原 Java 版本在 Controller 中直接实现）
-   *   - 使用 aliyun-oss-sdk 生成 Policy：
-   *     1. 读取配置：endpoint、bucketName、accessKeyId、accessKeySecret、dir（上传目录）
-   *     2. 生成 policy JSON（包含过期时间、conditions）
-   *     3. 用 accessKeySecret 对 policy Base64 编码后进行 HMAC-SHA1 签名
-   *     4. 返回 { accessKeyId, policy, signature, dir, host, expire }
+   * 生成阿里云 OSS 直传签名 Policy
+   * 前端拿到 policy/signature 后，可直接上传文件至 OSS，不经过服务端
+   * 超时时间为 300 秒
    */
-  async getPolicy(): Promise<Record<string, string>> {
-    // TODO: implement
+  async getPolicy(): Promise<OssPolicyResponse> {
+    const ossConfig = this.configService.get('app.aliyun.oss', { infer: true });
+
+    const { endpoint, bucketName, accessKeyId, accessKeySecret, dir } =
+      ossConfig as {
+        endpoint: string;
+        bucketName: string;
+        accessKeyId: string;
+        accessKeySecret: string;
+        dir: string;
+      };
+
+    // 计算过期时间（当前时间 + 300 秒）
+    const expireTime = Math.floor(Date.now() / 1000) + 300;
+    const expiration = new Date(expireTime * 1000)
+      .toISOString()
+      .replace(/\.\d{3}Z$/, 'Z');
+
+    // 构造 policy 对象
+    const policyObj = {
+      expiration,
+      conditions: [
+        // 限制文件大小：0 ~ 1GB
+        ['content-length-range', 0, 1048576000],
+      ],
+    };
+
+    // Base64 编码 policy
+    const policyStr = Buffer.from(JSON.stringify(policyObj)).toString('base64');
+
+    // HMAC-SHA1 签名
+    const signature = crypto
+      .createHmac('sha1', accessKeySecret)
+      .update(policyStr)
+      .digest('base64');
+
     return {
-      accessKeyId: '',
-      policy: '',
-      signature: '',
-      dir: '',
-      host: '',
-      expire: '',
+      accessKeyId,
+      policy: policyStr,
+      signature,
+      dir,
+      host: `https://${bucketName}.${endpoint}`,
+      expire: String(expireTime),
     };
   }
 }

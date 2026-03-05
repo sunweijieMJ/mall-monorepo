@@ -2,7 +2,6 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -162,11 +161,54 @@ export class OrderEntity {
   note: string;
 
   @Column({
+    name: 'order_type',
+    default: 0,
+    comment: '订单类型：0->正常订单；1->秒杀订单',
+  })
+  orderType: number;
+
+  @Column({ default: 0, comment: '可获得的积分' })
+  integration: number;
+
+  @Column({ default: 0, comment: '可获得的成长值' })
+  growth: number;
+
+  @Column({
+    name: 'use_integration',
+    nullable: true,
+    comment: '下单时使用的积分',
+  })
+  useIntegration: number;
+
+  @Column({
+    name: 'auto_confirm_day',
+    nullable: true,
+    comment: '自动确认时间（天）',
+  })
+  autoConfirmDay: number;
+
+  @Column({
     name: 'delete_status',
     default: 0,
     comment: '删除状态：0->未删除；1->已删除',
   })
   deleteStatus: number;
+
+  @Column({
+    name: 'delivery_company',
+    length: 64,
+    nullable: true,
+    comment: '物流公司（配送方式）',
+  })
+  deliveryCompany: string;
+
+  @Column({
+    name: 'delivery_sn',
+    length: 64,
+    nullable: true,
+    comment: '物流单号',
+  })
+  deliverySn: string;
 
   @Column({ name: 'payment_time', type: 'timestamp', nullable: true })
   paymentTime: Date;

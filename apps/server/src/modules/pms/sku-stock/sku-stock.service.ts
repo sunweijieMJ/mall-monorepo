@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { SkuStockEntity } from './infrastructure/persistence/relational/entities/sku-stock.entity';
 
 @Injectable()
@@ -10,21 +10,31 @@ export class SkuStockService {
     private readonly skuRepo: Repository<SkuStockEntity>,
   ) {}
 
-  /** 查询 SKU 库存列表 - TODO: 迁移自 PmsSkuStockServiceImpl.getList() */
   async getList(
     productId: number,
     keyword?: string,
   ): Promise<SkuStockEntity[]> {
-    // TODO: implement - 支持 skuCode 关键词搜索
-    return this.skuRepo.find({ where: { productId } });
+    const where: any = { productId };
+    if (keyword) {
+      where.skuCode = Like(`%${keyword}%`);
+    }
+    return this.skuRepo.find({ where });
   }
 
-  /** 批量更新 SKU 库存 - TODO: 迁移自 PmsSkuStockServiceImpl.update() */
   async update(
     productId: number,
     stocks: Partial<SkuStockEntity>[],
   ): Promise<void> {
-    // TODO: implement - 批量 upsert（有 id 则更新，无 id 则插入）
-    throw new Error('TODO: SkuStockService.update');
+    // 过滤只属于该商品的 SKU
+    const filtered = stocks.filter(
+      (item) => !item.productId || item.productId === productId,
+    );
+    // 确保所有项都关联到此商品
+    const entities = filtered.map((item) => ({
+      ...item,
+      productId,
+    }));
+    // save() 会自动根据有无 id 决定 insert 或 update
+    await this.skuRepo.save(entities);
   }
 }

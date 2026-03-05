@@ -1,14 +1,35 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { CompanyAddressEntity } from './infrastructure/persistence/relational/entities/company-address.entity';
 
 @Injectable()
 export class CompanyAddressService {
-  /**
-   * 获取公司收发货地址列表
-   * TODO: 迁移自 OmsCompanyAddressServiceImpl.list()
-   *   - 查询 oms_company_address 全表
-   */
-  async list(): Promise<unknown[]> {
-    // TODO: implement
-    return [];
+  constructor(
+    @InjectRepository(CompanyAddressEntity)
+    private readonly repo: Repository<CompanyAddressEntity>,
+  ) {}
+
+  async list(): Promise<CompanyAddressEntity[]> {
+    return this.repo.find();
+  }
+
+  async getItem(id: number): Promise<CompanyAddressEntity | null> {
+    return this.repo.findOneBy({ id });
+  }
+
+  async create(
+    dto: Partial<CompanyAddressEntity>,
+  ): Promise<CompanyAddressEntity> {
+    const entity = this.repo.create(dto);
+    return this.repo.save(entity);
+  }
+
+  async update(id: number, dto: Partial<CompanyAddressEntity>): Promise<void> {
+    await this.repo.update(id, dto);
+  }
+
+  async delete(id: number): Promise<void> {
+    await this.repo.delete(id);
   }
 }

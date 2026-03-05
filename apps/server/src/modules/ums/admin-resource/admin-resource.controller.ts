@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -9,55 +8,93 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminResourceService } from './admin-resource.service';
 import { PageQueryDto } from '@/common/dto/page-result.dto';
 
-@ApiTags('管理端-UMS-资源管理')
+@ApiTags('后台资源管理')
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
-@Controller({ path: 'admin/ums/resources', version: '1' })
+@Controller('resource')
 export class AdminResourceController {
-  constructor(private readonly s: AdminResourceService) {}
+  constructor(private readonly service: AdminResourceService) {}
 
-  @Get('list') list(@Query() q: PageQueryDto) {
-    return this.s.list(q);
+  @Post('create')
+  @ApiOperation({ summary: '添加后台资源' })
+  create(@Body() dto: any) {
+    return this.service.create(dto);
   }
-  @Post('create') create(@Body() dto: any) {
-    return this.s.create(dto);
+
+  @Post('update/:id')
+  @ApiOperation({ summary: '修改后台资源' })
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
+    return this.service.update(id, dto);
   }
-  @Post('update/:id') update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: any,
+
+  @Get(':id')
+  @ApiOperation({ summary: '根据ID获取资源详情' })
+  getItem(@Param('id', ParseIntPipe) id: number) {
+    return this.service.getItem(id);
+  }
+
+  @Post('delete/:id')
+  @ApiOperation({ summary: '根据ID删除后台资源' })
+  delete(@Param('id', ParseIntPipe) id: number) {
+    return this.service.delete(id);
+  }
+
+  @Get('list')
+  @ApiOperation({ summary: '分页模糊查询后台资源' })
+  list(
+    @Query('categoryId') categoryId: string,
+    @Query('nameKeyword') nameKeyword: string,
+    @Query('urlKeyword') urlKeyword: string,
+    @Query() q: PageQueryDto,
   ) {
-    return this.s.update(id, dto);
+    return this.service.list(
+      categoryId ? Number(categoryId) : undefined,
+      nameKeyword || undefined,
+      urlKeyword || undefined,
+      q,
+    );
   }
-  @Delete('delete/:id') delete(@Param('id', ParseIntPipe) id: number) {
-    return this.s.delete(id);
+
+  @Get('listAll')
+  @ApiOperation({ summary: '查询所有后台资源' })
+  listAll() {
+    return this.service.listAll();
   }
 }
 
-@ApiTags('管理端-UMS-资源分类')
+@ApiTags('后台资源分类管理')
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
-@Controller({ path: 'admin/ums/resource-categories', version: '1' })
+@Controller('resourceCategory')
 export class AdminResourceCategoryController {
-  constructor(private readonly s: AdminResourceService) {}
+  constructor(private readonly service: AdminResourceService) {}
 
-  @Get('listAll') listAll() {
-    return this.s.listCategory();
+  @Post('create')
+  @ApiOperation({ summary: '添加后台资源分类' })
+  create(@Body() dto: any) {
+    return this.service.createCategory(dto);
   }
-  @Post('create') create(@Body() dto: any) {
-    return this.s.createCategory(dto);
+
+  @Post('update/:id')
+  @ApiOperation({ summary: '修改后台资源分类' })
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
+    return this.service.updateCategory(id, dto);
   }
-  @Post('update/:id') update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: any,
-  ) {
-    return this.s.updateCategory(id, dto);
+
+  @Post('delete/:id')
+  @ApiOperation({ summary: '删除后台资源分类' })
+  delete(@Param('id', ParseIntPipe) id: number) {
+    return this.service.deleteCategory(id);
   }
-  @Delete('delete/:id') delete(@Param('id', ParseIntPipe) id: number) {
-    return this.s.deleteCategory(id);
+
+  @Get('listAll')
+  @ApiOperation({ summary: '查询所有后台资源分类' })
+  listAll() {
+    return this.service.listCategory();
   }
 }

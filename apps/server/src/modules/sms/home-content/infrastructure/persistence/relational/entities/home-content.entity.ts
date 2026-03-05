@@ -26,6 +26,9 @@ export class HomeAdvertiseEntity {
   @Column({ default: 0, comment: '点击数' })
   clickCount: number;
 
+  @Column({ name: 'order_count', default: 0, comment: '下单数' })
+  orderCount: number;
+
   @Column({ default: '' })
   url: string;
 

@@ -51,12 +51,10 @@
     "test": {
       "inputs": [
         "src/**/*.{ts,tsx,js,jsx,vue}",
-        "__test__/**/*.{ts,tsx,js,jsx,vue}",
-        "__tests__/**/*.{ts,tsx,js,jsx}",
         "test/**/*.{ts,tsx,js,jsx}",
-        "tests/**/*.{ts,tsx,js,jsx}",
-        "../../vitest.config.ts",
-        "../../vitest.setup.ts"
+        "vitest.config.ts",
+        "tsconfig.test.json",
+        "tsconfig.json"
       ],
       "outputs": []
     }

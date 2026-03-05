@@ -6,6 +6,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -13,6 +14,8 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { OrderService } from './order.service';
 import { PageQueryDto } from '@/common/dto/page-result.dto';
+import { CurrentUser } from '@/core/auth/decorators/current-user.decorator';
+import { JwtPayload } from '@/core/auth/types/jwt-payload.type';
 
 // ======================== 管理端 ========================
 
@@ -62,10 +65,40 @@ export class AdminOrderController {
   @Post('close')
   @ApiOperation({
     summary: '关闭订单',
-    description: '对应前端 POST /order/close?ids=1&note=备注',
+    description: '对应前端 POST /order/close',
   })
-  close(@Query('ids') ids: string, @Query('note') note: string) {
-    return this.orderService.close(ids.split(',').map(Number), note);
+  close(@Body() body: { ids: number[]; note: string }) {
+    return this.orderService.close(body.ids, body.note);
+  }
+
+  @Put(':id/receiverInfo')
+  @ApiOperation({
+    summary: '修改收货人信息',
+    description: '对应前端 PUT /order/:id/receiverInfo',
+  })
+  updateReceiverInfo(@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
+    return this.orderService.updateReceiverInfo({ ...dto, orderId: id });
+  }
+
+  @Put(':id/moneyInfo')
+  @ApiOperation({
+    summary: '修改费用信息',
+    description: '对应前端 PUT /order/:id/moneyInfo',
+  })
+  updateMoneyInfo(@Param('id', ParseIntPipe) id: number, @Body() dto: any) {
+    return this.orderService.updateMoneyInfo({ ...dto, orderId: id });
+  }
+
+  @Put(':id/note')
+  @ApiOperation({
+    summary: '修改订单备注',
+    description: '对应前端 PUT /order/:id/note',
+  })
+  updateNote(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { note: string; status: number },
+  ) {
+    return this.orderService.updateNote(id, body.note, body.status);
   }
 }
 
@@ -83,9 +116,8 @@ export class PortalOrderController {
     summary: '生成确认订单',
     description: '对应前端 POST /order/generateConfirmOrder',
   })
-  generateConfirmOrder(@Body() dto: any) {
-    // TODO: 从 JWT 取 memberId
-    return this.orderService.generateConfirmOrder(0, dto.cartIds ?? []);
+  generateConfirmOrder(@CurrentUser() user: JwtPayload, @Body() dto: any) {
+    return this.orderService.generateConfirmOrder(user.sub, dto.cartIds ?? []);
   }
 
   @Post('generateOrder')
@@ -93,9 +125,8 @@ export class PortalOrderController {
     summary: '提交订单',
     description: '对应前端 POST /order/generateOrder',
   })
-  generateOrder(@Body() dto: any) {
-    // TODO: 从 JWT 取 memberId
-    return this.orderService.generateOrder(0, dto);
+  generateOrder(@CurrentUser() user: JwtPayload, @Body() dto: any) {
+    return this.orderService.generateOrder(user.sub, dto);
   }
 
   @Get('list')
@@ -103,9 +134,12 @@ export class PortalOrderController {
     summary: '我的订单列表',
     description: '对应前端 GET /order/list',
   })
-  memberList(@Query('status') status: string, @Query() query: PageQueryDto) {
-    // TODO: 从 JWT 取 memberId
-    return this.orderService.memberList(0, Number(status ?? -1), query);
+  memberList(
+    @CurrentUser() user: JwtPayload,
+    @Query('status') status: string,
+    @Query() query: PageQueryDto,
+  ) {
+    return this.orderService.memberList(user.sub, Number(status ?? -1), query);
   }
 
   @Get('detail/:orderId')
@@ -134,8 +168,8 @@ export class PortalOrderController {
     summary: '取消订单',
     description: '对应前端 POST /order/cancelUserOrder',
   })
-  cancelOrder(@Body() dto: any) {
-    return this.orderService.cancelOrder(0, dto.orderId);
+  cancelOrder(@CurrentUser() user: JwtPayload, @Body() dto: any) {
+    return this.orderService.cancelOrder(user.sub, dto.orderId);
   }
 
   @Post('confirmReceiveOrder')
@@ -143,7 +177,17 @@ export class PortalOrderController {
     summary: '确认收货',
     description: '对应前端 POST /order/confirmReceiveOrder',
   })
-  confirmReceive(@Body() dto: any) {
-    return this.orderService.confirmReceive(0, dto.orderId);
+  confirmReceive(@CurrentUser() user: JwtPayload, @Body() dto: any) {
+    return this.orderService.confirmReceive(user.sub, dto.orderId);
+  }
+
+  @Post('deleteOrder')
+  @ApiOperation({
+    summary: '删除订单',
+    description:
+      '仅允许删除已完成或已取消的订单，对应前端 POST /order/deleteOrder',
+  })
+  deleteOrder(@CurrentUser() user: JwtPayload, @Body() dto: any) {
+    return this.orderService.deleteOrder(user.sub, Number(dto.orderId));
   }
 }

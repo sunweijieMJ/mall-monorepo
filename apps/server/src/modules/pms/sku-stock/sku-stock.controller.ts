@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseIntPipe,
   Post,
@@ -11,35 +13,31 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { SkuStockService } from './sku-stock.service';
+import { SkuStockEntity } from './infrastructure/persistence/relational/entities/sku-stock.entity';
 
 @ApiTags('管理端-PMS-SKU库存')
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
-@Controller({ path: 'admin/pms/sku-stocks', version: '1' })
+@Controller('sku/stock')
 export class SkuStockController {
   constructor(private readonly service: SkuStockService) {}
 
-  @Get('list/:productId')
-  @ApiOperation({
-    summary: '查询 SKU 库存列表',
-    description: '对应前端 GET /skuStock/list/:productId',
-  })
+  @Get(':pid')
+  @ApiOperation({ summary: '查询 SKU 库存列表' })
   getList(
-    @Param('productId', ParseIntPipe) productId: number,
+    @Param('pid', ParseIntPipe) pid: number,
     @Query('keyword') keyword?: string,
   ) {
-    return this.service.getList(productId, keyword);
+    return this.service.getList(pid, keyword);
   }
 
-  @Post('update/:productId')
-  @ApiOperation({
-    summary: '批量更新SKU库存',
-    description: '对应前端 POST /skuStock/update/:productId',
-  })
+  @Post('update/:pid')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '批量更新SKU库存' })
   update(
-    @Param('productId', ParseIntPipe) productId: number,
-    @Body() stocks: any[],
+    @Param('pid', ParseIntPipe) pid: number,
+    @Body() stocks: SkuStockEntity[],
   ) {
-    return this.service.update(productId, stocks);
+    return this.service.update(pid, stocks);
   }
 }

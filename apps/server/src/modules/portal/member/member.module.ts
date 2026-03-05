@@ -7,6 +7,11 @@ import {
   MemberBrandAttentionEntity,
   MemberReadHistoryEntity,
 } from './infrastructure/persistence/relational/entities/member.entity';
+import { CouponEntity } from '@/modules/sms/coupon/infrastructure/persistence/relational/entities/coupon.entity';
+import { CouponHistoryEntity } from '@/modules/sms/coupon/infrastructure/persistence/relational/entities/coupon-history.entity';
+import { CouponProductRelationEntity } from '@/modules/sms/coupon/infrastructure/persistence/relational/entities/coupon-product-relation.entity';
+import { CouponProductCategoryRelationEntity } from '@/modules/sms/coupon/infrastructure/persistence/relational/entities/coupon-product-category-relation.entity';
+import { ProductEntity } from '@/modules/pms/product/infrastructure/persistence/relational/entities/product.entity';
 import { MemberService } from './member.service';
 import {
   MemberInfoController,
@@ -14,6 +19,7 @@ import {
   MemberProductCollectionController,
   MemberBrandAttentionController,
   MemberReadHistoryController,
+  MemberCouponController,
 } from './member.controller';
 
 @Module({
@@ -24,6 +30,11 @@ import {
       MemberProductCollectionEntity,
       MemberBrandAttentionEntity,
       MemberReadHistoryEntity,
+      CouponEntity,
+      CouponHistoryEntity,
+      CouponProductRelationEntity,
+      CouponProductCategoryRelationEntity,
+      ProductEntity,
     ]),
   ],
   controllers: [
@@ -32,6 +43,7 @@ import {
     MemberProductCollectionController,
     MemberBrandAttentionController,
     MemberReadHistoryController,
+    MemberCouponController,
   ],
   providers: [MemberService],
   exports: [MemberService],

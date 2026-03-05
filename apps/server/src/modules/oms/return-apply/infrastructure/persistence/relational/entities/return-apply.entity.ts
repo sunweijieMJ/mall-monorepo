@@ -10,6 +10,9 @@ export class ReturnApplyEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Column({ name: 'member_id', nullable: true, comment: '会员 ID' })
+  memberId: number;
+
   @Column({ name: 'order_id' })
   orderId: number;
 

@@ -1,23 +1,20 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { OrderSettingEntity } from './infrastructure/persistence/relational/entities/order-setting.entity';
 
 @Injectable()
 export class OrderSettingService {
-  /**
-   * 获取订单设置
-   * TODO: 迁移自 OmsOrderSettingServiceImpl.getItem()
-   *   - 查询 oms_order_setting 表 WHERE id = id
-   */
-  async getItem(id: number): Promise<Record<string, unknown> | null> {
-    // TODO: implement
-    return null;
+  constructor(
+    @InjectRepository(OrderSettingEntity)
+    private readonly repo: Repository<OrderSettingEntity>,
+  ) {}
+
+  async getItem(id: number): Promise<OrderSettingEntity | null> {
+    return this.repo.findOneBy({ id });
   }
 
-  /**
-   * 更新订单设置
-   * TODO: 迁移自 OmsOrderSettingServiceImpl.update()
-   *   - UPDATE oms_order_setting SET ... WHERE id = id
-   */
-  async update(id: number, data: Record<string, unknown>): Promise<void> {
-    // TODO: implement
+  async update(id: number, dto: Partial<OrderSettingEntity>): Promise<void> {
+    await this.repo.update(id, dto);
   }
 }
