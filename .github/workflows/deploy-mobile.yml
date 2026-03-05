@@ -22,8 +22,14 @@ name: Deploy Mobile
 
 on:
   push:
-    tags:
-      - 'mobile-v*.*.*'
+    branches: [main, master, 'release/**']
+    paths:
+      - 'apps/mobile/**'
+      - 'packages/**'
+      - 'internal/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'turbo.json'
   workflow_dispatch:
     inputs:
       target:
@@ -58,7 +64,6 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: '22'
   APP_DIR: 'apps/mobile'
 
 jobs:
@@ -86,7 +91,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: .nvmrc
           cache: pnpm
 
       - name: Install dependencies
@@ -264,7 +269,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: .nvmrc
           cache: pnpm
 
       - name: Install dependencies

@@ -17,8 +17,14 @@ name: Deploy Admin
 
 on:
   push:
-    tags:
-      - 'admin-v*.*.*'
+    branches: [main, master, 'release/**']
+    paths:
+      - 'apps/admin/**'
+      - 'packages/**'
+      - 'internal/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'turbo.json'
   workflow_dispatch:
     inputs:
       deploy:
@@ -61,7 +67,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: pnpm
 
       - name: Install dependencies
