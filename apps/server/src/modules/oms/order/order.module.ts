@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BullModule } from '@nestjs/bullmq';
+import { ScheduleModule } from '@nestjs/schedule';
 
 import { OrderEntity } from './infrastructure/persistence/relational/entities/order.entity';
 import { OrderItemEntity } from './infrastructure/persistence/relational/entities/order-item.entity';
@@ -28,9 +29,11 @@ import {
   PortalOrderController,
 } from './order.controller';
 import { OrderCancelProcessor } from './order-cancel.processor';
+import { CleanupOverdueOrdersTask } from './tasks/cleanup-overdue-orders.task';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     TypeOrmModule.forFeature([
       OrderEntity,
       OrderItemEntity,
@@ -53,7 +56,7 @@ import { OrderCancelProcessor } from './order-cancel.processor';
     BullModule.registerQueue({ name: 'order-cancel' }),
   ],
   controllers: [AdminOrderController, PortalOrderController],
-  providers: [OrderService, OrderCancelProcessor],
+  providers: [OrderService, OrderCancelProcessor, CleanupOverdueOrdersTask],
   exports: [OrderService],
 })
 export class OrderModule {}

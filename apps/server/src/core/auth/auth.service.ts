@@ -31,17 +31,7 @@ import { MemberEntity } from '@/modules/portal/member/infrastructure/persistence
 import { MemberLevelEntity } from '@/modules/ums/member-level/infrastructure/persistence/relational/entities/member-level.entity';
 import { SessionEntity } from './infrastructure/persistence/relational/entities/session.entity';
 
-// Redis 缓存 Key 规范
-const CACHE_KEYS = {
-  admin: (username: string) => `mall:admin:${username}`,
-  resourceList: (adminId: number) => `mall:resourceList:${adminId}`,
-  authCode: (phone: string) => `mall:authCode:${phone}`,
-  authCodeCooldown: (phone: string) => `mall:authCode:recent:${phone}`,
-  tokenBlacklist: (token: string) => `mall:token_blacklist:${token}`,
-  member: (username: string) => `mall:member:${username}`,
-  loginFail: (username: string) => `mall:login:fail:${username}`,
-  loginLock: (username: string) => `mall:login:lock:${username}`,
-};
+import { CACHE_KEYS } from '@/common/constants';
 const AUTH_CODE_TTL = 900 * 1000; // 15分钟
 const AUTH_CODE_COOLDOWN = 60 * 1000; // 验证码发送冷却 60 秒
 const LOGIN_FAIL_MAX = 5; // 最大登录失败次数
@@ -90,33 +80,28 @@ export class AuthService {
       throw new UnauthorizedException('登录尝试过多，请 15 分钟后重试');
     }
 
-    // 1. 先从 Redis 缓存查 admin 信息
-    let admin: AdminUserEntity | null =
-      (await this.cacheManager.get<AdminUserEntity>(
-        CACHE_KEYS.admin(dto.username),
-      )) ?? null;
+    // 1. 登录流程始终查 DB，确保实时获取账号状态（避免缓存延迟导致禁用账号绕过）
+    // addSelect 显式加载 select:false 的 password 字段（仅登录校验时需要）
+    const admin = await this.adminRepo
+      .createQueryBuilder('admin')
+      .addSelect('admin.password')
+      .where('admin.username = :username', { username: dto.username })
+      .getOne();
 
-    // 2. 缓存没有则从 DB 查
-    if (!admin) {
-      admin = await this.adminRepo.findOne({
-        where: { username: dto.username },
-      });
-    }
-
-    // 3. 不存在抛异常
+    // 2. 不存在抛异常
     if (!admin) {
       await this.recordLoginFailure(dto.username);
       throw new UnauthorizedException('用户名或密码错误');
     }
 
-    // 4. bcrypt 验证密码
+    // 3. bcrypt 验证密码
     const isPasswordValid = await bcrypt.compare(dto.password, admin.password);
     if (!isPasswordValid) {
       await this.recordLoginFailure(dto.username);
       throw new UnauthorizedException('用户名或密码错误');
     }
 
-    // 5. 检查账号状态
+    // 4. 检查账号状态（放在密码验证之后，防止状态枚举攻击）
     if (admin.status !== 1) {
       throw new UnauthorizedException('账号已被禁用');
     }
@@ -156,7 +141,9 @@ export class AuthService {
    * 管理员注册
    * 迁移自 mall-admin UmsAdminServiceImpl.register()
    */
-  async adminRegister(dto: RegisterAdminDto): Promise<AdminUserEntity> {
+  async adminRegister(
+    dto: RegisterAdminDto,
+  ): Promise<Omit<AdminUserEntity, 'password'>> {
     // 1. 查重
     const existing = await this.adminRepo.findOne({
       where: { username: dto.username },
@@ -181,8 +168,8 @@ export class AuthService {
     const saved = await this.adminRepo.save(admin);
 
     // 4. 返回时隐藏密码
-    saved.password = '';
-    return saved;
+    const { password: _pw, ...result } = saved;
+    return result;
   }
 
   /**
@@ -255,7 +242,7 @@ export class AuthService {
     }
 
     // 同步删除 JWT 有效性缓存，确保登出立即生效（不等 30 秒过期）
-    await this.cacheManager.del(`mall:jwt_valid:${pureToken}`);
+    await this.cacheManager.del(CACHE_KEYS.jwtValid(pureToken));
 
     // 删除该用户的所有 Session，确保 Refresh Token 也同步失效
     if (decoded.sub) {
@@ -266,8 +253,12 @@ export class AuthService {
     }
 
     if (decoded.username) {
-      await this.cacheManager.del(CACHE_KEYS.admin(decoded.username));
-      await this.cacheManager.del(CACHE_KEYS.member(decoded.username));
+      // 按用户类型只删除对应缓存，避免 admin/member 同名时互相清除
+      if (decoded.type === 'admin') {
+        await this.cacheManager.del(CACHE_KEYS.admin(decoded.username));
+      } else {
+        await this.cacheManager.del(CACHE_KEYS.member(decoded.username));
+      }
     }
 
     if (decoded.sub) {
@@ -282,7 +273,7 @@ export class AuthService {
    */
   async refreshToken(payload: JwtPayload): Promise<LoginResponseDto> {
     // 1. 从 payload 中取出 sessionId（JwtRefreshStrategy 已验证其存在）
-    const { sessionId, sub, username, type } = payload;
+    const { sessionId, sub, username, type, jti } = payload;
 
     // 2. 查找 Session 记录
     const session = await this.sessionRepo.findOne({
@@ -298,7 +289,16 @@ export class AuthService {
       throw new UnauthorizedException('Session 信息不匹配');
     }
 
-    // 4. 检查账号状态（防止禁用账号仍可刷新 Token）
+    // 4. 验证 jti hash（防止 Session 被伪造）
+    if (jti) {
+      const isJtiValid = await bcrypt.compare(jti, session.hash);
+      if (!isJtiValid) {
+        await this.sessionRepo.delete({ id: sessionId });
+        throw new UnauthorizedException('Token 验证失败');
+      }
+    }
+
+    // 5. 检查账号状态（防止禁用账号仍可刷新 Token）
     if (type === 'admin') {
       const admin = await this.adminRepo.findOne({ where: { id: sub } });
       if (!admin || admin.status !== 1) {
@@ -333,39 +333,37 @@ export class AuthService {
       throw new UnauthorizedException('登录尝试过多，请 15 分钟后重试');
     }
 
-    // 1. 先从 Redis 查
-    let member: MemberEntity | null =
-      (await this.cacheManager.get<MemberEntity>(
-        CACHE_KEYS.member(dto.username),
-      )) ?? null;
+    // 1. 登录流程始终查 DB，确保实时获取账号状态（避免缓存延迟导致禁用账号绕过）
+    // addSelect 显式加载 select:false 的 password 字段（仅登录校验时需要）
+    const member = await this.memberRepo
+      .createQueryBuilder('member')
+      .addSelect('member.password')
+      .where('member.username = :username', { username: dto.username })
+      .getOne();
 
-    // 2. 没有则从 DB 查
-    if (!member) {
-      member = await this.memberRepo.findOne({
-        where: { username: dto.username },
-      });
-    }
-
-    // 3. 不存在
+    // 2. 不存在
     if (!member) {
       await this.recordLoginFailure(dto.username);
       throw new UnauthorizedException('用户名或密码错误');
     }
 
-    // 4. 验证密码
+    // 3. 验证密码
     const isPasswordValid = await bcrypt.compare(dto.password, member.password);
     if (!isPasswordValid) {
       await this.recordLoginFailure(dto.username);
       throw new UnauthorizedException('用户名或密码错误');
     }
 
-    // 5. 检查状态
+    // 4. 检查状态（放在密码验证之后，防止状态枚举攻击）
     if (member.status !== 1) {
       throw new UnauthorizedException('账号已被禁用');
     }
 
     // 6. 登录成功，清除失败计数
     await this.cacheManager.del(CACHE_KEYS.loginFail(dto.username));
+
+    // 6.5. 更新登录时间
+    await this.memberRepo.update(member.id, { loginTime: new Date() });
 
     // 7. 缓存会员信息（不存储密码 hash，防止 Redis 泄露后离线破解）
     await this.cacheManager.set(
@@ -397,14 +395,7 @@ export class AuthService {
       throw new BadRequestException('验证码错误');
     }
 
-    // 2. 查重
-    const existingByUsername = await this.memberRepo.findOne({
-      where: { username: dto.username },
-    });
-    if (existingByUsername) {
-      throw new BadRequestException('用户名已存在');
-    }
-
+    // 2. 查重（手机号同时作为 username，只需查一个）
     const existingByPhone = await this.memberRepo.findOne({
       where: { phone: dto.telephone },
     });
@@ -420,9 +411,9 @@ export class AuthService {
     // 4. 加密密码
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    // 5. 插入会员记录
+    // 5. 插入会员记录（telephone 同时作为 username 使用）
     const member = this.memberRepo.create({
-      username: dto.username,
+      username: dto.telephone,
       password: hashedPassword,
       phone: dto.telephone,
       status: 1,
@@ -462,8 +453,8 @@ export class AuthService {
       throw new BadRequestException('验证码发送过于频繁，请 60 秒后再试');
     }
 
-    // 2. 生成6位随机数字
-    const code = String(Math.floor(100000 + Math.random() * 900000));
+    // 2. 生成6位随机数字（使用加密安全随机数）
+    const code = String(crypto.randomInt(100000, 1000000));
 
     // 3. 存入 Redis，15分钟过期
     await this.cacheManager.set(
@@ -531,8 +522,9 @@ export class AuthService {
     const refreshExpires =
       this.configService.get('auth.refreshExpires', { infer: true }) || '3650d';
 
-    // 1. 创建 Session 记录
-    const hash = crypto.randomBytes(32).toString('hex');
+    // 1. 生成 jti 并创建 Session 记录
+    const jti = crypto.randomBytes(16).toString('hex');
+    const hash = await bcrypt.hash(jti, 10);
     const session = this.sessionRepo.create({
       userId,
       userType,
@@ -549,12 +541,13 @@ export class AuthService {
     };
     const token = this.jwtService.sign(accessPayload);
 
-    // 3. 签发 Refresh Token（长期，包含 sessionId，使用独立 secret）
+    // 3. 签发 Refresh Token（长期，包含 sessionId 和 jti）
     const refreshPayload: JwtPayload = {
       sub: userId,
       username,
       type: userType,
       sessionId: savedSession.id,
+      jti,
     };
     const refreshToken = this.jwtService.sign(refreshPayload, {
       secret: refreshSecret,

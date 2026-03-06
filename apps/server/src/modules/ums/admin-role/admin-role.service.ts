@@ -4,6 +4,7 @@ import { In, Like, Repository } from 'typeorm';
 import { TransactionService } from '@/infrastructure/database/transaction/transaction.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { CACHE_KEYS } from '@/common/constants';
 import { AdminRoleEntity } from './infrastructure/persistence/relational/entities/admin-role.entity';
 import { AdminRoleRelationEntity } from '@/modules/ums/admin-user/infrastructure/persistence/relational/entities/admin-role-relation.entity';
 import { RoleMenuRelationEntity } from './infrastructure/persistence/relational/entities/role-menu-relation.entity';
@@ -164,7 +165,7 @@ export class AdminRoleService {
     // 并行清除缓存，避免顺序 await 导致的性能问题
     await Promise.all(
       relations.map((rel) =>
-        this.cacheManager.del(`mall:resourceList:${rel.adminId}`),
+        this.cacheManager.del(CACHE_KEYS.resourceList(rel.adminId)),
       ),
     );
   }

@@ -4,7 +4,6 @@ import { DatabaseConfig } from '@/infrastructure/database/config/database-config
 import { RedisConfig } from '@/infrastructure/redis/config/redis-config.type';
 import { ThrottlerConfig } from '@/infrastructure/throttler/throttler-config.type';
 import { LoggerConfig } from '@/infrastructure/logger/config/logger-config.type';
-import { PaymentConfig } from '@/modules/portal/payment/config/payment-config.type';
 import { MetricsConfig } from '@/infrastructure/metrics/metrics-config.type';
 
 export type AllConfigType = {
@@ -14,6 +13,5 @@ export type AllConfigType = {
   redis: RedisConfig;
   throttler: ThrottlerConfig;
   logger: LoggerConfig;
-  payment: PaymentConfig;
   metrics: MetricsConfig;
 };

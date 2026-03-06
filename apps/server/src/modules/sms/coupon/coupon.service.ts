@@ -51,6 +51,10 @@ export class CouponService {
     return this.transactionService.run(async (manager) => {
       const coupon = await manager.save(CouponEntity, {
         ...couponData,
+        amount:
+          couponData.amount != null ? String(couponData.amount) : undefined,
+        minPoint:
+          couponData.minPoint != null ? String(couponData.minPoint) : undefined,
         count: couponData.publishCount,
         useCount: 0,
         receiveCount: 0,
@@ -103,7 +107,12 @@ export class CouponService {
       dto;
 
     await this.transactionService.run(async (manager) => {
-      await manager.update(CouponEntity, id, couponData);
+      const { amount, minPoint, ...restCouponData } = couponData;
+      await manager.update(CouponEntity, id, {
+        ...restCouponData,
+        ...(amount != null ? { amount: String(amount) } : {}),
+        ...(minPoint != null ? { minPoint: String(minPoint) } : {}),
+      });
 
       // useType=2: 先删后插商品关联
       if (couponData.useType === 2) {

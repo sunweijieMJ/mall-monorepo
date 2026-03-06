@@ -6,7 +6,7 @@ import { Cache } from 'cache-manager';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { AllConfigType } from '@/config/config.type';
 import { JwtPayload } from '../types/jwt-payload.type';
-import { JWT_VALID_CACHE_TTL_MS } from '@/common/constants';
+import { CACHE_KEYS, JWT_VALID_CACHE_TTL_MS } from '@/common/constants';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -34,14 +34,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     // 1. 先检查黑名单（优先级最高，确保登出后立即失效）
     const blacklisted = await this.cacheManager.get(
-      `mall:token_blacklist:${token}`,
+      CACHE_KEYS.tokenBlacklist(token),
     );
     if (blacklisted) {
       throw new UnauthorizedException('token 已失效');
     }
 
     // 2. 检查有效缓存，命中则跳过后续查询（减少 Redis 负载）
-    const validCacheKey = `mall:jwt_valid:${token}`;
+    const validCacheKey = CACHE_KEYS.jwtValid(token);
     const isValidCached = await this.cacheManager.get<string>(validCacheKey);
     if (!isValidCached) {
       // 3. 验证通过，缓存结果（避免每次请求都查 Redis 黑名单）

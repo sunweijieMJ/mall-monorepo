@@ -5,8 +5,9 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
 } from 'typeorm';
-import { ProductEntity } from './product.entity';
+import type { ProductEntity } from './product.entity';
 
 @Entity('pms_product_ladder')
 export class ProductLadderEntity {
@@ -27,7 +28,7 @@ export class ProductLadderEntity {
     nullable: true,
     comment: '折扣',
   })
-  discount: number;
+  discount: string | null;
 
   @Column({
     type: 'decimal',
@@ -36,15 +37,15 @@ export class ProductLadderEntity {
     nullable: true,
     comment: '折后价格',
   })
-  price: number;
+  price: string | null;
 
   // ---- Relations ----
 
-  @ManyToOne(() => ProductEntity, (product) => product.productLadders, {
+  @ManyToOne('ProductEntity', 'productLadders', {
     createForeignKeyConstraints: false,
     eager: false,
     nullable: true,
   })
   @JoinColumn({ name: 'product_id' })
-  product: ProductEntity;
+  product: Relation<ProductEntity>;
 }

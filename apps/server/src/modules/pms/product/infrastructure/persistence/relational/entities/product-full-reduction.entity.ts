@@ -5,8 +5,9 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
 } from 'typeorm';
-import { ProductEntity } from './product.entity';
+import type { ProductEntity } from './product.entity';
 
 @Entity('pms_product_full_reduction')
 export class ProductFullReductionEntity {
@@ -24,7 +25,7 @@ export class ProductFullReductionEntity {
     scale: 2,
     nullable: true,
   })
-  fullPrice: number;
+  fullPrice: string | null;
 
   @Column({
     name: 'reduce_price',
@@ -33,15 +34,15 @@ export class ProductFullReductionEntity {
     scale: 2,
     nullable: true,
   })
-  reducePrice: number;
+  reducePrice: string | null;
 
   // ---- Relations ----
 
-  @ManyToOne(() => ProductEntity, (product) => product.productFullReductions, {
+  @ManyToOne('ProductEntity', 'productFullReductions', {
     createForeignKeyConstraints: false,
     eager: false,
     nullable: true,
   })
   @JoinColumn({ name: 'product_id' })
-  product: ProductEntity;
+  product: Relation<ProductEntity>;
 }

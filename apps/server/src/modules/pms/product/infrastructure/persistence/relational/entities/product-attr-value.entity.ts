@@ -5,8 +5,9 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
 } from 'typeorm';
-import { ProductEntity } from './product.entity';
+import type { ProductEntity } from './product.entity';
 
 @Entity('pms_product_attribute_value')
 export class ProductAttrValueEntity {
@@ -28,11 +29,11 @@ export class ProductAttrValueEntity {
 
   // ---- Relations ----
 
-  @ManyToOne(() => ProductEntity, (product) => product.productAttrValues, {
+  @ManyToOne('ProductEntity', 'productAttrValues', {
     createForeignKeyConstraints: false,
     eager: false,
     nullable: true,
   })
   @JoinColumn({ name: 'product_id' })
-  product: ProductEntity;
+  product: Relation<ProductEntity>;
 }

@@ -9,11 +9,13 @@ import { CouponHistoryEntity } from '@/modules/sms/coupon/infrastructure/persist
 import { CouponProductRelationEntity } from '@/modules/sms/coupon/infrastructure/persistence/relational/entities/coupon-product-relation.entity';
 import { CouponProductCategoryRelationEntity } from '@/modules/sms/coupon/infrastructure/persistence/relational/entities/coupon-product-category-relation.entity';
 import { ProductEntity } from '@/modules/pms/product/infrastructure/persistence/relational/entities/product.entity';
+import { CartItemEntity } from '@/modules/portal/cart/infrastructure/persistence/relational/entities/cart-item.entity';
 import { MemberService } from './member.service';
 import {
   MemberInfoController,
   MemberAddressController,
   MemberCouponController,
+  PortalCouponController,
 } from './member.controller';
 
 @Module({
@@ -26,12 +28,14 @@ import {
       CouponProductRelationEntity,
       CouponProductCategoryRelationEntity,
       ProductEntity,
+      CartItemEntity,
     ]),
   ],
   controllers: [
     MemberInfoController,
     MemberAddressController,
     MemberCouponController,
+    PortalCouponController,
   ],
   providers: [MemberService],
   exports: [MemberService],

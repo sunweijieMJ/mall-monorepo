@@ -4,8 +4,9 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
 } from 'typeorm';
-import { CouponEntity } from './coupon.entity';
+import type { CouponEntity } from './coupon.entity';
 
 @Entity('sms_coupon_product_relation')
 export class CouponProductRelationEntity {
@@ -36,11 +37,11 @@ export class CouponProductRelationEntity {
 
   // ---- Relations ----
 
-  @ManyToOne(() => CouponEntity, (coupon) => coupon.couponProductRelations, {
+  @ManyToOne('CouponEntity', 'couponProductRelations', {
     createForeignKeyConstraints: false,
     eager: false,
     nullable: true,
   })
   @JoinColumn({ name: 'coupon_id' })
-  coupon: CouponEntity;
+  coupon: Relation<CouponEntity>;
 }

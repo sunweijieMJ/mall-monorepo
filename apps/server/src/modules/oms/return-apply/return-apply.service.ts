@@ -2,7 +2,10 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ReturnApplyEntity } from './infrastructure/persistence/relational/entities/return-apply.entity';
-import { OrderEntity } from '../order/infrastructure/persistence/relational/entities/order.entity';
+import {
+  OrderEntity,
+  OrderStatus,
+} from '../order/infrastructure/persistence/relational/entities/order.entity';
 import { PageQueryDto, PageResult } from '@/common/dto/page-result.dto';
 
 /** 会员提交退货申请 DTO */
@@ -124,7 +127,7 @@ export class ReturnApplyService {
     if (dto.handleMan !== undefined) updateFields.handleMan = dto.handleMan;
     if (dto.receiveMan !== undefined) updateFields.receiveMan = dto.receiveMan;
     if (dto.refundAmount !== undefined)
-      updateFields.returnAmount = dto.refundAmount;
+      updateFields.returnAmount = String(dto.refundAmount);
     if (dto.companyAddressId !== undefined)
       updateFields.companyAddressId = dto.companyAddressId;
     if (dto.receiveNote !== undefined)
@@ -186,6 +189,12 @@ export class ReturnApplyService {
       throw new BadRequestException('订单不存在或无权操作');
     }
 
+    // 仅已发货或已完成的订单可以申请退货
+    const allowedStatuses = [OrderStatus.SHIPPING, OrderStatus.COMPLETED];
+    if (!allowedStatuses.includes(order.status)) {
+      throw new BadRequestException('当前订单状态不允许申请退货');
+    }
+
     const entity = this.repo.create({
       memberId,
       orderId: dto.orderId,
@@ -202,9 +211,10 @@ export class ReturnApplyService {
       productBrand: dto.productBrand,
       productAttr: dto.productAttr,
       productCount: dto.productCount ?? 1,
-      productPrice: dto.productPrice,
-      productRealPrice: dto.productRealPrice,
-      returnAmount: dto.returnAmount ?? 0,
+      productPrice: dto.productPrice != null ? String(dto.productPrice) : null,
+      productRealPrice:
+        dto.productRealPrice != null ? String(dto.productRealPrice) : null,
+      returnAmount: String(dto.returnAmount ?? 0),
       status: 0, // 待处理
     });
     return this.repo.save(entity);

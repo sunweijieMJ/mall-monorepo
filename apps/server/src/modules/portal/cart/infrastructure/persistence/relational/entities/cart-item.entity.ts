@@ -20,6 +20,7 @@ export class CartItemEntity {
   @Column({ name: 'product_id' })
   productId: number;
 
+  @Index()
   @Column({ name: 'product_sku_id', nullable: true })
   productSkuId: number;
 
@@ -44,7 +45,7 @@ export class CartItemEntity {
   productSn: string;
 
   @Column({ name: 'product_price', type: 'decimal', precision: 10, scale: 2 })
-  productPrice: number;
+  productPrice: string;
 
   @Column({ name: 'product_quantity', default: 1 })
   productQuantity: number;

@@ -1,16 +1,19 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { Redis } from 'ioredis';
+import { REDIS_CLIENT } from '@/infrastructure/redis/redis-client.module';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, In, Repository } from 'typeorm';
 import { TransactionService } from '@/infrastructure/database/transaction/transaction.service';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import { CACHE_KEYS } from '@/common/constants';
 import {
   OrderEntity,
   OrderStatus,
@@ -110,6 +113,8 @@ interface CouponHistoryDetail {
 
 @Injectable()
 export class OrderService {
+  private readonly logger = new Logger(OrderService.name);
+
   constructor(
     @InjectRepository(OrderEntity)
     private readonly orderRepo: Repository<OrderEntity>,
@@ -143,8 +148,8 @@ export class OrderService {
     private readonly couponCategoryRelRepo: Repository<CouponProductCategoryRelationEntity>,
     @InjectRepository(IntegrationConsumeSettingEntity)
     private readonly integrationConsumeSettingRepo: Repository<IntegrationConsumeSettingEntity>,
-    @Inject(CACHE_MANAGER)
-    private readonly cacheManager: Cache,
+    @Inject(REDIS_CLIENT)
+    private readonly redisClient: Redis,
     @InjectQueue('order-cancel')
     private readonly orderCancelQueue: Queue,
     private readonly transactionService: TransactionService,
@@ -219,7 +224,10 @@ export class OrderService {
    * 获取订单详情（管理端）
    * 聚合查询：订单主体 + 商品列表 + 操作历史
    */
-  async detail(id: number): Promise<
+  async detail(
+    id: number,
+    memberId?: number,
+  ): Promise<
     OrderEntity & {
       orderItemList: OrderItemEntity[];
       historyList: OrderOperateHistoryEntity[];
@@ -227,6 +235,11 @@ export class OrderService {
   > {
     const order = await this.orderRepo.findOneBy({ id });
     if (!order) throw new NotFoundException(`订单 ${id} 不存在`);
+
+    // 移动端调用时校验归属权，防止越权查看他人订单
+    if (memberId !== undefined && order.memberId !== memberId) {
+      throw new ForbiddenException('无权访问该订单');
+    }
 
     // 查询订单商品列表
     const orderItemList = await this.orderItemRepo.findBy({ orderId: id });
@@ -246,31 +259,40 @@ export class OrderService {
    * 迁移自 OmsOrderServiceImpl.delivery()
    */
   async delivery(deliveryList: DeliveryItemDto[]): Promise<void> {
-    for (const item of deliveryList) {
-      await this.orderRepo
-        .createQueryBuilder()
-        .update()
-        .set({
-          status: OrderStatus.SHIPPING,
-          deliveryCompany: item.deliveryCompany,
-          deliverySn: item.deliverySn,
-          deliveryTime: new Date(),
-        })
-        .where('id = :id AND status = :status', {
-          id: item.orderId,
-          status: OrderStatus.PAID,
-        })
-        .execute();
+    // 用事务保证订单状态更新与操作历史写入的原子性
+    await this.transactionService.run(async (manager) => {
+      // 逐条 UPDATE（每条订单的物流单号不同，无法合并为单条 SQL）
+      await Promise.all(
+        deliveryList.map((item) =>
+          manager
+            .createQueryBuilder()
+            .update(OrderEntity)
+            .set({
+              status: OrderStatus.SHIPPING,
+              deliveryCompany: item.deliveryCompany,
+              deliverySn: item.deliverySn,
+              deliveryTime: new Date(),
+            })
+            .where('id = :id AND status = :status', {
+              id: item.orderId,
+              status: OrderStatus.PAID,
+            })
+            .execute(),
+        ),
+      );
 
-      const history = this.historyRepo.create({
-        orderId: item.orderId,
-        operateMan: '后台管理员',
-        orderStatus: OrderStatus.SHIPPING,
-        note: '完成发货',
-        createTime: new Date(),
-      });
-      await this.historyRepo.save(history);
-    }
+      // 批量插入操作历史
+      const histories = deliveryList.map((item) =>
+        manager.create(OrderOperateHistoryEntity, {
+          orderId: item.orderId,
+          operateMan: '后台管理员',
+          orderStatus: OrderStatus.SHIPPING,
+          note: '完成发货',
+          createTime: new Date(),
+        }),
+      );
+      await manager.save(OrderOperateHistoryEntity, histories);
+    });
   }
 
   /**
@@ -278,23 +300,36 @@ export class OrderService {
    * 迁移自 OmsOrderServiceImpl.close()
    */
   async close(ids: number[], note: string): Promise<void> {
-    await this.orderRepo
-      .createQueryBuilder()
-      .update()
-      .set({ status: OrderStatus.CLOSED })
-      .where('id IN (:...ids) AND deleteStatus = 0', { ids })
-      .execute();
+    await this.transactionService.run(async (manager) => {
+      // 只允许关闭待付款、已付款、已发货状态的订单
+      await manager
+        .createQueryBuilder()
+        .update(OrderEntity)
+        .set({ status: OrderStatus.CLOSED })
+        .where(
+          'id IN (:...ids) AND deleteStatus = 0 AND status NOT IN (:...excludedStatuses)',
+          {
+            ids,
+            excludedStatuses: [
+              OrderStatus.CANCELLED,
+              OrderStatus.CLOSED,
+              OrderStatus.COMPLETED,
+            ],
+          },
+        )
+        .execute();
 
-    const histories = ids.map((orderId) =>
-      this.historyRepo.create({
-        orderId,
-        operateMan: '后台管理员',
-        orderStatus: OrderStatus.CLOSED,
-        note: `订单关闭:${note}`,
-        createTime: new Date(),
-      }),
-    );
-    await this.historyRepo.save(histories);
+      const histories = ids.map((orderId) =>
+        manager.create(OrderOperateHistoryEntity, {
+          orderId,
+          operateMan: '后台管理员',
+          orderStatus: OrderStatus.CLOSED,
+          note: `订单关闭:${note}`,
+          createTime: new Date(),
+        }),
+      );
+      await manager.save(OrderOperateHistoryEntity, histories);
+    });
   }
 
   /**
@@ -304,30 +339,31 @@ export class OrderService {
   async updateReceiverInfo(dto: UpdateReceiverInfoDto): Promise<void> {
     const { orderId, status, ...receiverFields } = dto;
 
-    await this.orderRepo
-      .createQueryBuilder()
-      .update()
-      .set({
-        receiverName: receiverFields.receiverName,
-        receiverPhone: receiverFields.receiverPhone,
-        receiverPostCode: receiverFields.receiverPostCode ?? '',
-        receiverDetailAddress: receiverFields.receiverDetailAddress,
-        receiverProvince: receiverFields.receiverProvince,
-        receiverCity: receiverFields.receiverCity,
-        receiverRegion: receiverFields.receiverRegion,
-        modifyTime: new Date(),
-      })
-      .where('id = :id', { id: orderId })
-      .execute();
+    await this.transactionService.run(async (manager) => {
+      await manager
+        .createQueryBuilder()
+        .update(OrderEntity)
+        .set({
+          receiverName: receiverFields.receiverName,
+          receiverPhone: receiverFields.receiverPhone,
+          receiverPostCode: receiverFields.receiverPostCode ?? '',
+          receiverDetailAddress: receiverFields.receiverDetailAddress,
+          receiverProvince: receiverFields.receiverProvince,
+          receiverCity: receiverFields.receiverCity,
+          receiverRegion: receiverFields.receiverRegion,
+          modifyTime: new Date(),
+        })
+        .where('id = :id', { id: orderId })
+        .execute();
 
-    const history = this.historyRepo.create({
-      orderId,
-      operateMan: '后台管理员',
-      orderStatus: status,
-      note: '修改收货人信息',
-      createTime: new Date(),
+      await manager.save(OrderOperateHistoryEntity, {
+        orderId,
+        operateMan: '后台管理员',
+        orderStatus: status,
+        note: '修改收货人信息',
+        createTime: new Date(),
+      });
     });
-    await this.historyRepo.save(history);
   }
 
   /**
@@ -337,26 +373,29 @@ export class OrderService {
   async updateMoneyInfo(dto: UpdateMoneyInfoDto): Promise<void> {
     const { orderId, status, freightAmount, discountAmount } = dto;
 
-    const updateFields: Partial<OrderEntity> = { freightAmount };
+    const updateFields: Partial<OrderEntity> = {
+      freightAmount: String(freightAmount),
+    };
     if (discountAmount !== undefined) {
-      updateFields.promotionAmount = discountAmount;
+      updateFields.promotionAmount = String(discountAmount);
     }
 
-    await this.orderRepo
-      .createQueryBuilder()
-      .update()
-      .set(updateFields)
-      .where('id = :id', { id: orderId })
-      .execute();
+    await this.transactionService.run(async (manager) => {
+      await manager
+        .createQueryBuilder()
+        .update(OrderEntity)
+        .set(updateFields)
+        .where('id = :id', { id: orderId })
+        .execute();
 
-    const history = this.historyRepo.create({
-      orderId,
-      operateMan: '后台管理员',
-      orderStatus: status,
-      note: '修改费用信息',
-      createTime: new Date(),
+      await manager.save(OrderOperateHistoryEntity, {
+        orderId,
+        operateMan: '后台管理员',
+        orderStatus: status,
+        note: '修改费用信息',
+        createTime: new Date(),
+      });
     });
-    await this.historyRepo.save(history);
   }
 
   /**
@@ -364,21 +403,22 @@ export class OrderService {
    * 迁移自 OmsOrderServiceImpl.updateNote()
    */
   async updateNote(id: number, note: string, status: number): Promise<void> {
-    await this.orderRepo
-      .createQueryBuilder()
-      .update()
-      .set({ note })
-      .where('id = :id', { id })
-      .execute();
+    await this.transactionService.run(async (manager) => {
+      await manager
+        .createQueryBuilder()
+        .update(OrderEntity)
+        .set({ note })
+        .where('id = :id', { id })
+        .execute();
 
-    const history = this.historyRepo.create({
-      orderId: id,
-      operateMan: '后台管理员',
-      orderStatus: status,
-      note: `修改备注信息：${note}`,
-      createTime: new Date(),
+      await manager.save(OrderOperateHistoryEntity, {
+        orderId: id,
+        operateMan: '后台管理员',
+        orderStatus: status,
+        note: `修改备注信息：${note}`,
+        createTime: new Date(),
+      });
     });
-    await this.historyRepo.save(history);
   }
 
   /**
@@ -779,17 +819,17 @@ export class OrderService {
         productAttr: promo.productAttr,
         productBrand: promo.productBrand,
         productSn: promo.productSn,
-        productPrice: promo.price,
+        productPrice: String(promo.price),
         productQuantity: promo.quantity,
         productSkuId: promo.productSkuId,
         productSkuCode: promo.productSkuCode,
         productCategoryId: promo.productCategoryId,
-        promotionAmount: promo.reduceAmount,
+        promotionAmount: String(promo.reduceAmount),
         promotionName: promo.promotionMessage,
         giftIntegration: promo.integration,
         giftGrowth: promo.growth,
-        couponAmount: 0,
-        integrationAmount: 0,
+        couponAmount: String(0),
+        integrationAmount: String(0),
       }),
     );
 
@@ -814,7 +854,7 @@ export class OrderService {
     if (dto.useIntegration && dto.useIntegration > 0) {
       const totalProductAmount = orderItems.reduce(
         (sum, item) =>
-          sum + (item.productPrice ?? 0) * (item.productQuantity ?? 0),
+          sum + Number(item.productPrice ?? 0) * (item.productQuantity ?? 0),
         0,
       );
       const integrationAmount = await this.calcUsableIntegrationAmount(
@@ -830,45 +870,50 @@ export class OrderService {
       for (const item of orderItems) {
         const perAmount =
           totalProductAmount > 0
-            ? ((item.productPrice ?? 0) / totalProductAmount) *
+            ? (Number(item.productPrice ?? 0) / totalProductAmount) *
               integrationAmount
             : 0;
-        item.integrationAmount = perAmount;
+        item.integrationAmount = String(perAmount);
       }
     }
 
     // 6. 计算每个 orderItem 的实付金额
     for (const item of orderItems) {
-      item.realAmount =
-        (item.productPrice ?? 0) -
-        (item.promotionAmount ?? 0) -
-        (item.couponAmount ?? 0) -
-        (item.integrationAmount ?? 0);
+      item.realAmount = String(
+        Number(item.productPrice ?? 0) -
+          Number(item.promotionAmount ?? 0) -
+          Number(item.couponAmount ?? 0) -
+          Number(item.integrationAmount ?? 0),
+      );
     }
 
     // 8. 构建订单主体
     const address = await this.memberAddressRepo.findOneBy({
       id: dto.memberReceiveAddressId,
+      memberId,
     });
     if (!address) {
       throw new BadRequestException('收货地址不存在');
     }
 
     // 计算各金额
+    // 注意：orderItem 中的 promotionAmount / couponAmount / integrationAmount 均为**单件**优惠金额
+    // （由 calcCartPromotion、calcPerCouponAmount、积分分摊逻辑按单价比例计算），
+    // 因此汇总到订单主体时需要 × productQuantity 得到该行商品的总优惠额，逻辑正确。
     const totalAmount = orderItems.reduce(
       (sum, item) =>
-        sum + (item.productPrice ?? 0) * (item.productQuantity ?? 0),
+        sum + Number(item.productPrice ?? 0) * (item.productQuantity ?? 0),
       0,
     );
     const promotionAmount = orderItems.reduce(
       (sum, item) =>
-        sum + (item.promotionAmount ?? 0) * (item.productQuantity ?? 0),
+        sum + Number(item.promotionAmount ?? 0) * (item.productQuantity ?? 0),
       0,
     );
     const couponAmount = dto.couponId
       ? orderItems.reduce(
           (sum, item) =>
-            sum + (item.couponAmount ?? 0) * (item.productQuantity ?? 0),
+            sum + Number(item.couponAmount ?? 0) * (item.productQuantity ?? 0),
           0,
         )
       : 0;
@@ -876,12 +921,13 @@ export class OrderService {
       dto.useIntegration && dto.useIntegration > 0
         ? orderItems.reduce(
             (sum, item) =>
-              sum + (item.integrationAmount ?? 0) * (item.productQuantity ?? 0),
+              sum +
+              Number(item.integrationAmount ?? 0) * (item.productQuantity ?? 0),
             0,
           )
         : 0;
     const payAmount =
-      totalAmount + 0 - promotionAmount - couponAmount - integrationAmount;
+      totalAmount - promotionAmount - couponAmount - integrationAmount;
 
     // 计算赠送积分和成长值
     const giftIntegration = orderItems.reduce(
@@ -908,12 +954,12 @@ export class OrderService {
       memberId,
       memberUsername: member?.username ?? '',
       orderSn,
-      totalAmount,
-      payAmount,
-      freightAmount: 0,
-      promotionAmount,
-      couponAmount,
-      integrationAmount,
+      totalAmount: String(totalAmount),
+      payAmount: String(payAmount),
+      freightAmount: String(0),
+      promotionAmount: String(promotionAmount),
+      couponAmount: String(couponAmount),
+      integrationAmount: String(integrationAmount),
       couponId: dto.couponId ?? undefined,
       payType: dto.payType,
       sourceType: 1,
@@ -962,14 +1008,16 @@ export class OrderService {
       }
 
       // 11. 扣减会员积分（事务内，失败可回滚）
+      // 注意：:deductIntegration 参数通过 .setParameter() 设置，TypeORM QueryBuilder
+      // 的 setParameter 与 where 共享同一个 parameters 映射，WHERE 子句可正确解析该参数。
       if (safeUseIntegration > 0 && member) {
         const integrationResult = await manager
           .createQueryBuilder()
           .update(MemberEntity)
           .set({ integration: () => `integration - :deductIntegration` })
+          .setParameter('deductIntegration', safeUseIntegration)
           .where('id = :id AND integration >= :deductIntegration', {
             id: memberId,
-            deductIntegration: safeUseIntegration,
           })
           .execute();
         if (integrationResult.affected === 0) {
@@ -1003,9 +1051,9 @@ export class OrderService {
       );
     } catch (e) {
       // BullMQ 入队失败：订单不会自动取消，需人工干预
-      console.error(
-        `[OrderService] BullMQ 入队失败，orderId=${savedOrder.id}`,
-        e,
+      this.logger.error(
+        `BullMQ 入队失败，orderId=${savedOrder.id}`,
+        (e as Error).stack,
       );
     }
 
@@ -1021,10 +1069,14 @@ export class OrderService {
    * 支付成功回调
    * 迁移自 OmsPortalOrderServiceImpl.paySuccess()
    */
-  async paySuccess(orderId: number, payType: number): Promise<void> {
+  async paySuccess(
+    orderId: number,
+    payType: number,
+    memberId: number,
+  ): Promise<void> {
     // 订单状态更新 + 库存扣减必须在同一事务中，避免部分失败导致数据不一致
     await this.transactionService.run(async (manager) => {
-      // 更新订单状态
+      // 更新订单状态（WHERE 条件同时校验 memberId 归属权，防止越权操作）
       const updateResult = await manager
         .createQueryBuilder()
         .update(OrderEntity)
@@ -1033,14 +1085,20 @@ export class OrderService {
           paymentTime: new Date(),
           payType,
         })
-        .where('id = :id AND status = :status AND deleteStatus = 0', {
-          id: orderId,
-          status: OrderStatus.PENDING_PAYMENT,
-        })
+        .where(
+          'id = :id AND memberId = :memberId AND status = :status AND deleteStatus = 0',
+          {
+            id: orderId,
+            memberId,
+            status: OrderStatus.PENDING_PAYMENT,
+          },
+        )
         .execute();
 
       if (updateResult.affected === 0) {
-        throw new BadRequestException('订单不存在或订单状态不是未支付！');
+        throw new BadRequestException(
+          '订单不存在、无权操作或订单状态不是未支付！',
+        );
       }
 
       // 扣减真实库存（stock - qty, lock_stock - qty），使用悲观锁防止并发问题
@@ -1066,18 +1124,24 @@ export class OrderService {
           );
         }
 
-        await manager
+        const deductResult = await manager
           .createQueryBuilder()
           .update(SkuStockEntity)
           .set({
             stock: () => `stock - :deductQty`,
             lockStock: () => `lock_stock - :deductQty`,
           })
-          .where('id = :skuId', {
+          .setParameter('deductQty', qty)
+          .where('id = :skuId AND stock >= :deductQty', {
             skuId: item.productSkuId,
-            deductQty: qty,
           })
           .execute();
+
+        if (deductResult.affected === 0) {
+          throw new BadRequestException(
+            `SKU(${item.productSkuId}) 实际库存不足，无法完成支付`,
+          );
+        }
       }
 
       // 记录操作历史
@@ -1113,29 +1177,38 @@ export class OrderService {
 
     // 事务：订单状态 + 释放库存 + 恢复优惠券 + 返还积分 + 操作历史，全部原子操作
     await this.transactionService.run(async (manager) => {
-      // 更新订单状态为已取消
-      await manager
+      // 更新订单状态为已取消（WHERE 加状态条件防止并发支付时误取消已付款订单）
+      const cancelResult = await manager
         .createQueryBuilder()
         .update(OrderEntity)
         .set({ status: OrderStatus.CANCELLED })
-        .where('id = :id', { id: orderId })
+        .where('id = :id AND status = :status', {
+          id: orderId,
+          status: OrderStatus.PENDING_PAYMENT,
+        })
         .execute();
 
-      // 释放 SKU 锁定库存
+      // affected = 0 说明订单已被支付或被其他操作修改，直接返回
+      if (cancelResult.affected === 0) return;
+
+      // 释放 SKU 锁定库存（并行化，释放操作无需悲观锁）
       const orderItems = await manager.findBy(OrderItemEntity, { orderId });
-      for (const item of orderItems) {
-        const releaseQty = Number(item.productQuantity) || 0;
-        if (releaseQty <= 0) continue;
-        await manager
-          .createQueryBuilder()
-          .update(SkuStockEntity)
-          .set({ lockStock: () => `lock_stock - :releaseQty` })
-          .where('id = :skuId AND lock_stock >= :releaseQty', {
-            skuId: item.productSkuId,
-            releaseQty,
-          })
-          .execute();
-      }
+      await Promise.all(
+        orderItems
+          .filter((item) => (Number(item.productQuantity) || 0) > 0)
+          .map((item) => {
+            const releaseQty = Number(item.productQuantity) || 0;
+            return manager
+              .createQueryBuilder()
+              .update(SkuStockEntity)
+              .set({ lockStock: () => `lock_stock - :releaseQty` })
+              .setParameter('releaseQty', releaseQty)
+              .where('id = :skuId AND lock_stock >= :releaseQty', {
+                skuId: item.productSkuId,
+              })
+              .execute();
+          }),
+      );
 
       // 恢复优惠券状态
       if (order.couponId) {
@@ -1153,9 +1226,9 @@ export class OrderService {
           .createQueryBuilder()
           .update(MemberEntity)
           .set({ integration: () => `integration + :restoreIntegration` })
+          .setParameter('restoreIntegration', order.useIntegration)
           .where('id = :id', {
             id: order.memberId,
-            restoreIntegration: order.useIntegration,
           })
           .execute();
       }
@@ -1187,24 +1260,43 @@ export class OrderService {
       throw new BadRequestException('该订单还未发货！');
     }
 
-    await this.orderRepo
-      .createQueryBuilder()
-      .update()
-      .set({
-        status: OrderStatus.COMPLETED,
-        confirmStatus: 1,
-        receiveTime: new Date(),
-      })
-      .where('id = :id', { id: orderId })
-      .execute();
+    await this.transactionService.run(async (manager) => {
+      await manager
+        .createQueryBuilder()
+        .update(OrderEntity)
+        .set({
+          status: OrderStatus.COMPLETED,
+          confirmStatus: 1,
+          receiveTime: new Date(),
+        })
+        .where('id = :id', { id: orderId })
+        .execute();
 
-    // 记录操作历史
-    await this.historyRepo.save({
-      orderId,
-      operateMan: '用户',
-      orderStatus: OrderStatus.COMPLETED,
-      note: '确认收货',
-      createTime: new Date(),
+      // 发放积分和成长值到会员账户
+      const giftIntegration = Number(order.integration) || 0;
+      const giftGrowth = Number(order.growth) || 0;
+      if (giftIntegration > 0 || giftGrowth > 0) {
+        await manager
+          .createQueryBuilder()
+          .update(MemberEntity)
+          .set({
+            integration: () => `integration + :giftIntegration`,
+            growth: () => `growth + :giftGrowth`,
+          })
+          .setParameter('giftIntegration', giftIntegration)
+          .setParameter('giftGrowth', giftGrowth)
+          .where('id = :memberId', { memberId })
+          .execute();
+      }
+
+      // 记录操作历史
+      await manager.save(OrderOperateHistoryEntity, {
+        orderId,
+        operateMan: '用户',
+        orderStatus: OrderStatus.COMPLETED,
+        note: '确认收货',
+        createTime: new Date(),
+      });
     });
   }
 
@@ -1385,17 +1477,25 @@ export class OrderService {
   ): Promise<string> {
     const now = new Date();
     const date = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
-    const key = `mall:orderId:${date}`;
+    const key = CACHE_KEYS.orderId(date);
 
-    // 通过底层 Redis 客户端执行 INCR
-    const redisStore = (this.cacheManager as any).store;
-    const redisClient = redisStore.client;
-    const increment: number = await redisClient.incr(key);
+    let increment: number;
+    try {
+      // 直接使用 ioredis 客户端执行 INCR，保证原子性和全局唯一性
+      increment = await this.redisClient.incr(key);
+      // 首次创建时设置 48 小时过期，防止历史 Key 永久堆积
+      if (increment === 1) {
+        await this.redisClient.expire(key, 48 * 60 * 60);
+      }
+    } catch (err) {
+      // Redis 不可用时降级为随机序号，记录 warn 级别日志
+      this.logger.warn(
+        `订单号计数器 Redis 不可用，降级为随机序号: ${(err as Error).message}`,
+      );
+      increment = Math.floor(Math.random() * 900000) + 100000;
+    }
 
-    const incrementStr = String(increment);
-    const paddedIncrement =
-      incrementStr.length <= 6 ? incrementStr.padStart(6, '0') : incrementStr;
-
+    const paddedIncrement = String(increment).padStart(6, '0');
     return `${date}${String(sourceType).padStart(2, '0')}${String(payType).padStart(2, '0')}${paddedIncrement}`;
   }
 
@@ -1441,7 +1541,8 @@ export class OrderService {
         .createQueryBuilder()
         .update(SkuStockEntity)
         .set({ lockStock: () => `lock_stock + :addQty` })
-        .where('id = :skuId', { skuId: item.productSkuId, addQty: qty })
+        .setParameter('addQty', qty)
+        .where('id = :skuId', { skuId: item.productSkuId })
         .execute();
     }
   }
@@ -1546,7 +1647,7 @@ export class OrderService {
         (item) => !categoryIds.includes(item.productCategoryId!),
       );
       ineligibleItems.forEach((item) => {
-        item.couponAmount = 0;
+        item.couponAmount = String(0);
       });
       this.calcPerCouponAmount(eligibleItems, couponAmount);
     } else if (coupon.useType === 2) {
@@ -1559,7 +1660,7 @@ export class OrderService {
         (item) => !productIds.includes(item.productId!),
       );
       ineligibleItems.forEach((item) => {
-        item.couponAmount = 0;
+        item.couponAmount = String(0);
       });
       this.calcPerCouponAmount(eligibleItems, couponAmount);
     }
@@ -1575,15 +1676,16 @@ export class OrderService {
   ): void {
     const totalAmount = orderItems.reduce(
       (sum, item) =>
-        sum + (item.productPrice ?? 0) * (item.productQuantity ?? 0),
+        sum + Number(item.productPrice ?? 0) * (item.productQuantity ?? 0),
       0,
     );
     if (totalAmount <= 0) return;
 
     for (const item of orderItems) {
       // (商品价格 / 可用商品总价) * 优惠券面额
-      item.couponAmount =
-        ((item.productPrice ?? 0) / totalAmount) * couponAmount;
+      item.couponAmount = String(
+        (Number(item.productPrice ?? 0) / totalAmount) * couponAmount,
+      );
     }
   }
 
@@ -1615,6 +1717,13 @@ export class OrderService {
         })
         .where('id = :id', { id: couponHistory.id })
         .execute();
+
+      // 同步更新优惠券的已使用数量
+      if (useStatus === 1) {
+        await manager.increment(CouponEntity, { id: couponId }, 'useCount', 1);
+      } else if (useStatus === 0) {
+        await manager.decrement(CouponEntity, { id: couponId }, 'useCount', 1);
+      }
     }
   }
 }

@@ -167,8 +167,11 @@ export class PortalOrderController {
     summary: '订单详情',
     description: '对应前端 GET /order/detail/:orderId',
   })
-  detail(@Param('orderId', ParseIntPipe) orderId: number) {
-    return this.orderService.detail(orderId);
+  detail(
+    @CurrentUser() user: JwtPayload,
+    @Param('orderId', ParseIntPipe) orderId: number,
+  ) {
+    return this.orderService.detail(orderId, user.sub);
   }
 
   @Post('paySuccess')
@@ -177,10 +180,11 @@ export class PortalOrderController {
     description: '对应前端 POST /order/paySuccess',
   })
   paySuccess(
+    @CurrentUser() user: JwtPayload,
     @Body('orderId') orderId: number,
     @Body('payType') payType: number,
   ) {
-    return this.orderService.paySuccess(orderId, payType);
+    return this.orderService.paySuccess(orderId, payType, user.sub);
   }
 
   @Post('cancelUserOrder')

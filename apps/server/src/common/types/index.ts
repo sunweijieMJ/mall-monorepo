@@ -21,18 +21,3 @@ export interface RequestWithUser extends Express.Request {
     type: 'admin' | 'member';
   };
 }
-
-/** 分页查询参数 */
-export interface PaginationOptions {
-  pageNum: number;
-  pageSize: number;
-}
-
-/** 分页返回结果 */
-export interface PaginationResult<T> {
-  list: T[];
-  total: number;
-  pageNum: number;
-  pageSize: number;
-  totalPages: number;
-}

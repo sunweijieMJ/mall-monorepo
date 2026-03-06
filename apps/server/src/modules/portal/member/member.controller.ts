@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseIntPipe,
   Post,
@@ -16,6 +18,7 @@ import {
 import { MemberService } from './member.service';
 import { CurrentUser } from '@/core/auth/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/auth/types/jwt-payload.type';
+import { Public } from '@/core/auth/decorators/public.decorator';
 
 @ApiTags('移动端-会员信息')
 @Controller({ path: 'portal/sso', version: '1' })
@@ -29,6 +32,19 @@ export class MemberInfoController {
   })
   getInfo(@CurrentUser() user: JwtPayload) {
     return this.memberService.getCurrentMember(user.sub);
+  }
+
+  @Post('update')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: '更新会员基本信息',
+    description: '对应前端 POST /sso/update',
+  })
+  updateInfo(
+    @Body() body: Record<string, unknown>,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.memberService.updateInfo(user.sub, body);
   }
 }
 
@@ -146,5 +162,56 @@ export class MemberCouponController {
     @CurrentUser() user: JwtPayload,
   ) {
     return this.memberService.listCouponsByProduct(user.sub, productId);
+  }
+
+  @Get('listCart')
+  @ApiOperation({ summary: '获取购物车可用优惠券列表（结算页使用）' })
+  @ApiQuery({
+    name: 'cartIds',
+    required: true,
+    description: '购物车条目 ID，逗号分隔',
+  })
+  listCartCoupons(
+    @CurrentUser() user: JwtPayload,
+    @Query('cartIds') cartIds: string,
+  ) {
+    const ids = cartIds
+      .split(',')
+      .map((id) => Number(id.trim()))
+      .filter((id) => id > 0);
+    if (ids.length === 0) return [];
+    return this.memberService.listCartCoupons(user.sub, ids);
+  }
+}
+
+/** 移动端领券中心（公开接口） */
+@ApiTags('移动端-领券中心')
+@Controller({ path: 'portal/coupons', version: '1' })
+export class PortalCouponController {
+  constructor(private readonly memberService: MemberService) {}
+
+  @Public()
+  @Get()
+  @ApiOperation({ summary: '获取可领取的优惠券列表（领券中心）' })
+  @ApiQuery({
+    name: 'pageNum',
+    required: false,
+    description: '页码',
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'pageSize',
+    required: false,
+    description: '每页数量',
+    example: 10,
+  })
+  listAvailableCoupons(
+    @Query('pageNum') pageNum?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
+    return this.memberService.listAvailableCoupons(
+      Number(pageNum) || 1,
+      Number(pageSize) || 10,
+    );
   }
 }

@@ -147,7 +147,14 @@ export class FlashProductRelationController {
   @Post('create')
   @ApiOperation({ summary: '批量选择商品添加关联' })
   create(@Body() relationList: CreateFlashProductRelationDto[]) {
-    return this.service.createRelation(relationList);
+    const converted = relationList.map((item) => ({
+      ...item,
+      flashPromotionPrice:
+        item.flashPromotionPrice != null
+          ? String(item.flashPromotionPrice)
+          : undefined,
+    }));
+    return this.service.createRelation(converted);
   }
 
   @Post('update/:id')
@@ -156,7 +163,14 @@ export class FlashProductRelationController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateFlashProductRelationDto,
   ) {
-    return this.service.updateRelation(id, dto);
+    const { flashPromotionPrice, ...rest } = dto;
+    const converted = {
+      ...rest,
+      ...(flashPromotionPrice != null
+        ? { flashPromotionPrice: String(flashPromotionPrice) }
+        : {}),
+    };
+    return this.service.updateRelation(id, converted);
   }
 
   @Post('delete/:id')

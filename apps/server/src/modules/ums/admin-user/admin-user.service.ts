@@ -15,11 +15,7 @@ import { AdminRoleRelationEntity } from './infrastructure/persistence/relational
 import { AdminRoleEntity } from '@/modules/ums/admin-role/infrastructure/persistence/relational/entities/admin-role.entity';
 import { PageQueryDto, PageResult } from '@/common/dto/page-result.dto';
 
-// 缓存 key，与 auth 模块保持一致
-const CACHE_KEYS = {
-  admin: (username: string) => `mall:admin:${username}`,
-  resourceList: (adminId: number) => `mall:resourceList:${adminId}`,
-};
+import { CACHE_KEYS } from '@/common/constants';
 
 @Injectable()
 export class AdminUserService {
@@ -67,7 +63,12 @@ export class AdminUserService {
 
   /** 更新管理员 */
   async update(id: number, dto: Partial<AdminUserEntity>): Promise<number> {
-    const rawAdmin = await this.adminRepo.findOneBy({ id });
+    // addSelect 显式加载 password，用于 bcrypt 比对（password 字段设置了 select:false）
+    const rawAdmin = await this.adminRepo
+      .createQueryBuilder('admin')
+      .addSelect('admin.password')
+      .where('admin.id = :id', { id })
+      .getOne();
     if (!rawAdmin) throw new NotFoundException('管理员不存在');
 
     // 密码处理逻辑：有新密码且与原密码不同则重新加密，否则跳过
@@ -99,9 +100,15 @@ export class AdminUserService {
     return 1;
   }
 
-  /** 更新状态 */
+  /** 更新状态（禁用/启用） */
   async updateStatus(id: number, status: number): Promise<number> {
+    const admin = await this.adminRepo.findOneBy({ id });
+    if (!admin) throw new NotFoundException('管理员不存在');
+
     await this.adminRepo.update(id, { status });
+    // 清除缓存，确保禁用后立即生效（不必等缓存 TTL 过期）
+    await this.cacheManager.del(CACHE_KEYS.admin(admin.username));
+    await this.cacheManager.del(CACHE_KEYS.resourceList(id));
     return 1;
   }
 
@@ -115,7 +122,12 @@ export class AdminUserService {
       throw new BadRequestException('参数不完整');
     }
 
-    const admin = await this.adminRepo.findOneBy({ username: dto.username });
+    // addSelect 显式加载 password，用于 bcrypt 比对（password 字段设置了 select:false）
+    const admin = await this.adminRepo
+      .createQueryBuilder('admin')
+      .addSelect('admin.password')
+      .where('admin.username = :username', { username: dto.username })
+      .getOne();
     if (!admin) {
       throw new NotFoundException('用户不存在');
     }

@@ -5,8 +5,9 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
 } from 'typeorm';
-import { CouponEntity } from './coupon.entity';
+import type { CouponEntity } from './coupon.entity';
 
 @Entity('sms_coupon_history')
 export class CouponHistoryEntity {
@@ -74,11 +75,11 @@ export class CouponHistoryEntity {
 
   // ---- Relations ----
 
-  @ManyToOne(() => CouponEntity, (coupon) => coupon.couponHistories, {
+  @ManyToOne('CouponEntity', 'couponHistories', {
     createForeignKeyConstraints: false,
     eager: false,
     nullable: true,
   })
   @JoinColumn({ name: 'coupon_id' })
-  coupon: CouponEntity;
+  coupon: Relation<CouponEntity>;
 }

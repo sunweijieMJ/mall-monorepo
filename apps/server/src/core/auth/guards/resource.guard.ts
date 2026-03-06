@@ -36,13 +36,21 @@ export class ResourceGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request.user as JwtPayload | undefined;
 
+    // 移除全局前缀和版本前缀后再匹配
+    const rawPath = (request.path as string).replace(/^\/api\/v\d+/, '');
+
+    // admin 路由必须使用 admin 类型的 token，防止 member token 越权访问管理端接口
+    if (rawPath.startsWith('/admin/') && (!user || user.type !== 'admin')) {
+      return false;
+    }
+
     // 未认证或 member 用户不走资源权限校验
     if (!user || user.type !== 'admin') return true;
 
     if (request.method === 'OPTIONS') return true;
 
-    // 移除全局前缀和版本前缀后再匹配（资源表中存储不含前缀的路径）
-    const requestPath = (request.path as string).replace(/^\/api\/v\d+/, '');
+    // 复用已计算的路径（资源表中存储不含前缀的路径）
+    const requestPath = rawPath;
 
     // 获取全局资源 Map（URL pattern -> resourceId:name）
     const resourceMap = await this.adminCacheService.getAllResourceMap();

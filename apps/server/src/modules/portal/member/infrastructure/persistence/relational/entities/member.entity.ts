@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -15,15 +16,17 @@ export class MemberEntity {
   @Column({ name: 'member_level_id', nullable: true })
   memberLevelId: number;
 
+  @Index()
   @Column({ length: 64, nullable: true, comment: '用户名' })
   username: string;
 
-  @Column({ length: 64, nullable: true, comment: '密码' })
+  @Column({ length: 64, nullable: true, comment: '密码', select: false })
   password: string;
 
   @Column({ length: 64, nullable: true, comment: '昵称' })
   nickname: string;
 
+  @Index()
   @Column({ length: 64, nullable: true, comment: '手机号码' })
   phone: string;
 
@@ -71,6 +74,14 @@ export class MemberEntity {
   @Column({ name: 'history_integration', default: 0, comment: '历史积分数量' })
   historyIntegration: number;
 
+  @Column({
+    name: 'login_time',
+    type: 'timestamp',
+    nullable: true,
+    comment: '最后登录时间',
+  })
+  loginTime: Date;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
@@ -84,6 +95,7 @@ export class MemberAddressEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @Column({ name: 'member_id' })
   memberId: number;
 

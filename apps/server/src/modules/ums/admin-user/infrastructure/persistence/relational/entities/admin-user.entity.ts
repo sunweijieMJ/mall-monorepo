@@ -14,7 +14,7 @@ export class AdminUserEntity {
   @Column({ length: 64, unique: true })
   username: string;
 
-  @Column({ length: 64 })
+  @Column({ length: 64, select: false })
   password: string;
 
   @Column({ name: 'icon', length: 500, nullable: true, comment: '头像' })

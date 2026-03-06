@@ -5,8 +5,9 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
 } from 'typeorm';
-import { OrderEntity } from './order.entity';
+import type { OrderEntity } from './order.entity';
 
 @Entity('oms_order_item')
 export class OrderItemEntity {
@@ -44,7 +45,7 @@ export class OrderItemEntity {
     nullable: true,
     comment: '销售价格',
   })
-  productPrice: number;
+  productPrice: string | null;
 
   @Column({
     name: 'product_quantity',
@@ -91,7 +92,7 @@ export class OrderItemEntity {
     nullable: true,
     comment: '商品促销分解金额',
   })
-  promotionAmount: number;
+  promotionAmount: string | null;
 
   @Column({
     name: 'coupon_amount',
@@ -101,7 +102,7 @@ export class OrderItemEntity {
     nullable: true,
     comment: '优惠券优惠分解金额',
   })
-  couponAmount: number;
+  couponAmount: string | null;
 
   @Column({
     name: 'integration_amount',
@@ -111,7 +112,7 @@ export class OrderItemEntity {
     nullable: true,
     comment: '积分优惠分解金额',
   })
-  integrationAmount: number;
+  integrationAmount: string | null;
 
   @Column({
     name: 'real_amount',
@@ -121,7 +122,7 @@ export class OrderItemEntity {
     nullable: true,
     comment: '该商品经过优惠后的分解金额',
   })
-  realAmount: number;
+  realAmount: string | null;
 
   @Column({ name: 'gift_integration', nullable: true })
   giftIntegration: number;
@@ -139,11 +140,11 @@ export class OrderItemEntity {
 
   // ---- Relations ----
 
-  @ManyToOne(() => OrderEntity, (order) => order.orderItems, {
+  @ManyToOne('OrderEntity', 'orderItems', {
     createForeignKeyConstraints: false,
     eager: false,
     nullable: true,
   })
   @JoinColumn({ name: 'order_id' })
-  order: OrderEntity;
+  order: Relation<OrderEntity>;
 }

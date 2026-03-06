@@ -43,6 +43,32 @@ export const DELETE_STATUS_NORMAL = 0;
 /** 已删除 */
 export const DELETE_STATUS_DELETED = 1;
 
-// ============= Redis Key 前缀 =============
+// ============= Redis Key =============
 
 export const REDIS_PREFIX = 'mall:';
+
+/** 统一 Redis 缓存 Key，所有模块必须从此处引用，禁止硬编码 */
+export const CACHE_KEYS = {
+  /** 管理员信息缓存 */
+  admin: (username: string) => `mall:admin:${username}`,
+  /** 管理员资源权限列表 */
+  resourceList: (adminId: number) => `mall:resourceList:${adminId}`,
+  /** 全局资源 Map（URL → 权限） */
+  resourceListAll: () => `mall:resourceList:all`,
+  /** 短信验证码 */
+  authCode: (phone: string) => `mall:authCode:${phone}`,
+  /** 验证码发送冷却 */
+  authCodeCooldown: (phone: string) => `mall:authCode:recent:${phone}`,
+  /** 已登出 Token 黑名单 */
+  tokenBlacklist: (token: string) => `mall:token_blacklist:${token}`,
+  /** 会员信息缓存 */
+  member: (username: string) => `mall:member:${username}`,
+  /** 登录失败计数 */
+  loginFail: (username: string) => `mall:login:fail:${username}`,
+  /** 登录锁定标记 */
+  loginLock: (username: string) => `mall:login:lock:${username}`,
+  /** JWT 有效性短期缓存（30 秒） */
+  jwtValid: (token: string) => `mall:jwt_valid:${token}`,
+  /** 订单号 Redis INCR 计数器 */
+  orderId: (date: string) => `mall:orderId:${date}`,
+};

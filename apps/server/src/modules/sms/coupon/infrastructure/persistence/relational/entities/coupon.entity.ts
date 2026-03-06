@@ -30,7 +30,7 @@ export class CouponEntity {
   count: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, comment: '金额' })
-  amount: number;
+  amount: string;
 
   @Column({ name: 'per_limit', default: 1, comment: '每人限领张数' })
   perLimit: number;
@@ -42,7 +42,7 @@ export class CouponEntity {
     scale: 2,
     comment: '使用门槛；0表示无门槛',
   })
-  minPoint: number;
+  minPoint: string;
 
   @Column({ name: 'start_time', type: 'timestamp', nullable: true })
   startTime: Date;

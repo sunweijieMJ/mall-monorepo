@@ -93,7 +93,7 @@ export class ProductEntity {
   sale: number;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
-  price: number;
+  price: string;
 
   @Column({
     name: 'promotion_price',
@@ -102,7 +102,7 @@ export class ProductEntity {
     scale: 2,
     nullable: true,
   })
-  promotionPrice: number | null;
+  promotionPrice: string | null;
 
   @Column({ name: 'gift_growth', default: 0 })
   giftGrowth: number;
@@ -126,7 +126,7 @@ export class ProductEntity {
     scale: 2,
     nullable: true,
   })
-  originalPrice: number | null;
+  originalPrice: string | null;
 
   @Column({ default: 0 })
   stock: number;
@@ -138,7 +138,7 @@ export class ProductEntity {
   unit: string | null;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
-  weight: number | null;
+  weight: string | null;
 
   @Column({ name: 'preview_status', default: 0 })
   previewStatus: number;

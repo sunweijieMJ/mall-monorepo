@@ -47,7 +47,7 @@ export class OrderEntity {
     scale: 2,
     comment: '订单总金额',
   })
-  totalAmount: number;
+  totalAmount: string;
 
   @Column({
     name: 'pay_amount',
@@ -57,7 +57,7 @@ export class OrderEntity {
     nullable: true,
     comment: '应付金额',
   })
-  payAmount: number;
+  payAmount: string | null;
 
   @Column({
     name: 'freight_amount',
@@ -67,7 +67,7 @@ export class OrderEntity {
     default: 0,
     comment: '运费',
   })
-  freightAmount: number;
+  freightAmount: string;
 
   @Column({
     name: 'promotion_amount',
@@ -77,7 +77,7 @@ export class OrderEntity {
     default: 0,
     comment: '促销优化金额',
   })
-  promotionAmount: number;
+  promotionAmount: string;
 
   @Column({
     name: 'coupon_amount',
@@ -87,7 +87,7 @@ export class OrderEntity {
     default: 0,
     comment: '优惠券抵扣金额',
   })
-  couponAmount: number;
+  couponAmount: string;
 
   @Column({
     name: 'integration_amount',
@@ -97,7 +97,7 @@ export class OrderEntity {
     default: 0,
     comment: '积分抵扣金额',
   })
-  integrationAmount: number;
+  integrationAmount: string;
 
   @Column({ default: 1, comment: '支付方式：0->未支付；1->支付宝；2->微信' })
   payType: number;

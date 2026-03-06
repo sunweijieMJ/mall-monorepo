@@ -5,9 +5,12 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
   VersionColumn,
 } from 'typeorm';
-import { ProductEntity } from '../../../../../product/infrastructure/persistence/relational/entities/product.entity';
+// 使用 type-only 导入打破 ProductEntity ↔ SkuStockEntity 循环依赖
+// （SWC 编译保留 class 声明有 TDZ，值导入会导致 "Cannot access before initialization"）
+import type { ProductEntity } from '../../../../../product/infrastructure/persistence/relational/entities/product.entity';
 
 @Entity('pms_sku_stock')
 export class SkuStockEntity {
@@ -22,7 +25,7 @@ export class SkuStockEntity {
   skuCode: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
-  price: number;
+  price: string;
 
   @Column({ default: 0 })
   stock: number;
@@ -43,7 +46,7 @@ export class SkuStockEntity {
     scale: 2,
     nullable: true,
   })
-  promotionPrice: number;
+  promotionPrice: string | null;
 
   @Column({ name: 'lock_stock', default: 0, comment: '锁定库存' })
   lockStock: number;
@@ -61,11 +64,11 @@ export class SkuStockEntity {
 
   // ---- Relations ----
 
-  @ManyToOne(() => ProductEntity, (product) => product.skuStocks, {
+  @ManyToOne('ProductEntity', 'skuStocks', {
     createForeignKeyConstraints: false,
     eager: false,
     nullable: true,
   })
   @JoinColumn({ name: 'product_id' })
-  product: ProductEntity;
+  product: Relation<ProductEntity>;
 }

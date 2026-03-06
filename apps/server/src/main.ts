@@ -79,31 +79,42 @@ async function bootstrap() {
   const httpAdapterHost = app.get(HttpAdapterHost);
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
 
-  // Swagger 文档
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('Mall API')
-    .setDescription('Mall 电商平台接口文档（管理端 + 移动端）')
-    .setVersion('1.0')
-    .addBearerAuth(
-      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
-      'admin-jwt',
-    )
-    .addBearerAuth(
-      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
-      'portal-jwt',
-    )
-    .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('docs', app, document, {
-    swaggerOptions: {
-      persistAuthorization: true,
-    },
-  });
+  // Swagger 文档（生产环境禁用）
+  if (nodeEnv !== 'production') {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('Mall API')
+      .setDescription(
+        'Mall 电商平台接口文档（管理端 + 移动端）' +
+          '&nbsp;&nbsp;|&nbsp;&nbsp;' +
+          '<a href="/openapi.json" target="_blank">OpenAPI JSON</a>',
+      )
+      .setVersion('1.0')
+      .addBearerAuth(
+        { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+        'admin-jwt',
+      )
+      .addBearerAuth(
+        { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+        'portal-jwt',
+      )
+      .build();
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup('docs', app, document, {
+      jsonDocumentUrl: '/openapi.json',
+      swaggerOptions: {
+        persistAuthorization: true,
+      },
+    });
+  }
 
   await app.listen(port);
   const logger = app.get(Logger);
   logger.log(`Server running on http://localhost:${port}`, 'Bootstrap');
   logger.log(`Swagger docs: http://localhost:${port}/docs`, 'Bootstrap');
+  logger.log(
+    `OpenAPI JSON: http://localhost:${port}/openapi.json`,
+    'Bootstrap',
+  );
 }
 
 bootstrap();

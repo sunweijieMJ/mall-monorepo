@@ -25,11 +25,12 @@ import { AllConfigType } from './config/config.type';
 import { CacheModule } from './infrastructure/cache/cache.module';
 import { ThrottlerModule } from './infrastructure/throttler/throttler.module';
 import { TransactionModule } from './infrastructure/database/transaction/transaction.module';
-import { TransactionInterceptor } from './infrastructure/database/transaction/transaction.interceptor';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
-import { AuditModule } from './infrastructure/audit/audit.module';
-import { AuditInterceptor } from './infrastructure/audit/audit.interceptor';
-import { NotificationModule } from './infrastructure/notification/notification.module';
+// AuditModule 和 NotificationModule 暂未有业务模块使用，待接入后再启用
+// import { AuditModule } from './infrastructure/audit/audit.module';
+// import { AuditInterceptor } from './infrastructure/audit/audit.interceptor';
+// import { NotificationModule } from './infrastructure/notification/notification.module';
+import { RedisClientModule } from './infrastructure/redis/redis-client.module';
 import { SchedulerModule } from './infrastructure/scheduler/scheduler.module';
 import { MetricsModule } from './infrastructure/metrics/metrics.module';
 
@@ -199,16 +200,13 @@ import { HealthModule } from './infrastructure/health/health.module';
     // Redis 缓存模块（全局，Redis 不可用时自动降级为内存缓存）
     CacheModule,
 
+    // Redis 客户端模块（全局，提供 ioredis 实例供 INCR 等直接命令使用）
+    RedisClientModule,
+
     // 事务模块（全局，提供 TransactionService 替代直接注入 DataSource）
     TransactionModule,
 
-    // 审计日志模块（全局，提供 @Auditable 装饰器 + AuditInterceptor）
-    AuditModule,
-
-    // 消息通知模块（全局，基于 BullMQ 异步队列）
-    NotificationModule,
-
-    // 定时任务模块（基于 @nestjs/schedule，清理过期 Session / Token 黑名单）
+    // 定时任务模块（基于 @nestjs/schedule，清理过期 Session）
     SchedulerModule,
 
     // Prometheus 指标模块（全局，提供 /metrics 端点 + HTTP 请求计数/延迟直方图）
@@ -298,16 +296,6 @@ import { HealthModule } from './infrastructure/health/health.module';
     {
       provide: APP_INTERCEPTOR,
       useClass: ResponseInterceptor,
-    },
-    // 声明式事务拦截器（全局，配合 @Transactional() 装饰器）
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: TransactionInterceptor,
-    },
-    // 审计日志拦截器（全局，配合 @Auditable() 装饰器）
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: AuditInterceptor,
     },
   ],
 })

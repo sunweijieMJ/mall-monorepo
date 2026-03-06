@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
-import { AllConfigType } from '@/config/config.type';
 
 @Injectable()
 export class AlipayService {
@@ -13,20 +12,18 @@ export class AlipayService {
   private readonly notifyUrl: string;
   private readonly returnUrl: string;
 
-  constructor(private readonly configService: ConfigService<AllConfigType>) {
-    this.appId =
-      this.configService.get('payment.alipay.appId', { infer: true }) ?? '';
+  constructor(private readonly configService: ConfigService) {
+    this.appId = this.configService.get<string>('payment.alipay.appId') ?? '';
     this.privateKey =
-      this.configService.get('payment.alipay.privateKey', { infer: true }) ??
-      '';
+      this.configService.get<string>('payment.alipay.privateKey') ?? '';
     this.alipayPublicKey =
-      this.configService.get('payment.alipay.publicKey', { infer: true }) ?? '';
+      this.configService.get<string>('payment.alipay.publicKey') ?? '';
     this.gateway =
-      this.configService.get('payment.alipay.gateway', { infer: true }) ?? '';
+      this.configService.get<string>('payment.alipay.gateway') ?? '';
     this.notifyUrl =
-      this.configService.get('payment.alipay.notifyUrl', { infer: true }) ?? '';
+      this.configService.get<string>('payment.alipay.notifyUrl') ?? '';
     this.returnUrl =
-      this.configService.get('payment.alipay.returnUrl', { infer: true }) ?? '';
+      this.configService.get<string>('payment.alipay.returnUrl') ?? '';
   }
 
   /**

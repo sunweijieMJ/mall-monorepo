@@ -42,7 +42,7 @@ export class ReadHistoryService {
       productId,
       productName: dto.productName,
       productPic: dto.productPic,
-      productPrice: dto.productPrice,
+      productPrice: dto.productPrice != null ? String(dto.productPrice) : null,
       createTime: new Date(),
     });
 

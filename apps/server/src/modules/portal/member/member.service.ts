@@ -16,6 +16,7 @@ import { CouponHistoryEntity } from '@/modules/sms/coupon/infrastructure/persist
 import { CouponProductRelationEntity } from '@/modules/sms/coupon/infrastructure/persistence/relational/entities/coupon-product-relation.entity';
 import { CouponProductCategoryRelationEntity } from '@/modules/sms/coupon/infrastructure/persistence/relational/entities/coupon-product-category-relation.entity';
 import { ProductEntity } from '@/modules/pms/product/infrastructure/persistence/relational/entities/product.entity';
+import { CartItemEntity } from '@/modules/portal/cart/infrastructure/persistence/relational/entities/cart-item.entity';
 
 @Injectable()
 export class MemberService {
@@ -40,6 +41,9 @@ export class MemberService {
 
     @InjectRepository(CouponProductCategoryRelationEntity)
     private readonly couponCategoryRelRepo: Repository<CouponProductCategoryRelationEntity>,
+
+    @InjectRepository(CartItemEntity)
+    private readonly cartItemRepo: Repository<CartItemEntity>,
 
     private readonly transactionService: TransactionService,
   ) {}
@@ -172,29 +176,51 @@ export class MemberService {
       throw new BadRequestException('优惠券还没到领取时间');
     }
 
-    const receivedCount = await this.couponHistoryRepo.count({
-      where: { memberId, couponId },
-    });
-    if (coupon.perLimit > 0 && receivedCount >= coupon.perLimit) {
-      throw new BadRequestException('超出领取限制');
+    if (coupon.endTime && now > coupon.endTime) {
+      throw new BadRequestException('优惠券已过期');
     }
 
-    // 事务：库存扣减 + 领取记录插入，确保原子性
-    await this.transactionService.run(async (manager) => {
-      // 乐观锁扣库存，affected 为 0 说明库存不足（并发安全）
-      const result = await manager
-        .createQueryBuilder()
-        .update(CouponEntity)
-        .set({
-          count: () => 'count - 1',
-          receiveCount: () => 'receive_count + 1',
-        })
-        .where('id = :id AND count > 0', { id: couponId })
-        .execute();
+    // 事务外的快速失败检查（非安全保障，仅减少无效事务）
+    if (coupon.perLimit > 0) {
+      const receivedCount = await this.couponHistoryRepo.count({
+        where: { memberId, couponId },
+      });
+      if (receivedCount >= coupon.perLimit) {
+        throw new BadRequestException('超出领取限制');
+      }
+    }
 
-      if (result.affected === 0) {
+    // 事务：悲观锁锁定优惠券行，串行化并发领取，确保限领数和库存均不超出
+    await this.transactionService.run(async (manager) => {
+      // 悲观锁锁定优惠券行，所有并发请求在此处串行化
+      const lockedCoupon = await manager
+        .createQueryBuilder(CouponEntity, 'c')
+        .setLock('pessimistic_write')
+        .where('c.id = :id', { id: couponId })
+        .getOne();
+
+      if (!lockedCoupon || lockedCoupon.count <= 0) {
         throw new BadRequestException('优惠券已经领完了');
       }
+
+      // 锁内检查每人限领数（此时并发请求已串行化，count 结果可信）
+      if (lockedCoupon.perLimit > 0) {
+        const receivedCount = await manager.count(CouponHistoryEntity, {
+          where: { memberId, couponId },
+        });
+        if (receivedCount >= lockedCoupon.perLimit) {
+          throw new BadRequestException('超出领取限制');
+        }
+      }
+
+      // 扣减库存
+      await manager.decrement(CouponEntity, { id: couponId }, 'count', 1);
+      await manager.increment(
+        CouponEntity,
+        { id: couponId },
+        'receiveCount',
+        1,
+      );
 
       // 插入领取记录
       const history = manager.create(CouponHistoryEntity, {
@@ -251,39 +277,36 @@ export class MemberService {
 
     const now = new Date();
 
-    // 查询全场通用或者指定该商品/分类的优惠券，且在有效期内（startTime < now < endTime）
-    const coupons = await this.couponRepo
+    // 先查出指定商品和指定分类关联的优惠券 ID（并行查询）
+    const [productRelations, categoryRelations] = await Promise.all([
+      this.couponProductRelRepo.find({ where: { productId } }),
+      this.couponCategoryRelRepo.find({
+        where: { productCategoryId: product.productCategoryId },
+      }),
+    ]);
+
+    const relatedCouponIds = [
+      ...new Set([
+        ...productRelations.map((r) => r.couponId),
+        ...categoryRelations.map((r) => r.couponId),
+      ]),
+    ];
+
+    // 在 SQL 层完成过滤：全场通用(useType=0) 或 ID 在关联列表中，再 take(3)
+    const qb = this.couponRepo
       .createQueryBuilder('c')
-      .where('(c.use_type = 0 OR c.use_type = 1 OR c.use_type = 2)')
-      .andWhere('(c.start_time IS NULL OR c.start_time < :now)', { now })
-      .andWhere('(c.end_time IS NULL OR c.end_time > :now)', { now })
-      .orderBy('c.id', 'DESC')
-      .take(3)
-      .getMany();
+      .where('(c.start_time IS NULL OR c.start_time < :now)', { now })
+      .andWhere('(c.end_time IS NULL OR c.end_time > :now)', { now });
 
-    // 查指定商品的优惠券关联（useType=2）
-    const productRelations = await this.couponProductRelRepo.find({
-      where: { productId },
-    });
-    const couponIdsForProduct = new Set(
-      productRelations.map((r) => r.couponId),
-    );
+    if (relatedCouponIds.length > 0) {
+      qb.andWhere('(c.use_type = 0 OR c.id IN (:...relatedIds))', {
+        relatedIds: relatedCouponIds,
+      });
+    } else {
+      qb.andWhere('c.use_type = 0');
+    }
 
-    // 查指定分类的优惠券关联（useType=1）
-    const categoryRelations = await this.couponCategoryRelRepo.find({
-      where: { productCategoryId: product.productCategoryId },
-    });
-    const couponIdsForCategory = new Set(
-      categoryRelations.map((r) => r.couponId),
-    );
-
-    // 按 useType 过滤：0=全场通用；1=指定分类；2=指定商品
-    return coupons.filter((c) => {
-      if (c.useType === 0) return true;
-      if (c.useType === 1) return couponIdsForCategory.has(c.id);
-      if (c.useType === 2) return couponIdsForProduct.has(c.id);
-      return false;
-    });
+    return qb.orderBy('c.id', 'DESC').take(3).getMany();
   }
 
   /**
@@ -309,5 +332,142 @@ export class MemberService {
     if (couponIds.length === 0) return [];
 
     return this.couponRepo.findBy({ id: In(couponIds) });
+  }
+
+  /**
+   * 根据购物车商品获取当前会员可用的优惠券列表
+   * 迁移自 UmsMemberCouponServiceImpl.listCart()
+   * 逻辑：查出会员未使用的优惠券，按 useType 匹配购物车商品，检查最低消费门槛
+   */
+  async listCartCoupons(
+    memberId: number,
+    cartIds: number[],
+  ): Promise<CouponEntity[]> {
+    // 查询指定购物车商品
+    const cartItems = await this.cartItemRepo.find({
+      where: { id: In(cartIds), memberId, deleteStatus: 1 },
+    });
+    if (cartItems.length === 0) return [];
+
+    // 购物车总金额
+    const cartTotalAmount = cartItems.reduce(
+      (sum, item) =>
+        sum + Number(item.productPrice) * Number(item.productQuantity),
+      0,
+    );
+
+    // 购物车中的商品 ID 和分类 ID
+    const productIds = [...new Set(cartItems.map((c) => c.productId))];
+    const categoryIds = [
+      ...new Set(cartItems.map((c) => c.productCategoryId).filter(Boolean)),
+    ];
+
+    // 查询该会员所有未使用的领取记录
+    const histories = await this.couponHistoryRepo.find({
+      where: { memberId, useStatus: 0 },
+    });
+    if (histories.length === 0) return [];
+
+    const couponIds = [...new Set(histories.map((h) => h.couponId))];
+
+    // 并行查询：优惠券本体 + 商品关联 + 分类关联
+    const [coupons, productRelations, categoryRelations] = await Promise.all([
+      this.couponRepo.findBy({ id: In(couponIds) }),
+      this.couponProductRelRepo.find({
+        where: { couponId: In(couponIds) },
+      }),
+      this.couponCategoryRelRepo.find({
+        where: { couponId: In(couponIds) },
+      }),
+    ]);
+
+    // 构建关联映射
+    const productRelMap = new Map<number, number[]>();
+    for (const rel of productRelations) {
+      const list = productRelMap.get(rel.couponId) ?? [];
+      list.push(rel.productId);
+      productRelMap.set(rel.couponId, list);
+    }
+    const categoryRelMap = new Map<number, number[]>();
+    for (const rel of categoryRelations) {
+      const list = categoryRelMap.get(rel.couponId) ?? [];
+      list.push(rel.productCategoryId);
+      categoryRelMap.set(rel.couponId, list);
+    }
+
+    const now = new Date();
+
+    // 计算单个购物车商品的小计
+    const itemAmount = (item: {
+      productPrice: string | number;
+      productQuantity: number;
+    }) => Number(item.productPrice) * Number(item.productQuantity);
+
+    return coupons.filter((coupon) => {
+      // 检查有效期
+      if (coupon.endTime && now > coupon.endTime) return false;
+      if (coupon.startTime && now < coupon.startTime) return false;
+
+      const minPoint = Number(coupon.minPoint);
+
+      // 按 useType 匹配，并基于适用商品金额检查最低消费门槛
+      if (coupon.useType === 0) {
+        // 全场通用：用购物车总额检查门槛
+        return minPoint <= cartTotalAmount;
+      } else if (coupon.useType === 1) {
+        // 指定分类：只统计适用分类的商品金额
+        const couponCategoryIds = categoryRelMap.get(coupon.id) ?? [];
+        const eligibleItems = cartItems.filter(
+          (c) =>
+            c.productCategoryId &&
+            couponCategoryIds.includes(c.productCategoryId),
+        );
+        if (eligibleItems.length === 0) return false;
+        const eligibleAmount = eligibleItems.reduce(
+          (sum, c) => sum + itemAmount(c),
+          0,
+        );
+        return minPoint <= eligibleAmount;
+      } else if (coupon.useType === 2) {
+        // 指定商品：只统计适用商品的金额
+        const couponProductIds = productRelMap.get(coupon.id) ?? [];
+        const eligibleItems = cartItems.filter((c) =>
+          couponProductIds.includes(c.productId),
+        );
+        if (eligibleItems.length === 0) return false;
+        const eligibleAmount = eligibleItems.reduce(
+          (sum, c) => sum + itemAmount(c),
+          0,
+        );
+        return minPoint <= eligibleAmount;
+      }
+      return false;
+    });
+  }
+
+  /**
+   * 获取可领取的优惠券列表（公开接口，领券中心）
+   * 迁移自 SmsCouponController.list()（portal 端）
+   * 条件：库存 > 0、领取时间已到、未过期
+   */
+  async listAvailableCoupons(
+    pageNum: number,
+    pageSize: number,
+  ): Promise<{ list: CouponEntity[]; total: number }> {
+    const now = new Date();
+    const qb = this.couponRepo
+      .createQueryBuilder('c')
+      .where('c.count > 0')
+      .andWhere('(c.enable_time IS NULL OR c.enable_time <= :now)', { now })
+      .andWhere('(c.end_time IS NULL OR c.end_time > :now)', { now });
+
+    const total = await qb.getCount();
+    const list = await qb
+      .orderBy('c.id', 'DESC')
+      .skip((pageNum - 1) * pageSize)
+      .take(pageSize)
+      .getMany();
+
+    return { list, total };
   }
 }

@@ -11,6 +11,7 @@ import {
   OrderEntity,
   OrderStatus,
 } from '@/modules/oms/order/infrastructure/persistence/relational/entities/order.entity';
+import { OrderService } from '@/modules/oms/order/order.service';
 
 @Injectable()
 export class PaymentService {
@@ -20,6 +21,7 @@ export class PaymentService {
     private readonly alipayService: AlipayService,
     @InjectRepository(OrderEntity)
     private readonly orderRepo: Repository<OrderEntity>,
+    private readonly orderService: OrderService,
   ) {}
 
   /**
@@ -90,27 +92,17 @@ export class PaymentService {
         throw new BadRequestException('支付金额与订单金额不一致');
       }
 
-      // 原子更新：WHERE 条件包含 status = PENDING_PAYMENT，保证幂等
-      const result = await this.orderRepo
-        .createQueryBuilder()
-        .update()
-        .set({
-          status: OrderStatus.PAID,
-          paymentTime: new Date(),
-          payType: 1, // 支付宝
-        })
-        .where('order_sn = :orderSn AND status = :status', {
-          orderSn: outTradeNo,
-          status: OrderStatus.PENDING_PAYMENT,
-        })
-        .execute();
-
-      if (result.affected === 0) {
-        this.logger.warn(`支付回调: 订单已处理或不存在 orderSn=${outTradeNo}`);
-        return;
+      // 调用 OrderService.paySuccess 完成：状态更新 + 库存扣减 + 操作历史记录
+      // paySuccess 内部通过 WHERE status = PENDING_PAYMENT 保证幂等
+      try {
+        await this.orderService.paySuccess(order.id, 1, order.memberId);
+        this.logger.log(`订单支付成功: orderSn=${outTradeNo}`);
+      } catch (e) {
+        // paySuccess 在订单已处理时会抛异常，此处视为重复回调，仅记录日志
+        this.logger.warn(
+          `支付回调处理跳过: orderSn=${outTradeNo}, reason=${(e as Error).message}`,
+        );
       }
-
-      this.logger.log(`订单支付成功: orderSn=${outTradeNo}`);
     }
   }
 }

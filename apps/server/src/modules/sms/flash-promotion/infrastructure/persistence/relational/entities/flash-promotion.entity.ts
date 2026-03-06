@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -19,6 +20,7 @@ export class FlashPromotionEntity {
   @Column({ name: 'end_date', type: 'date' })
   endDate: Date;
 
+  @Index()
   @Column({ default: 0, comment: '上下线状态：0-下线；1-上线' })
   status: number;
 
@@ -53,9 +55,11 @@ export class FlashProductRelationEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @Index()
   @Column({ name: 'flash_promotion_id' })
   flashPromotionId: number;
 
+  @Index()
   @Column({ name: 'flash_promotion_session_id' })
   flashPromotionSessionId: number;
 
@@ -69,7 +73,7 @@ export class FlashProductRelationEntity {
     scale: 2,
     comment: '秒杀价格',
   })
-  flashPromotionPrice: number;
+  flashPromotionPrice: string;
 
   @Column({ name: 'flash_promotion_count', comment: '秒杀数量' })
   flashPromotionCount: number;

@@ -9,6 +9,9 @@ class EnvironmentVariablesValidator {
 
   @IsString()
   AUTH_JWT_TOKEN_EXPIRES_IN: string;
+
+  @IsString()
+  AUTH_REFRESH_SECRET: string;
 }
 
 export default registerAs<AuthConfig>('auth', () => {

@@ -38,6 +38,14 @@ export class SkuStockController {
     @Param('pid', ParseIntPipe) pid: number,
     @Body() stocks: SkuStockItemDto[],
   ) {
-    return this.service.update(pid, stocks);
+    // 将 DTO 中的 decimal 字段从 number 转为 string，以匹配 Entity 类型
+    const converted = stocks.map(({ price, promotionPrice, ...rest }) => ({
+      ...rest,
+      ...(price != null ? { price: String(price) } : {}),
+      ...(promotionPrice != null
+        ? { promotionPrice: String(promotionPrice) }
+        : {}),
+    }));
+    return this.service.update(pid, converted);
   }
 }

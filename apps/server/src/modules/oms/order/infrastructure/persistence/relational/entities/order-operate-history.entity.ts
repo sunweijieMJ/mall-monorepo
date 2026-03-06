@@ -5,8 +5,9 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
 } from 'typeorm';
-import { OrderEntity } from './order.entity';
+import type { OrderEntity } from './order.entity';
 
 @Entity('oms_order_operate_history')
 export class OrderOperateHistoryEntity {
@@ -46,11 +47,11 @@ export class OrderOperateHistoryEntity {
 
   // ---- Relations ----
 
-  @ManyToOne(() => OrderEntity, (order) => order.orderOperateHistories, {
+  @ManyToOne('OrderEntity', 'orderOperateHistories', {
     createForeignKeyConstraints: false,
     eager: false,
     nullable: true,
   })
   @JoinColumn({ name: 'order_id' })
-  order: OrderEntity;
+  order: Relation<OrderEntity>;
 }

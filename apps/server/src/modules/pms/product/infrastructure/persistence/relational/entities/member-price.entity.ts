@@ -5,8 +5,9 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Relation,
 } from 'typeorm';
-import { ProductEntity } from './product.entity';
+import type { ProductEntity } from './product.entity';
 
 @Entity('pms_member_price')
 export class MemberPriceEntity {
@@ -28,18 +29,18 @@ export class MemberPriceEntity {
     nullable: true,
     comment: '会员价格',
   })
-  memberPrice: number;
+  memberPrice: string | null;
 
   @Column({ name: 'member_level_name', length: 100, nullable: true })
   memberLevelName: string;
 
   // ---- Relations ----
 
-  @ManyToOne(() => ProductEntity, (product) => product.memberPrices, {
+  @ManyToOne('ProductEntity', 'memberPrices', {
     createForeignKeyConstraints: false,
     eager: false,
     nullable: true,
   })
   @JoinColumn({ name: 'product_id' })
-  product: ProductEntity;
+  product: Relation<ProductEntity>;
 }

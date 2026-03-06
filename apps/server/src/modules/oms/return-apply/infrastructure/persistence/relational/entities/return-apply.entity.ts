@@ -29,7 +29,7 @@ export class ReturnApplyEntity {
   memberUsername: string;
 
   @Column({ name: 'return_amount', type: 'decimal', precision: 10, scale: 2 })
-  returnAmount: number;
+  returnAmount: string;
 
   @Column({ name: 'return_name', length: 100, default: '' })
   returnName: string;
@@ -68,7 +68,7 @@ export class ReturnApplyEntity {
     scale: 2,
     nullable: true,
   })
-  productPrice: number;
+  productPrice: string | null;
 
   @Column({
     name: 'product_real_price',
@@ -77,7 +77,7 @@ export class ReturnApplyEntity {
     scale: 2,
     nullable: true,
   })
-  productRealPrice: number;
+  productRealPrice: string | null;
 
   @Column({ type: 'text', nullable: true, comment: '申请原因' })
   reason: string;

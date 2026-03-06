@@ -7,11 +7,11 @@ import {
 } from 'typeorm';
 
 @Entity('auth_session')
+@Index(['userId', 'userType'])
 export class SessionEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Index()
   @Column()
   userId: number;
 
@@ -19,7 +19,7 @@ export class SessionEntity {
   userType: string; // 'admin' | 'member'
 
   @Column({ length: 512 })
-  hash: string; // bcrypt hash of the refresh token for security
+  hash: string; // bcrypt hash of jti (JWT ID) for token verification
 
   @CreateDateColumn()
   createdAt: Date;

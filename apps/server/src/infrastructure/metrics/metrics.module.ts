@@ -35,12 +35,10 @@ import { MetricsInterceptor } from './metrics.interceptor';
       labelNames: ['method', 'path', 'status'],
       buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10],
     }),
-    MetricsInterceptor,
     {
       provide: APP_INTERCEPTOR,
       useClass: MetricsInterceptor,
     },
   ],
-  exports: [MetricsInterceptor],
 })
 export class MetricsModule {}

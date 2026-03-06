@@ -25,7 +25,7 @@ export class MemberReadHistoryNewEntity {
     scale: 2,
     nullable: true,
   })
-  productPrice: number;
+  productPrice: string | null;
 
   @Column({ name: 'create_time', type: 'timestamp', nullable: true })
   createTime: Date;

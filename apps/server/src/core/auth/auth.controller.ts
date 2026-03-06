@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   HttpCode,
   HttpStatus,
+  NotImplementedException,
   Post,
   Query,
   Req,
@@ -17,6 +19,8 @@ import {
   PortalLoginDto,
   PortalRegisterDto,
   PortalSmsLoginDto,
+  GetAuthCodeDto,
+  UpdateMemberPasswordDto,
 } from './dto/portal-login.dto';
 import { Public } from './decorators/public.decorator';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
@@ -28,14 +32,19 @@ import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 export class AdminAuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Public()
   @Post('register')
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: '管理员注册',
+    summary: '管理员注册（需已登录管理员权限）',
     description: '对应前端 POST /admin/register',
   })
-  adminRegister(@Body() dto: RegisterAdminDto) {
+  adminRegister(@Body() dto: RegisterAdminDto, @Req() req: any) {
+    // 只允许 admin 类型用户调用，防止 member token 越权创建管理员
+    const user = req.user as { type?: string };
+    if (user?.type !== 'admin') {
+      throw new ForbiddenException('无权执行此操作');
+    }
     return this.authService.adminRegister(dto);
   }
 
@@ -130,17 +139,16 @@ export class PortalAuthController {
   @Public()
   @Get('sms-code')
   @ApiOperation({ summary: '获取短信验证码' })
-  getAuthCode(@Query('phone') phone: string) {
-    return this.authService.generateAuthCode(phone);
+  getAuthCode(@Query() dto: GetAuthCodeDto) {
+    return this.authService.generateAuthCode(dto.phone);
   }
 
   @Public()
   @Post('sms-login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: '短信验证码登录' })
+  @ApiOperation({ summary: '短信验证码登录（暂未开放）' })
   smsLogin(@Body() _dto: PortalSmsLoginDto) {
-    // TODO: implement SMS login
-    return { message: 'TODO' };
+    throw new NotImplementedException('短信验证码登录功能暂未开放');
   }
 
   @Get('info')
@@ -176,6 +184,18 @@ export class PortalAuthController {
   })
   portalRefresh(@Req() req: any) {
     return this.authService.refreshToken(req.user);
+  }
+
+  @Public()
+  @Post('updatePassword')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '修改会员密码（短信验证码验证）' })
+  updatePassword(@Body() dto: UpdateMemberPasswordDto) {
+    return this.authService.updateMemberPassword(
+      dto.telephone,
+      dto.password,
+      dto.authCode,
+    );
   }
 
   @Post('logout')

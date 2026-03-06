@@ -18,11 +18,14 @@ export class PortalLoginDto {
 
 /** 移动端手机号注册 DTO（对应前端 POST /sso/register） */
 export class PortalRegisterDto {
-  @ApiProperty({ example: '13800138000', description: '用户名（手机号）' })
+  @ApiProperty({
+    example: '13800138000',
+    description: '手机号（同时作为登录用户名）',
+  })
   @IsString()
   @IsNotEmpty()
   @Matches(/^1[3-9]\d{9}$/, { message: '手机号格式不正确' })
-  username: string;
+  telephone: string;
 
   @ApiProperty({
     example: 'User@123',
@@ -33,13 +36,37 @@ export class PortalRegisterDto {
   @IsStrongPassword()
   password: string;
 
+  @ApiProperty({ example: '123456', description: '短信验证码（6位数字）' })
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^\d{6}$/, { message: '验证码必须为6位数字' })
+  authCode: string;
+}
+
+/** 获取短信验证码查询参数 DTO */
+export class GetAuthCodeDto {
+  @ApiProperty({ example: '13800138000', description: '手机号' })
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^1[3-9]\d{9}$/, { message: '手机号格式不正确' })
+  phone: string;
+}
+
+/** 移动端修改密码 DTO */
+export class UpdateMemberPasswordDto {
   @ApiProperty({ example: '13800138000', description: '手机号' })
   @IsString()
   @IsNotEmpty()
   @Matches(/^1[3-9]\d{9}$/, { message: '手机号格式不正确' })
   telephone: string;
 
-  @ApiProperty({ example: '123456', description: '短信验证码（6位数字）' })
+  @ApiProperty({ example: 'NewPass@123', description: '新密码' })
+  @IsString()
+  @IsNotEmpty()
+  @IsStrongPassword()
+  password: string;
+
+  @ApiProperty({ example: '123456', description: '短信验证码' })
   @IsString()
   @IsNotEmpty()
   @Matches(/^\d{6}$/, { message: '验证码必须为6位数字' })

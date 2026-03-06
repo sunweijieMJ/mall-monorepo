@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { CACHE_KEYS } from '@/common/constants';
 import {
   AdminResourceEntity,
   AdminResourceCategoryEntity,
@@ -33,7 +34,7 @@ export class AdminResourceService {
   ): Promise<AdminResourceEntity> {
     const saved = await this.resourceRepo.save(dto);
     // 清除全局资源缓存
-    await this.cacheManager.del('mall:resourceList:all');
+    await this.cacheManager.del(CACHE_KEYS.resourceListAll());
     return saved;
   }
 
@@ -132,7 +133,7 @@ export class AdminResourceService {
     });
     const roleIds = roleRelations.map((r) => r.roleId);
     if (!roleIds.length) {
-      await this.cacheManager.del('mall:resourceList:all');
+      await this.cacheManager.del(CACHE_KEYS.resourceListAll());
       return;
     }
 
@@ -140,8 +141,8 @@ export class AdminResourceService {
       where: { roleId: In(roleIds) },
     });
     for (const rel of adminRelations) {
-      await this.cacheManager.del(`mall:resourceList:${rel.adminId}`);
+      await this.cacheManager.del(CACHE_KEYS.resourceList(rel.adminId));
     }
-    await this.cacheManager.del('mall:resourceList:all');
+    await this.cacheManager.del(CACHE_KEYS.resourceListAll());
   }
 }

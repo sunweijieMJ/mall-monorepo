@@ -6,7 +6,7 @@ import { In, Repository } from 'typeorm';
 import { AdminRoleRelationEntity } from '@/modules/ums/admin-user/infrastructure/persistence/relational/entities/admin-role-relation.entity';
 import { RoleResourceRelationEntity } from '@/modules/ums/admin-role/infrastructure/persistence/relational/entities/role-resource-relation.entity';
 import { AdminResourceEntity } from '@/modules/ums/admin-resource/infrastructure/persistence/relational/entities/admin-resource.entity';
-import { CACHE_TTL_MS } from '@/common/constants';
+import { CACHE_KEYS, CACHE_TTL_MS } from '@/common/constants';
 
 @Injectable()
 export class AdminCacheService {
@@ -21,20 +21,15 @@ export class AdminCacheService {
   ) {}
 
   private adminKey(username: string) {
-    return `mall:admin:${username}`;
+    return CACHE_KEYS.admin(username);
   }
 
   private resourceListKey(adminId: number) {
-    return `mall:resourceList:${adminId}`;
+    return CACHE_KEYS.resourceList(adminId);
   }
 
   private allResourceKey() {
-    return `mall:resourceList:all`;
-  }
-
-  /** 清除指定 admin 的用户缓存 */
-  async delAdmin(adminId: number, username: string): Promise<void> {
-    await this.cacheManager.del(this.adminKey(username));
+    return CACHE_KEYS.resourceListAll();
   }
 
   /** 清除指定 admin 的资源权限缓存 */
@@ -47,9 +42,11 @@ export class AdminCacheService {
     const relations = await this.adminRoleRelationRepo.find({
       where: { roleId },
     });
-    for (const rel of relations) {
-      await this.cacheManager.del(this.resourceListKey(rel.adminId));
-    }
+    await Promise.all(
+      relations.map((rel) =>
+        this.cacheManager.del(this.resourceListKey(rel.adminId)),
+      ),
+    );
   }
 
   /** 清除多个角色下所有 admin 的资源权限缓存 */
@@ -58,9 +55,11 @@ export class AdminCacheService {
     const relations = await this.adminRoleRelationRepo.find({
       where: { roleId: In(roleIds) },
     });
-    for (const rel of relations) {
-      await this.cacheManager.del(this.resourceListKey(rel.adminId));
-    }
+    await Promise.all(
+      relations.map((rel) =>
+        this.cacheManager.del(this.resourceListKey(rel.adminId)),
+      ),
+    );
   }
 
   /** 清除指定资源关联的所有 admin 的资源权限缓存 */
