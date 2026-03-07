@@ -35,6 +35,7 @@ RUN pnpm install --frozen-lockfile
 FROM base AS builder
 
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/server/node_modules ./apps/server/node_modules
 COPY . .
 
 RUN pnpm --filter=mall-server build
@@ -46,6 +47,7 @@ FROM base AS standalone
 
 # pnpm deploy 只需依赖声明 + node_modules，无需源码
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/server/node_modules ./apps/server/node_modules
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/server/package.json ./apps/server/
 

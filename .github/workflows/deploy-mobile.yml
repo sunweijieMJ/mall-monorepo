@@ -242,14 +242,15 @@ jobs:
           echo "服务器: ${{ secrets.DEPLOY_HOST }}"
           echo "路径: ${{ secrets.H5_DEPLOY_PATH }}"
 
-  # ==================== 微信小程序上传 ====================
+  # ==================== 微信小程序上传（仅手动触发） ====================
   deploy-mp-weixin:
     name: Deploy WeChat MiniProgram
     needs: build
     runs-on: ubuntu-latest
     if: |
-      (github.event_name == 'push' || github.event.inputs.deploy == 'true') &&
-      (github.event_name == 'push' || github.event.inputs.target == 'mp-weixin' || github.event.inputs.target == 'all')
+      github.event_name == 'workflow_dispatch' &&
+      github.event.inputs.deploy == 'true' &&
+      (github.event.inputs.target == 'mp-weixin' || github.event.inputs.target == 'all')
 
     steps:
       - name: Check secrets

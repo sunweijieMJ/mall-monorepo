@@ -58,7 +58,7 @@ export default defineConfig({
         'src/common/validate-config.ts',
       ],
       reporter: ['text', 'text-summary', 'lcov', 'html'],
-      reportsDirectory: '../coverage',
+      reportsDirectory: resolve(__dirname, 'coverage'),
       thresholds: {
         branches: 80,
         functions: 80,
