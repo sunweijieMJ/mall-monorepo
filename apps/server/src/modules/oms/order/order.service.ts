@@ -617,14 +617,36 @@ export class OrderService {
           const reducePrice = Number(matchedFullReduction.reducePrice);
           const message = `满减优惠：满${matchedFullReduction.fullPrice}元，减${matchedFullReduction.reducePrice}元`;
 
-          for (const item of itemList) {
+          // 按商品价格比例分摊满减金额（最后一项用补差法，避免浮点精度误差）
+          let distributedReduce = 0;
+          for (let i = 0; i < itemList.length; i++) {
+            const item = itemList[i];
             const skuStock = productSkuList.find(
               (s) => s.id === item.productSkuId,
             );
             const originalPrice = skuStock ? Number(skuStock.price) : 0;
-            // (商品原价 / 该商品总金额) * 满减金额
-            const reduceAmount =
-              totalAmount > 0 ? (originalPrice / totalAmount) * reducePrice : 0;
+            let reduceAmount: number;
+            if (i === itemList.length - 1) {
+              // 补差法：剩余总减免除以数量得到单件分摊额
+              reduceAmount =
+                item.productQuantity > 0
+                  ? Math.round(
+                      ((reducePrice - distributedReduce) /
+                        item.productQuantity) *
+                        100,
+                    ) / 100
+                  : 0;
+            } else {
+              // 按单件价格占总金额比例分摊（得到单件减免额）
+              reduceAmount =
+                totalAmount > 0
+                  ? Math.round(
+                      (originalPrice / totalAmount) * reducePrice * 100,
+                    ) / 100
+                  : 0;
+              // 累加该 item 的总减免额（单件 × 数量）
+              distributedReduce += reduceAmount * item.productQuantity;
+            }
             const realStock = skuStock
               ? skuStock.stock - skuStock.lockStock
               : 0;
@@ -870,24 +892,41 @@ export class OrderService {
       if (integrationAmount <= 0) {
         throw new BadRequestException('积分不可用');
       }
-      // 按商品价格比例分摊积分抵扣金额
-      for (const item of orderItems) {
-        const perAmount =
-          totalProductAmount > 0
-            ? (Number(item.productPrice ?? 0) / totalProductAmount) *
-              integrationAmount
-            : 0;
-        item.integrationAmount = String(perAmount);
+      // 按商品价格比例分摊积分抵扣金额（最后一项用补差法，避免浮点精度误差）
+      let distributedIntegration = 0;
+      for (let i = 0; i < orderItems.length; i++) {
+        const item = orderItems[i];
+        if (i === orderItems.length - 1) {
+          // 最后一项 = 总额 - 前 N-1 项之和，确保分摊总和精确等于 integrationAmount
+          item.integrationAmount = String(
+            Math.round((integrationAmount - distributedIntegration) * 100) /
+              100,
+          );
+        } else {
+          const perAmount =
+            totalProductAmount > 0
+              ? Math.round(
+                  (Number(item.productPrice ?? 0) / totalProductAmount) *
+                    integrationAmount *
+                    100,
+                ) / 100
+              : 0;
+          item.integrationAmount = String(perAmount);
+          distributedIntegration += perAmount;
+        }
       }
     }
 
-    // 6. 计算每个 orderItem 的实付金额
+    // 6. 计算每个 orderItem 的实付金额（四舍五入到分）
     for (const item of orderItems) {
       item.realAmount = String(
-        Number(item.productPrice ?? 0) -
-          Number(item.promotionAmount ?? 0) -
-          Number(item.couponAmount ?? 0) -
-          Number(item.integrationAmount ?? 0),
+        Math.round(
+          (Number(item.productPrice ?? 0) -
+            Number(item.promotionAmount ?? 0) -
+            Number(item.couponAmount ?? 0) -
+            Number(item.integrationAmount ?? 0)) *
+            100,
+        ) / 100,
       );
     }
 
@@ -931,7 +970,10 @@ export class OrderService {
           )
         : 0;
     const payAmount =
-      totalAmount - promotionAmount - couponAmount - integrationAmount;
+      Math.round(
+        (totalAmount - promotionAmount - couponAmount - integrationAmount) *
+          100,
+      ) / 100;
 
     // 计算赠送积分和成长值
     const giftIntegration = orderItems.reduce(
@@ -1590,13 +1632,15 @@ export class OrderService {
       return 0;
     }
 
-    // 积分抵扣金额 = useIntegration / useUnit（每 useUnit 积分抵扣 1 元）
-    const integrationAmount = useIntegration / setting.useUnit;
+    // 积分抵扣金额 = useIntegration / useUnit（每 useUnit 积分抵扣 1 元），四舍五入到分
+    const integrationAmount =
+      Math.round((useIntegration / setting.useUnit) * 100) / 100;
 
     // 是否超过订单最高抵用百分比，超过则按上限值返回
     const maxPercent = setting.maxPercentPerOrder / 100;
-    if (integrationAmount > totalAmount * maxPercent) {
-      return totalAmount * maxPercent;
+    const maxAmount = Math.round(totalAmount * maxPercent * 100) / 100;
+    if (integrationAmount > maxAmount) {
+      return maxAmount;
     }
 
     return integrationAmount;
@@ -1694,11 +1738,22 @@ export class OrderService {
     );
     if (totalAmount <= 0) return;
 
-    for (const item of orderItems) {
-      // (商品价格 / 可用商品总价) * 优惠券面额
-      item.couponAmount = String(
-        (Number(item.productPrice ?? 0) / totalAmount) * couponAmount,
-      );
+    // 按商品价格比例分摊优惠券金额（最后一项用补差法，避免浮点精度误差）
+    let distributedCoupon = 0;
+    for (let i = 0; i < orderItems.length; i++) {
+      const item = orderItems[i];
+      if (i === orderItems.length - 1) {
+        item.couponAmount = String(
+          Math.round((couponAmount - distributedCoupon) * 100) / 100,
+        );
+      } else {
+        const perAmount =
+          Math.round(
+            (Number(item.productPrice ?? 0) / totalAmount) * couponAmount * 100,
+          ) / 100;
+        item.couponAmount = String(perAmount);
+        distributedCoupon += perAmount;
+      }
     }
   }
 
@@ -1720,23 +1775,30 @@ export class OrderService {
       where: { memberId, couponId, useStatus: currentStatus },
     });
 
-    if (couponHistory) {
-      await manager
-        .createQueryBuilder()
-        .update(CouponHistoryEntity)
-        .set({
-          useStatus,
-          useTime: new Date(),
-        })
-        .where('id = :id', { id: couponHistory.id })
-        .execute();
-
-      // 同步更新优惠券的已使用数量
+    if (!couponHistory) {
+      // 使用优惠券时找不到可用记录，说明已被并发使用或状态异常
       if (useStatus === 1) {
-        await manager.increment(CouponEntity, { id: couponId }, 'useCount', 1);
-      } else if (useStatus === 0) {
-        await manager.decrement(CouponEntity, { id: couponId }, 'useCount', 1);
+        throw new BadRequestException('优惠券已被使用或不可用');
       }
+      // 取消使用时找不到已使用记录，静默跳过（幂等）
+      return;
+    }
+
+    await manager
+      .createQueryBuilder()
+      .update(CouponHistoryEntity)
+      .set({
+        useStatus,
+        useTime: new Date(),
+      })
+      .where('id = :id', { id: couponHistory.id })
+      .execute();
+
+    // 同步更新优惠券的已使用数量
+    if (useStatus === 1) {
+      await manager.increment(CouponEntity, { id: couponId }, 'useCount', 1);
+    } else if (useStatus === 0) {
+      await manager.decrement(CouponEntity, { id: couponId }, 'useCount', 1);
     }
   }
 }
