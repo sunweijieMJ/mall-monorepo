@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -175,6 +176,7 @@ export class MemberCouponController {
     @CurrentUser() user: JwtPayload,
     @Query('cartIds') cartIds: string,
   ) {
+    if (!cartIds) throw new BadRequestException('cartIds 参数不能为空');
     const ids = cartIds
       .split(',')
       .map((id) => Number(id.trim()))

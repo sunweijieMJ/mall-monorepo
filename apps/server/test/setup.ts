@@ -4,3 +4,5 @@ import 'reflect-metadata';
 // 集成测试所需的最小环境变量（ConfigModule.forRoot 校验时使用）
 process.env.AUTH_JWT_SECRET = 'test-jwt-secret-do-not-use-in-production';
 process.env.AUTH_JWT_TOKEN_EXPIRES_IN = '1h';
+process.env.AUTH_REFRESH_SECRET =
+  'test-refresh-secret-do-not-use-in-production';

@@ -4,8 +4,7 @@ import {
   AdminResourceEntity,
   AdminResourceCategoryEntity,
 } from './infrastructure/persistence/relational/entities/admin-resource.entity';
-import { RoleResourceRelationEntity } from '@/modules/ums/admin-role/infrastructure/persistence/relational/entities/role-resource-relation.entity';
-import { AdminRoleRelationEntity } from '@/modules/ums/admin-user/infrastructure/persistence/relational/entities/admin-role-relation.entity';
+import { AuthModule } from '@/core/auth/auth.module';
 import { AdminResourceService } from './admin-resource.service';
 import {
   AdminResourceController,
@@ -17,9 +16,8 @@ import {
     TypeOrmModule.forFeature([
       AdminResourceEntity,
       AdminResourceCategoryEntity,
-      RoleResourceRelationEntity,
-      AdminRoleRelationEntity,
     ]),
+    AuthModule,
   ],
   controllers: [AdminResourceController, AdminResourceCategoryController],
   providers: [AdminResourceService],

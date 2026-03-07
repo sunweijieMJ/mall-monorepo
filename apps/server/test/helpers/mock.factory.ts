@@ -2,6 +2,7 @@ import { vi } from 'vitest';
 import { getDataSourceToken } from '@nestjs/typeorm';
 import type { Cache } from 'cache-manager';
 import type { DataSource } from 'typeorm';
+import type { Redis } from 'ioredis';
 
 // ──────────────────────────────────────────────
 // TypeORM Repository Mock
@@ -115,6 +116,27 @@ export function mockDataSourceProvider() {
  * const mockCache = createMockCacheManager();
  * mockCache.get.mockResolvedValueOnce(adminFixture); // 模拟缓存命中
  */
+// ──────────────────────────────────────────────
+// Redis Client Mock (ioredis)
+// ──────────────────────────────────────────────
+
+/**
+ * 创建 ioredis Client Mock。
+ * 用于替代 REDIS_CLIENT provider，避免测试连接真实 Redis。
+ */
+export function createMockRedisClient(): Partial<Redis> {
+  return {
+    get: vi.fn().mockResolvedValue(null),
+    set: vi.fn().mockResolvedValue('OK'),
+    del: vi.fn().mockResolvedValue(1),
+    incr: vi.fn().mockResolvedValue(1),
+    expire: vi.fn().mockResolvedValue(1),
+    pexpire: vi.fn().mockResolvedValue(1),
+    exists: vi.fn().mockResolvedValue(0),
+    ttl: vi.fn().mockResolvedValue(-1),
+  } as unknown as Partial<Redis>;
+}
+
 export function createMockCacheManager(): Cache {
   return {
     get: vi.fn().mockResolvedValue(null),

@@ -246,6 +246,7 @@ export class PortalProductService {
     const universalCoupons = await this.couponRepo
       .createQueryBuilder('c')
       .where('c.use_type = :useType', { useType: 0 })
+      .andWhere('(c.start_time IS NULL OR c.start_time < :now)', { now })
       .andWhere('(c.end_time IS NULL OR c.end_time > :now)', { now })
       .getMany();
 
@@ -271,6 +272,7 @@ export class PortalProductService {
       extraCoupons = await this.couponRepo
         .createQueryBuilder('c')
         .where('c.id IN (:...ids)', { ids: extraIds })
+        .andWhere('(c.start_time IS NULL OR c.start_time < :now)', { now })
         .andWhere('(c.end_time IS NULL OR c.end_time > :now)', { now })
         .getMany();
     }

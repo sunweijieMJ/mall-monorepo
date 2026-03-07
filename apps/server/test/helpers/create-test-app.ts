@@ -1,8 +1,10 @@
 import {
   CanActivate,
   ExecutionContext,
+  Global,
   INestApplication,
   Injectable,
+  Module,
   Type,
   UnauthorizedException,
   ValidationPipe,
@@ -22,8 +24,24 @@ import validationOptions from '@/common/validation-options';
 import { IS_PUBLIC_KEY } from '@/core/auth/decorators/public.decorator';
 import type { JwtPayload } from '@/core/auth/types/jwt-payload.type';
 
+import { REDIS_CLIENT } from '@/infrastructure/redis/redis-client.module';
 import { TEST_JWT_SECRET } from './jwt.helper';
-import { createMockCacheManager, createMockDataSource } from './mock.factory';
+import {
+  createMockCacheManager,
+  createMockDataSource,
+  createMockRedisClient,
+} from './mock.factory';
+
+/**
+ * 测试用全局 Redis 客户端模块，替代真实的 RedisClientModule。
+ * 使用 @Global() 确保在所有子模块中可注入 REDIS_CLIENT。
+ */
+@Global()
+@Module({
+  providers: [{ provide: REDIS_CLIENT, useValue: createMockRedisClient() }],
+  exports: [REDIS_CLIENT],
+})
+class MockRedisClientModule {}
 
 // ──────────────────────────────────────────────
 // Mock Guards
@@ -124,6 +142,7 @@ export async function createTestApp(
         secret: TEST_JWT_SECRET,
         signOptions: { expiresIn: '1h' },
       }),
+      MockRedisClientModule,
       featureModule,
     ],
     providers: [

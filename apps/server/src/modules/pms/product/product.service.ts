@@ -453,6 +453,10 @@ export class ProductService {
         .find({ where: { productId: id } }),
     ]);
 
+    if (!product) {
+      throw new NotFoundException(`商品 ${id} 不存在`);
+    }
+
     return {
       ...product,
       skuStockList,

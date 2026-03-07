@@ -20,10 +20,6 @@ export class AdminCacheService {
     private readonly resourceRepo: Repository<AdminResourceEntity>,
   ) {}
 
-  private adminKey(username: string) {
-    return CACHE_KEYS.admin(username);
-  }
-
   private resourceListKey(adminId: number) {
     return CACHE_KEYS.resourceList(adminId);
   }
@@ -68,8 +64,10 @@ export class AdminCacheService {
       where: { resourceId },
     });
     const roleIds = roleRelations.map((r) => r.roleId);
-    if (!roleIds.length) return;
-    await this.delResourceListByRoleIds(roleIds);
+    if (roleIds.length) {
+      await this.delResourceListByRoleIds(roleIds);
+    }
+    // 无论是否有角色绑定，都清全局资源 Map 缓存
     await this.cacheManager.del(this.allResourceKey());
   }
 

@@ -114,30 +114,26 @@ export class CouponService {
         ...(minPoint != null ? { minPoint: String(minPoint) } : {}),
       });
 
-      // useType=2: 先删后插商品关联
-      if (couponData.useType === 2) {
-        await manager.delete(CouponProductRelationEntity, { couponId: id });
-        if (productRelationList?.length) {
-          const relations = productRelationList.map((r: any) => ({
-            ...r,
-            couponId: id,
-          }));
-          await manager.insert(CouponProductRelationEntity, relations);
-        }
-      }
+      // useType 变更时需清理两张关联表，防止旧数据遗留
+      await manager.delete(CouponProductRelationEntity, { couponId: id });
+      await manager.delete(CouponProductCategoryRelationEntity, {
+        couponId: id,
+      });
 
-      // useType=1: 先删后插分类关联
-      if (couponData.useType === 1) {
-        await manager.delete(CouponProductCategoryRelationEntity, {
+      // 按新 useType 重建关联
+      if (couponData.useType === 2 && productRelationList?.length) {
+        const relations = productRelationList.map((r: any) => ({
+          ...r,
           couponId: id,
-        });
-        if (productCategoryRelationList?.length) {
-          const relations = productCategoryRelationList.map((r: any) => ({
-            ...r,
-            couponId: id,
-          }));
-          await manager.insert(CouponProductCategoryRelationEntity, relations);
-        }
+        }));
+        await manager.insert(CouponProductRelationEntity, relations);
+      }
+      if (couponData.useType === 1 && productCategoryRelationList?.length) {
+        const relations = productCategoryRelationList.map((r: any) => ({
+          ...r,
+          couponId: id,
+        }));
+        await manager.insert(CouponProductCategoryRelationEntity, relations);
       }
     });
   }

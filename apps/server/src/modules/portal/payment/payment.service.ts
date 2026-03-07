@@ -87,9 +87,10 @@ export class PaymentService {
       const expectedAmount = Number(order.payAmount || order.totalAmount);
       if (Math.abs(paidAmount - expectedAmount) > 0.01) {
         this.logger.error(
-          `支付回调金额不一致: orderSn=${outTradeNo}, paid=${paidAmount}, expected=${expectedAmount}`,
+          `[安全告警] 支付金额不一致: orderSn=${outTradeNo}, paid=${paidAmount}, expected=${expectedAmount}，需人工核查`,
         );
-        throw new BadRequestException('支付金额与订单金额不一致');
+        // 金额不一致是确定性错误，重试不会修复。返回而非抛异常，让 controller 回复 success 停止支付宝重试
+        return;
       }
 
       // 调用 OrderService.paySuccess 完成：状态更新 + 库存扣减 + 操作历史记录

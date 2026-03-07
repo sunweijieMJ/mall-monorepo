@@ -13,8 +13,10 @@ import { Cache } from 'cache-manager';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
 
+import { Redis } from 'ioredis';
 import { AllConfigType } from '@/config/config.type';
-import { CACHE_TTL_MS } from '@/common/constants';
+import { AUTH_CODE_TTL_MS, CACHE_TTL_MS } from '@/common/constants';
+import { REDIS_CLIENT } from '@/infrastructure/redis/redis-client.module';
 import { AdminLoginDto } from './dto/admin-login.dto';
 import { RegisterAdminDto } from './dto/register-admin.dto';
 import { PortalLoginDto, PortalRegisterDto } from './dto/portal-login.dto';
@@ -32,7 +34,6 @@ import { MemberLevelEntity } from '@/modules/ums/member-level/infrastructure/per
 import { SessionEntity } from './infrastructure/persistence/relational/entities/session.entity';
 
 import { CACHE_KEYS } from '@/common/constants';
-const AUTH_CODE_TTL = 900 * 1000; // 15分钟
 const AUTH_CODE_COOLDOWN = 60 * 1000; // 验证码发送冷却 60 秒
 const LOGIN_FAIL_MAX = 5; // 最大登录失败次数
 const LOGIN_LOCK_TTL = 15 * 60 * 1000; // 登录锁定时间 15 分钟
@@ -62,6 +63,8 @@ export class AuthService {
     private readonly memberLevelRepo: Repository<MemberLevelEntity>,
     @InjectRepository(SessionEntity)
     private readonly sessionRepo: Repository<SessionEntity>,
+    @Inject(REDIS_CLIENT)
+    private readonly redisClient: Redis,
   ) {}
 
   /**
@@ -460,7 +463,7 @@ export class AuthService {
     await this.cacheManager.set(
       CACHE_KEYS.authCode(telephone),
       code,
-      AUTH_CODE_TTL,
+      AUTH_CODE_TTL_MS,
     );
 
     // 4. 记录发送冷却（60 秒）
@@ -516,9 +519,9 @@ export class AuthService {
     username: string,
     userType: 'admin' | 'member',
   ): Promise<LoginResponseDto> {
-    const refreshSecret =
-      this.configService.get('auth.refreshSecret', { infer: true }) ||
-      this.configService.getOrThrow('auth.secret', { infer: true });
+    const refreshSecret = this.configService.getOrThrow('auth.refreshSecret', {
+      infer: true,
+    });
     const refreshExpires =
       this.configService.get('auth.refreshExpires', { infer: true }) || '3650d';
 
@@ -578,20 +581,19 @@ export class AuthService {
     return new Date(now + value * multipliers[unit]);
   }
 
-  /** 记录登录失败次数，达到上限后锁定账号 */
+  /** 记录登录失败次数，达到上限后锁定账号（使用 Redis INCR 保证原子性） */
   private async recordLoginFailure(username: string): Promise<void> {
-    const failCount =
-      ((await this.cacheManager.get<number>(CACHE_KEYS.loginFail(username))) ??
-        0) + 1;
-    await this.cacheManager.set(
-      CACHE_KEYS.loginFail(username),
-      failCount,
-      LOGIN_FAIL_TTL,
-    );
+    const key = CACHE_KEYS.loginFail(username);
+    const failCount = await this.redisClient.incr(key);
+    if (failCount === 1) {
+      // 首次失败设置过期时间
+      await this.redisClient.pexpire(key, LOGIN_FAIL_TTL);
+    }
     if (failCount >= LOGIN_FAIL_MAX) {
-      await this.cacheManager.set(
+      await this.redisClient.set(
         CACHE_KEYS.loginLock(username),
         '1',
+        'PX',
         LOGIN_LOCK_TTL,
       );
     }

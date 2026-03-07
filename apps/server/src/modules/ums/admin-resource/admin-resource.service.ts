@@ -1,15 +1,11 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
-import { CACHE_KEYS } from '@/common/constants';
+import { Repository } from 'typeorm';
 import {
   AdminResourceEntity,
   AdminResourceCategoryEntity,
 } from './infrastructure/persistence/relational/entities/admin-resource.entity';
-import { RoleResourceRelationEntity } from '@/modules/ums/admin-role/infrastructure/persistence/relational/entities/role-resource-relation.entity';
-import { AdminRoleRelationEntity } from '@/modules/ums/admin-user/infrastructure/persistence/relational/entities/admin-role-relation.entity';
+import { AdminCacheService } from '@/core/auth/services/admin-cache.service';
 import { PageQueryDto, PageResult } from '@/common/dto/page-result.dto';
 
 @Injectable()
@@ -19,11 +15,7 @@ export class AdminResourceService {
     private readonly resourceRepo: Repository<AdminResourceEntity>,
     @InjectRepository(AdminResourceCategoryEntity)
     private readonly categoryRepo: Repository<AdminResourceCategoryEntity>,
-    @InjectRepository(RoleResourceRelationEntity)
-    private readonly roleResourceRelationRepo: Repository<RoleResourceRelationEntity>,
-    @InjectRepository(AdminRoleRelationEntity)
-    private readonly adminRoleRelationRepo: Repository<AdminRoleRelationEntity>,
-    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+    private readonly adminCacheService: AdminCacheService,
   ) {}
 
   // ---- 资源 CRUD ----
@@ -34,15 +26,15 @@ export class AdminResourceService {
   ): Promise<AdminResourceEntity> {
     const saved = await this.resourceRepo.save(dto);
     // 清除全局资源缓存
-    await this.cacheManager.del(CACHE_KEYS.resourceListAll());
+    await this.adminCacheService.delAllResourceCache();
     return saved;
   }
 
   /** 更新资源 */
   async update(id: number, dto: Partial<AdminResourceEntity>): Promise<number> {
     await this.resourceRepo.update(id, dto);
-    // 清除相关 admin 的资源缓存
-    await this.delResourceListByResource(id);
+    // 清除相关 admin 的资源缓存（委托给 AdminCacheService）
+    await this.adminCacheService.delResourceListByResource(id);
     return 1;
   }
 
@@ -56,8 +48,8 @@ export class AdminResourceService {
   /** 删除资源 */
   async delete(id: number): Promise<number> {
     await this.resourceRepo.delete(id);
-    // 清除相关 admin 的资源缓存
-    await this.delResourceListByResource(id);
+    // 清除相关 admin 的资源缓存（委托给 AdminCacheService）
+    await this.adminCacheService.delResourceListByResource(id);
     return 1;
   }
 
@@ -122,27 +114,5 @@ export class AdminResourceService {
   /** 获取所有资源分类 */
   async listCategory(): Promise<AdminResourceCategoryEntity[]> {
     return this.categoryRepo.find({ order: { sort: 'ASC' } });
-  }
-
-  // ---- 私有方法 ----
-
-  /** 清除指定资源关联的所有 admin 的资源权限缓存 */
-  private async delResourceListByResource(resourceId: number): Promise<void> {
-    const roleRelations = await this.roleResourceRelationRepo.find({
-      where: { resourceId },
-    });
-    const roleIds = roleRelations.map((r) => r.roleId);
-    if (!roleIds.length) {
-      await this.cacheManager.del(CACHE_KEYS.resourceListAll());
-      return;
-    }
-
-    const adminRelations = await this.adminRoleRelationRepo.find({
-      where: { roleId: In(roleIds) },
-    });
-    for (const rel of adminRelations) {
-      await this.cacheManager.del(CACHE_KEYS.resourceList(rel.adminId));
-    }
-    await this.cacheManager.del(CACHE_KEYS.resourceListAll());
   }
 }

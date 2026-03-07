@@ -7,13 +7,11 @@ import {
   makeHistogramProvider,
 } from '@willsoto/nestjs-prometheus';
 import { AllConfigType } from '@/config/config.type';
-import metricsConfig from './metrics.config';
 import { MetricsInterceptor } from './metrics.interceptor';
 
 @Global()
 @Module({
   imports: [
-    ConfigModule.forFeature(metricsConfig),
     PrometheusModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService<AllConfigType>) => ({

@@ -68,17 +68,25 @@ export class MemberService {
     memberId: number,
     data: Record<string, unknown>,
   ): Promise<void> {
-    // 排除不允许客户端修改的字段
-    const {
-      id: _id,
-      password: _password,
-      status: _status,
-      ...safeData
-    } = data as Record<string, unknown>;
-    await this.memberRepo.update(
-      { id: memberId },
-      safeData as Partial<MemberEntity>,
-    );
+    // 白名单：只允许客户端修改以下安全字段
+    const allowedFields = [
+      'nickname',
+      'icon',
+      'gender',
+      'birthday',
+      'city',
+      'job',
+      'personalizedSignature',
+      'phone',
+    ] as const;
+    const safeData: Partial<MemberEntity> = {};
+    for (const field of allowedFields) {
+      if (data[field] !== undefined) {
+        (safeData as any)[field] = data[field];
+      }
+    }
+    if (Object.keys(safeData).length === 0) return;
+    await this.memberRepo.update({ id: memberId }, safeData);
   }
 
   // ========== 收货地址 ==========
@@ -357,10 +365,10 @@ export class MemberService {
     );
 
     // 购物车中的商品 ID 和分类 ID
-    const productIds = [...new Set(cartItems.map((c) => c.productId))];
-    const categoryIds = [
-      ...new Set(cartItems.map((c) => c.productCategoryId).filter(Boolean)),
-    ];
+    // const productIds = [...new Set(cartItems.map((c) => c.productId))];
+    // const categoryIds = [
+    //   ...new Set(cartItems.map((c) => c.productCategoryId).filter(Boolean)),
+    // ];
 
     // 查询该会员所有未使用的领取记录
     const histories = await this.couponHistoryRepo.find({

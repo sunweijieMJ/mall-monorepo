@@ -109,10 +109,15 @@ export class AlipayService {
   }
 
   private rsaVerify(content: string, sign: string): boolean {
-    const key = this.formatPublicKey(this.alipayPublicKey);
-    const verifier = crypto.createVerify('RSA-SHA256');
-    verifier.update(content, 'utf8');
-    return verifier.verify(key, sign, 'base64');
+    try {
+      const key = this.formatPublicKey(this.alipayPublicKey);
+      const verifier = crypto.createVerify('RSA-SHA256');
+      verifier.update(content, 'utf8');
+      return verifier.verify(key, sign, 'base64');
+    } catch (err) {
+      this.logger.error('RSA 验签异常（请检查 alipayPublicKey 配置）', err);
+      return false;
+    }
   }
 
   private formatPrivateKey(key: string): string {

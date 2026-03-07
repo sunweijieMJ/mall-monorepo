@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -92,8 +93,12 @@ export class ProductController {
     @Query('verifyStatus') verifyStatus: string,
     @Query('detail') detail: string,
   ) {
+    if (!ids) throw new BadRequestException('ids 参数不能为空');
     return this.productService.updateVerifyStatus(
-      ids.split(',').map(Number),
+      ids
+        .split(',')
+        .map(Number)
+        .filter((n) => n > 0),
       Number(verifyStatus),
       detail,
       user.username,
@@ -106,7 +111,13 @@ export class ProductController {
     description: '将 deleteStatus 设置为 1',
   })
   delete(@Query('ids') ids: string) {
-    return this.productService.delete(ids.split(',').map(Number));
+    if (!ids) throw new BadRequestException('ids 参数不能为空');
+    return this.productService.delete(
+      ids
+        .split(',')
+        .map(Number)
+        .filter((n) => n > 0),
+    );
   }
 
   @Post('update/publishStatus')
@@ -115,8 +126,12 @@ export class ProductController {
     @Query('ids') ids: string,
     @Query('publishStatus') publishStatus: string,
   ) {
+    if (!ids) throw new BadRequestException('ids 参数不能为空');
     return this.productService.updatePublishStatus(
-      ids.split(',').map(Number),
+      ids
+        .split(',')
+        .map(Number)
+        .filter((n) => n > 0),
       Number(publishStatus),
     );
   }
@@ -127,8 +142,12 @@ export class ProductController {
     @Query('ids') ids: string,
     @Query('newStatus') newStatus: string,
   ) {
+    if (!ids) throw new BadRequestException('ids 参数不能为空');
     return this.productService.updateNewStatus(
-      ids.split(',').map(Number),
+      ids
+        .split(',')
+        .map(Number)
+        .filter((n) => n > 0),
       Number(newStatus),
     );
   }
@@ -139,8 +158,12 @@ export class ProductController {
     @Query('ids') ids: string,
     @Query('recommendStatus') recommendStatus: string,
   ) {
+    if (!ids) throw new BadRequestException('ids 参数不能为空');
     return this.productService.updateRecommendStatus(
-      ids.split(',').map(Number),
+      ids
+        .split(',')
+        .map(Number)
+        .filter((n) => n > 0),
       Number(recommendStatus),
     );
   }

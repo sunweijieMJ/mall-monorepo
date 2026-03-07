@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -58,7 +59,13 @@ export class AdminOrderController {
     description: '对应前端 DELETE /order/delete?ids=1,2',
   })
   delete(@Query('ids') ids: string) {
-    return this.orderService.adminDelete(ids.split(',').map(Number));
+    if (!ids) throw new BadRequestException('ids 参数不能为空');
+    return this.orderService.adminDelete(
+      ids
+        .split(',')
+        .map(Number)
+        .filter((n) => n > 0),
+    );
   }
 
   @Post('delivery')

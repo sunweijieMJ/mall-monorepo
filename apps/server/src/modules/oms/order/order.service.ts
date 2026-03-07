@@ -261,10 +261,10 @@ export class OrderService {
   async delivery(deliveryList: DeliveryItemDto[]): Promise<void> {
     // 用事务保证订单状态更新与操作历史写入的原子性
     await this.transactionService.run(async (manager) => {
-      // 逐条 UPDATE（每条订单的物流单号不同，无法合并为单条 SQL）
-      await Promise.all(
-        deliveryList.map((item) =>
-          manager
+      // 逐条 UPDATE（每条订单的物流单号不同，无法合并为单条 SQL），收集实际更新成功的订单
+      const results = await Promise.all(
+        deliveryList.map(async (item) => {
+          const result = await manager
             .createQueryBuilder()
             .update(OrderEntity)
             .set({
@@ -277,21 +277,25 @@ export class OrderService {
               id: item.orderId,
               status: OrderStatus.PAID,
             })
-            .execute(),
-        ),
-      );
-
-      // 批量插入操作历史
-      const histories = deliveryList.map((item) =>
-        manager.create(OrderOperateHistoryEntity, {
-          orderId: item.orderId,
-          operateMan: '后台管理员',
-          orderStatus: OrderStatus.SHIPPING,
-          note: '完成发货',
-          createTime: new Date(),
+            .execute();
+          return { orderId: item.orderId, affected: result.affected ?? 0 };
         }),
       );
-      await manager.save(OrderOperateHistoryEntity, histories);
+
+      // 只为实际更新成功的订单写入操作历史
+      const successItems = results.filter((r) => r.affected > 0);
+      if (successItems.length > 0) {
+        const histories = successItems.map((item) =>
+          manager.create(OrderOperateHistoryEntity, {
+            orderId: item.orderId,
+            operateMan: '后台管理员',
+            orderStatus: OrderStatus.SHIPPING,
+            note: '完成发货',
+            createTime: new Date(),
+          }),
+        );
+        await manager.save(OrderOperateHistoryEntity, histories);
+      }
     });
   }
 
@@ -1261,7 +1265,8 @@ export class OrderService {
     }
 
     await this.transactionService.run(async (manager) => {
-      await manager
+      // CAS 保护：WHERE 带 status 条件，防止并发请求重复发放积分
+      const updateResult = await manager
         .createQueryBuilder()
         .update(OrderEntity)
         .set({
@@ -1269,8 +1274,16 @@ export class OrderService {
           confirmStatus: 1,
           receiveTime: new Date(),
         })
-        .where('id = :id', { id: orderId })
+        .where('id = :id AND status = :expectedStatus', {
+          id: orderId,
+          expectedStatus: OrderStatus.SHIPPING,
+        })
         .execute();
+
+      if (updateResult.affected === 0) {
+        // 已被其他请求处理，跳过积分发放
+        return;
+      }
 
       // 发放积分和成长值到会员账户
       const giftIntegration = Number(order.integration) || 0;

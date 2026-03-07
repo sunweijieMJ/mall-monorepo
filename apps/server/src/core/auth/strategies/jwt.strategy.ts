@@ -32,7 +32,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('Missing token');
     }
 
-    // 1. 先检查黑名单（优先级最高，确保登出后立即失效）
+    // 1. 先检查有效缓存，命中则跳过黑名单查询（减少 Redis 负载）
+    const validCacheKey = CACHE_KEYS.jwtValid(token);
+    const isValidCached = await this.cacheManager.get<string>(validCacheKey);
+    if (isValidCached) {
+      return payload;
+    }
+
+    // 2. 缓存未命中，查黑名单（确保登出后立即失效）
     const blacklisted = await this.cacheManager.get(
       CACHE_KEYS.tokenBlacklist(token),
     );
@@ -40,13 +47,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('token 已失效');
     }
 
-    // 2. 检查有效缓存，命中则跳过后续查询（减少 Redis 负载）
-    const validCacheKey = CACHE_KEYS.jwtValid(token);
-    const isValidCached = await this.cacheManager.get<string>(validCacheKey);
-    if (!isValidCached) {
-      // 3. 验证通过，缓存结果（避免每次请求都查 Redis 黑名单）
-      await this.cacheManager.set(validCacheKey, '1', JWT_VALID_CACHE_TTL_MS);
-    }
+    // 3. 验证通过，缓存结果（后续请求在 TTL 窗口内只需 1 次 Redis GET）
+    await this.cacheManager.set(validCacheKey, '1', JWT_VALID_CACHE_TTL_MS);
 
     return payload;
   }

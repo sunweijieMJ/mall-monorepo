@@ -95,7 +95,7 @@ describe('Auth API (e2e)', () => {
     });
   });
 
-  afterAll(() => app.close());
+  afterAll(() => app?.close());
 
   beforeEach(() => vi.clearAllMocks());
 
@@ -105,7 +105,12 @@ describe('Auth API (e2e)', () => {
     const url = '/api/v1/admin/auth/login';
 
     it('正确凭据 → 200 + token', async () => {
-      mockAdminRepo.findOne.mockResolvedValue(createAdminFixture());
+      // adminLogin 使用 createQueryBuilder 链式查询（addSelect password 字段）
+      mockAdminRepo.createQueryBuilder.mockReturnValue({
+        addSelect: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        getOne: vi.fn().mockResolvedValue(createAdminFixture()),
+      });
       vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
       mockLoginLogRepo.save.mockResolvedValue({});
       mockAdminRepo.update.mockResolvedValue({});
@@ -122,7 +127,11 @@ describe('Auth API (e2e)', () => {
     });
 
     it('用户不存在 → 401', async () => {
-      mockAdminRepo.findOne.mockResolvedValue(null);
+      mockAdminRepo.createQueryBuilder.mockReturnValue({
+        addSelect: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        getOne: vi.fn().mockResolvedValue(null),
+      });
 
       const res = await request(app.getHttpServer())
         .post(url)
@@ -134,7 +143,11 @@ describe('Auth API (e2e)', () => {
     });
 
     it('密码错误 → 401', async () => {
-      mockAdminRepo.findOne.mockResolvedValue(createAdminFixture());
+      mockAdminRepo.createQueryBuilder.mockReturnValue({
+        addSelect: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        getOne: vi.fn().mockResolvedValue(createAdminFixture()),
+      });
       vi.mocked(bcrypt.compare).mockResolvedValue(false as never);
 
       const res = await request(app.getHttpServer())
@@ -147,7 +160,11 @@ describe('Auth API (e2e)', () => {
     });
 
     it('账号禁用 → 401', async () => {
-      mockAdminRepo.findOne.mockResolvedValue(createDisabledAdminFixture());
+      mockAdminRepo.createQueryBuilder.mockReturnValue({
+        addSelect: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        getOne: vi.fn().mockResolvedValue(createDisabledAdminFixture()),
+      });
       vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
 
       const res = await request(app.getHttpServer())
@@ -283,7 +300,12 @@ describe('Auth API (e2e)', () => {
     const url = '/api/v1/portal/auth/login';
 
     it('正确凭据 → 200 + token', async () => {
-      mockMemberRepo.findOne.mockResolvedValue(createMemberFixture());
+      // portalLogin 使用 createQueryBuilder 链式查询（addSelect password 字段）
+      mockMemberRepo.createQueryBuilder.mockReturnValue({
+        addSelect: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        getOne: vi.fn().mockResolvedValue(createMemberFixture()),
+      });
       vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
       mockSessionRepo.save.mockResolvedValue({ id: 1 });
 
@@ -298,7 +320,11 @@ describe('Auth API (e2e)', () => {
     });
 
     it('用户不存在 → 401', async () => {
-      mockMemberRepo.findOne.mockResolvedValue(null);
+      mockMemberRepo.createQueryBuilder.mockReturnValue({
+        addSelect: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        getOne: vi.fn().mockResolvedValue(null),
+      });
 
       const res = await request(app.getHttpServer())
         .post(url)
@@ -310,7 +336,11 @@ describe('Auth API (e2e)', () => {
     });
 
     it('账号禁用 → 401', async () => {
-      mockMemberRepo.findOne.mockResolvedValue(createDisabledMemberFixture());
+      mockMemberRepo.createQueryBuilder.mockReturnValue({
+        addSelect: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        getOne: vi.fn().mockResolvedValue(createDisabledMemberFixture()),
+      });
       vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
 
       const res = await request(app.getHttpServer())
