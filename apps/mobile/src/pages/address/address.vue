@@ -9,10 +9,10 @@
       <view class="wrapper">
         <view class="address-box">
           <text v-if="item.defaultStatus == 1" class="tag">默认</text>
-          <text class="address"
-            >{{ item.province }} {{ item.city }} {{ item.region }}
-            {{ item.detailAddress }}</text
-          >
+          <text class="address">
+            {{ item.province }} {{ item.city }} {{ item.region }}
+            {{ item.detailAddress }}
+          </text>
         </view>
         <view class="u-box">
           <text class="name">{{ item.name }}</text>

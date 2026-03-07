@@ -38,12 +38,12 @@
             class="order-item"
           >
             <view class="i-top b-b">
-              <text class="time" @click="showOrderDetail(item.id)">{{
-                formatDateTime(item.createTime)
-              }}</text>
-              <text class="state" :style="{ color: '#fa436a' }">{{
-                formatStatus(item.status)
-              }}</text>
+              <text class="time" @click="showOrderDetail(item.id)">
+                {{ formatDateTime(item.createTime) }}
+              </text>
+              <text class="state" :style="{ color: '#fa436a' }">
+                {{ formatStatus(item.status) }}
+              </text>
               <text
                 v-if="item.status === 3 || item.status === 4"
                 class="del-btn yticon icon-iconfontshanchu1"

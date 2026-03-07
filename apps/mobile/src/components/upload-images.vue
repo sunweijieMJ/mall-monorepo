@@ -15,9 +15,9 @@
           @click="delImage(index)"
         >
         </image>
-        <view v-if="item.progress < 100" class="upload-progress"
-          >{{ item.progress }}%</view
-        >
+        <view v-if="item.progress < 100" class="upload-progress">
+          {{ item.progress }}%
+        </view>
       </view>
     </block>
     <view

@@ -80,16 +80,16 @@
       </view>
       <view class="yt-list-cell b-b">
         <text class="cell-tit clamp">优惠券</text>
-        <text v-if="currCoupon != null" class="cell-tip red"
-          >-￥{{ currCoupon.amount }}</text
-        >
+        <text v-if="currCoupon != null" class="cell-tip red">
+          -￥{{ currCoupon.amount }}
+        </text>
         <text v-else class="cell-tip red">-￥0</text>
       </view>
       <view class="yt-list-cell b-b">
         <text class="cell-tit clamp">积分抵扣</text>
-        <text class="cell-tip red"
-          >-￥{{ calcIntegrationAmount(useIntegration) }}</text
-        >
+        <text class="cell-tip red">
+          -￥{{ calcIntegrationAmount(useIntegration) }}
+        </text>
       </view>
       <view class="yt-list-cell desc-cell">
         <text class="cell-tit clamp">备注</text>
@@ -130,9 +130,9 @@
           <view class="con">
             <view class="left">
               <text class="title">{{ item.name }}</text>
-              <text class="time"
-                >有效期至{{ formatDateTime(item.endTime) }}</text
-              >
+              <text class="time">
+                有效期至{{ formatDateTime(item.endTime) }}
+              </text>
             </view>
             <view class="right">
               <text class="price">{{ item.amount }}</text>

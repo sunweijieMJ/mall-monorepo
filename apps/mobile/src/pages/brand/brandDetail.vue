@@ -13,9 +13,9 @@
       </view>
       <view class="title">
         <text :class="{ Skeleton: !loaded }">{{ brand.name }}</text>
-        <text :class="{ Skeleton: !loaded }"
-          >品牌首字母：{{ brand.firstLetter }}</text
-        >
+        <text :class="{ Skeleton: !loaded }">
+          品牌首字母：{{ brand.firstLetter }}
+        </text>
       </view>
       <view>
         <text

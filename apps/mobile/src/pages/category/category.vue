@@ -22,7 +22,7 @@
           <image
             :src="
               item.icon ||
-              'http://macro-oss.oss-cn-shenzhen.aliyuncs.com/mall/images/20190519/default.png'
+                'http://macro-oss.oss-cn-shenzhen.aliyuncs.com/mall/images/20190519/default.png'
             "
           ></image>
           <text>{{ item.name }}</text>

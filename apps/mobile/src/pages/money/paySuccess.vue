@@ -8,14 +8,16 @@
         url="/pages-sub/order/order?state=0"
         open-type="redirect"
         class="mix-btn"
-        >查看订单</navigator
       >
+        查看订单
+      </navigator>
       <navigator
         url="/pages/index/index"
         open-type="switchTab"
         class="mix-btn hollow"
-        >返回首页</navigator
       >
+        返回首页
+      </navigator>
     </view>
   </view>
 </template>
