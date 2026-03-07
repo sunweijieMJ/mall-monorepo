@@ -172,7 +172,7 @@ describe('ProductService', () => {
         prefrenceAreaProductRelationList: [],
       } as any;
 
-      const result = await service.update(1, dto);
+      await service.update(1, dto);
 
       expect(mockTransactionService.run).toHaveBeenCalled();
       expect(mockManager.update).toHaveBeenCalled(); // 更新主表

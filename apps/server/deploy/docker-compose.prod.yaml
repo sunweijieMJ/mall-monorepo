@@ -24,6 +24,7 @@ services:
       ENV_MODE: prod
       DATABASE_HOST: postgres
       DATABASE_PORT: 5432
+      REDIS_ENABLED: 'true'
       REDIS_HOST: redis
       REDIS_PORT: 6379
     depends_on:

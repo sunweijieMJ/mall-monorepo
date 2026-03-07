@@ -123,7 +123,6 @@ describe('MetricsInterceptor', () => {
   });
 
   it('移除 query string', async () => {
-    const ctx = createContext('GET', '/api/v1/products?page=1&size=10');
     // 使用 url（route 无 query string）
     const customCtx = {
       switchToHttp: () => ({

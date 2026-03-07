@@ -11,7 +11,7 @@
 FROM node:22.21.1-alpine AS base
 
 RUN apk add --no-cache bash
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10.14.0 --activate
 
 WORKDIR /app
 
@@ -35,7 +35,6 @@ RUN pnpm install --frozen-lockfile
 FROM base AS builder
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps/server/node_modules ./apps/server/node_modules 2>/dev/null || true
 COPY . .
 
 RUN pnpm --filter=mall-server build
@@ -45,8 +44,10 @@ RUN pnpm --filter=mall-server build
 # ============================================================
 FROM base AS standalone
 
+# pnpm deploy 只需依赖声明 + node_modules，无需源码
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/server/package.json ./apps/server/
 
 # 提取 mall-server 的独立生产依赖包
 RUN pnpm --filter=mall-server deploy --prod /standalone
@@ -58,7 +59,7 @@ FROM node:22.21.1-alpine AS production
 
 ENV NODE_ENV=production
 
-RUN apk add --no-cache bash
+RUN apk add --no-cache bash tini
 
 WORKDIR /app
 
@@ -84,6 +85,7 @@ EXPOSE 3001
 
 USER node
 
+ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["/opt/startup.sh"]
 
 # ============================================================

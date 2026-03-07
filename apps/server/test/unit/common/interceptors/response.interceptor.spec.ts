@@ -3,7 +3,6 @@ import { of } from 'rxjs';
 import { lastValueFrom } from 'rxjs';
 import { Reflector } from '@nestjs/core';
 import { ResponseInterceptor } from '@/common/interceptors/response.interceptor';
-import { SKIP_RESPONSE_TRANSFORM_KEY } from '@/common/decorators/skip-response-transform.decorator';
 
 function createMockContext(skipValue?: boolean) {
   const handler = {};
