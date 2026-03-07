@@ -26,7 +26,7 @@
     "lint:fix": "eslint . --fix",
     "type-check": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
-    "test:unit": "vitest run src/**/*.spec.ts",
+    "test:unit": "vitest run test/unit/",
     "test:e2e": "vitest run test/**/*.e2e-spec.ts",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage"
@@ -92,6 +92,7 @@
     "@types/nodemailer": "^7.0.11",
     "@types/passport-jwt": "4.0.1",
     "@types/supertest": "7.2.0",
+    "@vitest/coverage-v8": "^4.0.18",
     "env-cmd": "11.0.0",
     "eslint": "*",
     "pino-pretty": "^13.1.3",

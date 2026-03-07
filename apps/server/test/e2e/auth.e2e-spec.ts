@@ -414,4 +414,152 @@ describe('Auth API (e2e)', () => {
       expect(res.body.data).toHaveProperty('password');
     });
   });
+
+  // ======================== 管理端注册 ========================
+
+  describe('POST /api/v1/admin/auth/register', () => {
+    const url = '/api/v1/admin/auth/register';
+
+    it('admin token → 200', async () => {
+      const token = generateAdminToken();
+      mockAdminRepo.findOne.mockResolvedValue(null);
+      vi.mocked(bcrypt.hash).mockResolvedValue('$hashed$' as never);
+      mockAdminRepo.save.mockResolvedValue({ id: 2, username: 'new-admin' });
+
+      const res = await request(app.getHttpServer())
+        .post(url)
+        .set('Authorization', bearerHeader(token))
+        .send({ username: 'new-admin', password: 'Admin@123456' })
+        .expect(200);
+
+      expect(res.body.code).toBe(200);
+    });
+
+    it('无 token → 401', async () => {
+      const res = await request(app.getHttpServer())
+        .post(url)
+        .send({ username: 'new-admin', password: 'Admin@123456' })
+        .expect(401);
+
+      expect(res.body.code).toBe(401);
+    });
+
+    it('member token 越权注册管理员 → 403', async () => {
+      const { generateMemberToken } = await import('../helpers/jwt.helper');
+      const memberToken = generateMemberToken();
+
+      const res = await request(app.getHttpServer())
+        .post(url)
+        .set('Authorization', bearerHeader(memberToken))
+        .send({ username: 'new-admin', password: 'Admin@123456' })
+        .expect(403);
+
+      expect(res.body.code).toBe(403);
+    });
+  });
+
+  // ======================== 移动端短信登录（暂未开放）========================
+
+  describe('POST /api/v1/portal/auth/sms-login', () => {
+    const url = '/api/v1/portal/auth/sms-login';
+
+    it('短信验证码登录 → 501 Not Implemented', async () => {
+      // PortalSmsLoginDto 字段：phone + code
+      const res = await request(app.getHttpServer())
+        .post(url)
+        .send({ phone: '13800138000', code: '123456' })
+        .expect(501);
+
+      expect(res.body.code).toBe(501);
+    });
+  });
+
+  // ======================== 移动端获取信息 ========================
+
+  describe('GET /api/v1/portal/auth/info', () => {
+    const url = '/api/v1/portal/auth/info';
+
+    it('member token → 200', async () => {
+      const { generateMemberToken } = await import('../helpers/jwt.helper');
+      const token = generateMemberToken();
+      mockMemberRepo.findOne.mockResolvedValue(createMemberFixture());
+
+      const res = await request(app.getHttpServer())
+        .get(url)
+        .set('Authorization', bearerHeader(token))
+        .expect(200);
+
+      expect(res.body.code).toBe(200);
+    });
+
+    it('无 token → 401', async () => {
+      const res = await request(app.getHttpServer()).get(url).expect(401);
+
+      expect(res.body.code).toBe(401);
+    });
+  });
+
+  // ======================== 移动端登出 ========================
+
+  describe('POST /api/v1/portal/auth/logout', () => {
+    const url = '/api/v1/portal/auth/logout';
+
+    it('member token → 200', async () => {
+      const { generateMemberToken } = await import('../helpers/jwt.helper');
+      const token = generateMemberToken();
+
+      const res = await request(app.getHttpServer())
+        .post(url)
+        .set('Authorization', bearerHeader(token))
+        .expect(200);
+
+      expect(res.body.code).toBe(200);
+    });
+  });
+
+  // ======================== 移动端短信验证码 ========================
+
+  describe('GET /api/v1/portal/auth/sms-code', () => {
+    const url = '/api/v1/portal/auth/sms-code';
+
+    it('获取验证码 → 200', async () => {
+      // sms-code 是 @Public() 路由
+      mockCache.get = vi.fn().mockResolvedValue(null); // 无冷却
+      mockCache.set = vi.fn().mockResolvedValue(undefined);
+
+      const res = await request(app.getHttpServer())
+        .get(url)
+        .query({ phone: '13800138000' })
+        .expect(200);
+
+      expect(res.body.code).toBe(200);
+    });
+  });
+
+  // ======================== 移动端修改密码 ========================
+
+  describe('POST /api/v1/portal/auth/updatePassword', () => {
+    const url = '/api/v1/portal/auth/updatePassword';
+
+    it('正确修改密码 → 200', async () => {
+      const { generateMemberToken } = await import('../helpers/jwt.helper');
+      const token = generateMemberToken();
+      mockCache.get = vi.fn().mockResolvedValue('123456');
+      mockMemberRepo.findOne.mockResolvedValue(createMemberFixture());
+      vi.mocked(bcrypt.hash).mockResolvedValue('$new-hash$' as never);
+      mockMemberRepo.update.mockResolvedValue({});
+
+      const res = await request(app.getHttpServer())
+        .post(url)
+        .set('Authorization', bearerHeader(token))
+        .send({
+          telephone: '13800138000',
+          password: 'NewPass@1',
+          authCode: '123456',
+        })
+        .expect(200);
+
+      expect(res.body.code).toBe(200);
+    });
+  });
 });

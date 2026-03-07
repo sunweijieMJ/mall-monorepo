@@ -21,11 +21,13 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    // 限制并发 worker 数，避免 E2E 测试并发创建过多 NestJS 实例导致 socket hang up
+    maxWorkers: 5,
     // reflect-metadata 必须在 entity import 之前加载
     setupFiles: ['./test/setup.ts'],
     passWithNoTests: true,
-    // 单元测试 + 集成测试均包含
-    include: ['src/**/*.spec.ts', 'test/**/*.e2e-spec.ts'],
+    // 单元测试（test/unit/）+ E2E 测试（test/e2e/）统一放在 test/ 目录下
+    include: ['test/**/*.spec.ts', 'test/**/*.e2e-spec.ts'],
     // 集成测试涉及模块编译，超时时间适当延长
     testTimeout: 60000,
     hookTimeout: 30000,
@@ -39,14 +41,29 @@ export default defineConfig({
         '**/index.ts',
         'src/main.ts',
         '**/*.d.ts',
+        // 纯配置/种子/类型文件 — 无可测逻辑
+        'src/infrastructure/database/seeds/**',
+        'src/infrastructure/database/data-source.ts',
+        'src/infrastructure/database/config/*.ts',
+        'src/infrastructure/database/typeorm-config.service.ts',
+        'src/infrastructure/redis/config/*.ts',
+        'src/infrastructure/logger/config/*.ts',
+        'src/infrastructure/throttler/*.ts',
+        'src/infrastructure/metrics/metrics.config.ts',
+        'src/infrastructure/metrics/metrics-config.type.ts',
+        'src/config/*.ts',
+        'src/core/auth/config/*-config.type.ts',
+        'src/core/auth/types/*.ts',
+        'src/modules/portal/payment/config/*.ts',
+        'src/common/validate-config.ts',
       ],
       reporter: ['text', 'text-summary', 'lcov', 'html'],
       reportsDirectory: '../coverage',
       thresholds: {
-        branches: 60,
-        functions: 60,
-        lines: 60,
-        statements: 60,
+        branches: 80,
+        functions: 80,
+        lines: 80,
+        statements: 80,
       },
     },
   },
