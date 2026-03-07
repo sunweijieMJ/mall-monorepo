@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "@dcloudio/types": "^3.4.29",
-    "@dcloudio/uni-automator": "3.0.0-alpha-5000120260205002",
+    "@dcloudio/uni-automator": "3.0.0-4080720251210001",
     "@dcloudio/uni-cli-shared": "3.0.0-alpha-5000120260205002",
     "@dcloudio/vite-plugin-uni": "3.0.0-alpha-5000120260205002",
     "@kit/eslint-config": "workspace:*",
