@@ -45,11 +45,14 @@ RUN pnpm --filter=mall-server build
 # ============================================================
 FROM base AS standalone
 
-# pnpm deploy 只需依赖声明 + node_modules，无需源码
+# pnpm deploy 需要完整 workspace 结构（所有 package.json）才能解析 workspace:* 引用
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/server/node_modules ./apps/server/node_modules
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/server/package.json ./apps/server/
+COPY internal/eslint-config/package.json ./internal/eslint-config/
+COPY internal/typescript-config/package.json ./internal/typescript-config/
+COPY internal/stylelint-config/package.json ./internal/stylelint-config/
 
 # 提取 mall-server 的独立生产依赖包（pnpm v10 需要 --legacy 标志）
 RUN pnpm --filter=mall-server deploy --prod --legacy /standalone
