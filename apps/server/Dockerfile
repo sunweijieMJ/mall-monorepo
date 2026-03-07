@@ -49,8 +49,8 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/server/package.json ./apps/server/
 
-# 提取 mall-server 的独立生产依赖包
-RUN pnpm --filter=mall-server deploy --prod /standalone
+# 提取 mall-server 的独立生产依赖包（pnpm v10 需要 --legacy 标志）
+RUN pnpm --filter=mall-server deploy --prod --legacy /standalone
 
 # ============================================================
 # Stage 5: Production - 最终精简镜像
