@@ -13,18 +13,22 @@ on:
     branches: [main, master, 'release/**']
     paths:
       - 'apps/server/**'
+      - 'packages/**'
       - 'internal/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'turbo.json'
+      - '.github/workflows/check-server.yml'
   pull_request:
     branches: [main, master, 'release/**']
     paths:
       - 'apps/server/**'
+      - 'packages/**'
       - 'internal/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'turbo.json'
+      - '.github/workflows/check-server.yml'
   workflow_dispatch:
   workflow_call:
 

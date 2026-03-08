@@ -20,10 +20,13 @@ on:
     branches: [main, master, 'release/**']
     paths:
       - 'apps/server/**'
+      - 'packages/**'
       - 'internal/**'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'turbo.json'
+      - '.github/workflows/deploy-server.yml'
+      - '.github/workflows/check-server.yml'
   workflow_dispatch:
     inputs:
       deploy:

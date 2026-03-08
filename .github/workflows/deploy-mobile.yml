@@ -30,6 +30,8 @@ on:
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'turbo.json'
+      - '.github/workflows/deploy-mobile.yml'
+      - '.github/workflows/check-mobile.yml'
   workflow_dispatch:
     inputs:
       target:

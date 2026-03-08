@@ -18,6 +18,7 @@ on:
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'turbo.json'
+      - '.github/workflows/check-admin.yml'
   pull_request:
     branches: [main, master, 'release/**']
     paths:
@@ -27,6 +28,7 @@ on:
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'turbo.json'
+      - '.github/workflows/check-admin.yml'
   workflow_dispatch:
   workflow_call:
 

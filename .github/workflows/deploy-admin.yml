@@ -25,6 +25,8 @@ on:
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'turbo.json'
+      - '.github/workflows/deploy-admin.yml'
+      - '.github/workflows/check-admin.yml'
   workflow_dispatch:
     inputs:
       deploy:
