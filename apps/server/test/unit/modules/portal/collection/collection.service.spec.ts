@@ -4,6 +4,7 @@ import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { CollectionService } from '@/modules/portal/collection/collection.service';
 import { MemberProductCollectionNewEntity } from '@/modules/portal/collection/infrastructure/persistence/relational/entities/member-product-collection.entity';
+import { ProductEntity } from '@/modules/pms/product/infrastructure/persistence/relational/entities/product.entity';
 import { createMockRepository } from '../../../../helpers/mock.factory';
 
 const collectionFixture = {
@@ -13,12 +14,21 @@ const collectionFixture = {
   productName: '测试商品',
   productPic: 'pic.png',
   productPrice: '99.00',
-  createTime: new Date(),
+  createdAt: new Date(),
 } as MemberProductCollectionNewEntity;
+
+/** 商品 mock 数据 */
+const productFixture = {
+  id: 20,
+  name: '测试商品',
+  pic: 'pic.png',
+  price: '99.00',
+} as ProductEntity;
 
 describe('CollectionService', () => {
   let service: CollectionService;
   const mockRepo = createMockRepository();
+  const mockProductRepo = createMockRepository();
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -29,6 +39,10 @@ describe('CollectionService', () => {
           provide: getRepositoryToken(MemberProductCollectionNewEntity),
           useValue: mockRepo,
         },
+        {
+          provide: getRepositoryToken(ProductEntity),
+          useValue: mockProductRepo,
+        },
       ],
     }).compile();
     service = module.get(CollectionService);
@@ -37,14 +51,15 @@ describe('CollectionService', () => {
   describe('add', () => {
     it('正常收藏 -> 返回收藏记录', async () => {
       mockRepo.findOne.mockResolvedValue(null);
+      mockProductRepo.findOne.mockResolvedValue(productFixture);
       mockRepo.save.mockResolvedValue(collectionFixture);
 
-      const result = await service.add(100, {
-        productId: 20,
-        productName: '测试商品',
-      });
+      const result = await service.add(100, { productId: 20 });
 
       expect(result).toEqual(collectionFixture);
+      expect(mockProductRepo.findOne).toHaveBeenCalledWith({
+        where: { id: 20 },
+      });
       expect(mockRepo.save).toHaveBeenCalled();
     });
 

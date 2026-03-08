@@ -206,8 +206,13 @@ jobs:
     needs: [build-and-push, deploy]
     runs-on: ubuntu-latest
     if: always()
+    permissions:
+      actions: read
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Deployment summary
         run: |
           {
@@ -221,3 +226,16 @@ jobs:
             echo "**Git Hash**: \`${{ needs.build-and-push.outputs.git_hash }}\`"
             echo "**构建时间**: ${{ needs.build-and-push.outputs.build_time }}"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Feishu notification
+        if: always() && secrets.FEISHU_WEBHOOK_URL != ''
+        uses: ./.github/actions/notify-feishu
+        with:
+          app_name: 'Server'
+          status: ${{ (needs.deploy.result == 'success' || needs.deploy.result == 'skipped') && needs.build-and-push.result == 'success' && 'success' || 'failure' }}
+          details: |
+            构建推送: ${{ needs.build-and-push.result }}
+            部署: ${{ needs.deploy.result || 'skipped' }}
+          git_hash: ${{ needs.build-and-push.outputs.git_hash }}
+          webhook_url: ${{ secrets.FEISHU_WEBHOOK_URL }}
+          webhook_secret: ${{ secrets.FEISHU_WEBHOOK_SECRET }}

@@ -51,8 +51,7 @@ describe('Brand API (e2e)', () => {
   afterAll(() => app?.close());
   beforeEach(() => vi.clearAllMocks());
 
-  // BrandController: @Controller('brand')，无版本号
-  const baseUrl = '/api/brand';
+  const baseUrl = '/api/v1/admin/pms/brands';
 
   describe('GET /list', () => {
     const url = `${baseUrl}/list`;
@@ -116,16 +115,16 @@ describe('Brand API (e2e)', () => {
       mockBrandService.remove.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/delete`)
+        .delete(`${baseUrl}/delete`)
         .set('Authorization', bearerHeader(token))
-        .query({ ids: '1,2' })
+        .send({ ids: [1, 2] })
         .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('GET /listAll', () => {
+  describe('GET /all', () => {
     it('获取所有品牌 → 200', async () => {
       mockBrandService.findAll.mockResolvedValue([
         { id: 1, name: '品牌A' },
@@ -133,7 +132,7 @@ describe('Brand API (e2e)', () => {
       ]);
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/listAll`)
+        .get(`${baseUrl}/all`)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 

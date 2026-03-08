@@ -47,7 +47,7 @@ export function deleteResource(id: number) {
  * 获取所有资源列表
  */
 export function fetchAllResourceList() {
-  return http.get<Resource[]>(`${BASE_URL}/listAll`);
+  return http.get<Resource[]>(`${BASE_URL}/all`);
 }
 
 export default {

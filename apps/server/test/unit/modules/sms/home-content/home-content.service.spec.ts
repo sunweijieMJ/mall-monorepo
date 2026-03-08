@@ -133,10 +133,14 @@ describe('HomeContentService', () => {
     it('带 name 过滤 -> 调用 andWhere', async () => {
       const qb = setupQueryBuilder(mockAdvertiseRepo, [], 0);
 
-      await service.listAdvertise({ page: 1, limit: 10, name: '春季' } as any);
+      await service.listAdvertise({
+        page: 1,
+        limit: 10,
+        keyword: '春季',
+      } as any);
 
-      expect(qb.andWhere).toHaveBeenCalledWith('a.name LIKE :name', {
-        name: '%春季%',
+      expect(qb.andWhere).toHaveBeenCalledWith('a.name LIKE :keyword', {
+        keyword: '%春季%',
       });
     });
 

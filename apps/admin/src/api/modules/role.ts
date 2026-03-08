@@ -48,35 +48,37 @@ export function deleteRole(data: { ids: number[] }) {
  * 获取所有角色列表
  */
 export function fetchAllRoleList() {
-  return http.get<Role[]>(`${BASE_URL}/listAll`);
+  return http.get<Role[]>(`${BASE_URL}/all`);
 }
 
 /**
  * 获取角色相关菜单
  */
 export function listMenuByRole(roleId: number) {
-  return http.get<MenuItem[]>(`${BASE_URL}/listMenu/${roleId}`);
+  return http.get<MenuItem[]>(`${BASE_URL}/${roleId}/menus`);
 }
 
 /**
  * 获取角色相关资源
  */
 export function listResourceByRole(roleId: number) {
-  return http.get<Resource[]>(`${BASE_URL}/listResource/${roleId}`);
+  return http.get<Resource[]>(`${BASE_URL}/${roleId}/resources`);
 }
 
 /**
  * 给角色分配菜单
  */
 export function allocMenu(data: { roleId: number; menuIds: number[] }) {
-  return http.post(`${BASE_URL}/allocMenu`, data);
+  const { roleId, ...body } = data;
+  return http.put(`${BASE_URL}/${roleId}/menus`, body);
 }
 
 /**
  * 给角色分配资源
  */
 export function allocResource(data: { roleId: number; resourceIds: number[] }) {
-  return http.post(`${BASE_URL}/allocResource`, data);
+  const { roleId, ...body } = data;
+  return http.put(`${BASE_URL}/${roleId}/resources`, body);
 }
 
 export default {

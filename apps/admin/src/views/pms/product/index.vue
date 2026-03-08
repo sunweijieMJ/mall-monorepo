@@ -149,7 +149,7 @@
             <p>
               推荐：
               <el-switch
-                v-model="row.recommandStatus"
+                v-model="row.recommendStatus"
                 :active-value="1"
                 :inactive-value="0"
                 @change="handleRecommendStatusChange($index, row)"
@@ -302,7 +302,7 @@
         <span class="dialog-footer">
           <el-button @click="editSkuInfo.dialogVisible = false">取消</el-button>
           <el-button type="primary" @click="handleEditSkuConfirm"
-            >确定</el-button
+          >确定</el-button
           >
         </span>
       </template>
@@ -559,12 +559,12 @@ const handleRecommendStatusChange = async (_index: number, row: Product) => {
   try {
     await ProductService.updateRecommendStatus({
       ids: [row.id!],
-      recommendStatus: row.recommandStatus,
+      recommendStatus: row.recommendStatus,
     });
     ElMessage.success('修改成功');
   } catch (error) {
     console.error('修改失败:', error);
-    row.recommandStatus = row.recommandStatus === 0 ? 1 : 0;
+    row.recommendStatus = row.recommendStatus === 0 ? 1 : 0;
     ElMessage.error('修改失败');
   }
 };

@@ -45,7 +45,7 @@ describe('AdminMenu API (e2e)', () => {
   afterAll(() => app?.close());
   beforeEach(() => vi.clearAllMocks());
 
-  const baseUrl = '/api/menu';
+  const baseUrl = '/api/v1/admin/ums/menus';
 
   describe('POST /create', () => {
     it('添加后台菜单 → 201', async () => {
@@ -55,22 +55,22 @@ describe('AdminMenu API (e2e)', () => {
         .post(`${baseUrl}/create`)
         .set('Authorization', bearerHeader(token))
         .send({ name: 'pms', parentId: 0, sort: 0 })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
       expect(mockService.create).toHaveBeenCalled();
     });
   });
 
-  describe('POST /update/:id', () => {
-    it('修改后台菜单 → 201', async () => {
+  describe('PUT /update/:id', () => {
+    it('修改后台菜单 → 200', async () => {
       mockService.update.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/update/1`)
+        .put(`${baseUrl}/update/1`)
         .set('Authorization', bearerHeader(token))
         .send({ title: '商品管理V2' })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
@@ -94,14 +94,14 @@ describe('AdminMenu API (e2e)', () => {
     });
   });
 
-  describe('POST /delete/:id', () => {
-    it('删除后台菜单 → 201', async () => {
+  describe('DELETE /delete/:id', () => {
+    it('删除后台菜单 → 200', async () => {
       mockService.delete.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/delete/1`)
+        .delete(`${baseUrl}/delete/1`)
         .set('Authorization', bearerHeader(token))
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
@@ -124,28 +124,38 @@ describe('AdminMenu API (e2e)', () => {
     });
   });
 
-  // 注意：GET /treeList 被 GET /:id 的 ParseIntPipe 先拦截返回 400，
-  // 这是 controller 路由声明顺序问题（:id 在 treeList 之前），不在测试范围内修复。
-
-  describe('POST /updateHidden/:id', () => {
-    it('修改菜单显示状态 → 201', async () => {
+  describe('PUT /update/hidden/:id', () => {
+    it('修改菜单显示状态 → 200', async () => {
       mockService.updateHidden.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/updateHidden/1`)
+        .put(`${baseUrl}/update/hidden/1`)
         .set('Authorization', bearerHeader(token))
-        .query({ hidden: '1' })
-        .expect(201);
+        .send({ hidden: 1 })
+        .expect(200);
 
       expect(res.body.code).toBe(200);
       expect(mockService.updateHidden).toHaveBeenCalledWith(1, 1);
     });
   });
 
-  describe('无 token', () => {
-    it('GET /treeList → 401', async () => {
+  describe('GET /tree-list', () => {
+    it('树形菜单列表 → 200', async () => {
+      mockService.treeList.mockResolvedValue([]);
+
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/treeList`)
+        .get(`${baseUrl}/tree-list`)
+        .set('Authorization', bearerHeader(token))
+        .expect(200);
+
+      expect(res.body.code).toBe(200);
+    });
+  });
+
+  describe('无 token', () => {
+    it('GET /tree-list → 401', async () => {
+      const res = await request(app.getHttpServer())
+        .get(`${baseUrl}/tree-list`)
         .expect(401);
 
       expect(res.body.code).toBe(401);

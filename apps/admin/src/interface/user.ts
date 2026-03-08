@@ -95,12 +95,12 @@ export interface MemberLevel {
   defaultStatus: number;
   freeFreightPoint: number;
   commentGrowthPoint: number;
-  priviledgeFreeFreight: number;
-  priviledgeSignIn: number;
-  priviledgeComment: number;
-  priviledgePromotion: number;
-  priviledgeMemberPrice: number;
-  priviledgeBirthday: number;
+  privilegeFreeFreight: number;
+  privilegeSignIn: number;
+  privilegeComment: number;
+  privilegePromotion: number;
+  privilegeMemberPrice: number;
+  privilegeBirthday: number;
   note: string | null;
 }
 

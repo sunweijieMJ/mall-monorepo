@@ -104,34 +104,34 @@ describe('Coupon API (e2e)', () => {
         .post('/api/v1/admin/sms/coupons/create')
         .set('Authorization', bearerHeader(token))
         .send({ name: '新券', amount: 10, minPoint: 100, type: 0 })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('POST /api/v1/admin/sms/coupons/update/:id', () => {
+  describe('PUT /api/v1/admin/sms/coupons/update/:id', () => {
     it('更新优惠券 → 200', async () => {
       mockCouponService.update.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .post('/api/v1/admin/sms/coupons/update/1')
+        .put('/api/v1/admin/sms/coupons/update/1')
         .set('Authorization', bearerHeader(token))
         .send({ name: '修改后的券' })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('POST /api/v1/admin/sms/coupons/delete/:id', () => {
+  describe('DELETE /api/v1/admin/sms/coupons/delete/:id', () => {
     it('删除优惠券 → 200', async () => {
       mockCouponService.delete.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .post('/api/v1/admin/sms/coupons/delete/1')
+        .delete('/api/v1/admin/sms/coupons/delete/1')
         .set('Authorization', bearerHeader(token))
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });

@@ -1,3 +1,4 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
@@ -16,15 +17,19 @@ import {
  * - repo.restore(id) 恢复已删除记录
  */
 export abstract class BaseEntity {
+  @ApiProperty({ description: '主键ID', type: 'integer' })
   @PrimaryGeneratedColumn()
   id: number;
 
+  @ApiProperty({ description: '创建时间' })
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
+  @ApiProperty({ description: '更新时间' })
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
+  @ApiPropertyOptional({ description: '删除时间' })
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })
   deletedAt: Date | null;
 }

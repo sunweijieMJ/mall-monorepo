@@ -10,7 +10,7 @@ const reasonFixture = {
   name: '质量问题',
   sort: 100,
   status: 1,
-  createTime: new Date(),
+  createdAt: new Date(),
 } as ReturnReasonEntity;
 
 describe('ReturnReasonService', () => {

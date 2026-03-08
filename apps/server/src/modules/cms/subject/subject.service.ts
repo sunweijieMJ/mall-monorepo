@@ -1,11 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Like, Repository } from 'typeorm';
 import { SubjectEntity } from './infrastructure/persistence/relational/entities/subject.entity';
 import { SubjectProductRelationEntity } from './infrastructure/persistence/relational/entities/subject-product-relation.entity';
 import { ProductEntity } from '@/modules/pms/product/infrastructure/persistence/relational/entities/product.entity';
 import { PageQueryDto, PageResult } from '@/common/dto/page-result.dto';
-import { CreateSubjectDto, SubjectQueryDto } from './dto/create-subject.dto';
+import {
+  CreateSubjectDto,
+  UpdateSubjectDto,
+  SubjectQueryDto,
+} from './dto/create-subject.dto';
 import { TransactionService } from '@/infrastructure/database/transaction/transaction.service';
 
 @Injectable()
@@ -37,13 +41,22 @@ export class SubjectService {
   }
 
   /**
+   * 根据 ID 获取专题详情
+   */
+  async getItem(id: number): Promise<SubjectEntity> {
+    const subject = await this.subjectRepo.findOneBy({ id });
+    if (!subject) throw new NotFoundException(`专题 ${id} 不存在`);
+    return subject;
+  }
+
+  /**
    * 创建专题
    * @param dto 专题信息
    */
   async create(dto: CreateSubjectDto): Promise<SubjectEntity> {
     const entity = this.subjectRepo.create({
       ...dto,
-      createTime: new Date(),
+      createdAt: new Date(),
     });
     return this.subjectRepo.save(entity);
   }
@@ -53,7 +66,7 @@ export class SubjectService {
    * @param id 专题 ID
    * @param dto 更新内容
    */
-  async update(id: number, dto: CreateSubjectDto): Promise<void> {
+  async update(id: number, dto: UpdateSubjectDto): Promise<void> {
     await this.subjectRepo.update(id, dto);
   }
 

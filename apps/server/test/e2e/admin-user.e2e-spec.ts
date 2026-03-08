@@ -46,8 +46,7 @@ describe('AdminUser API (e2e)', () => {
   afterAll(() => app?.close());
   beforeEach(() => vi.clearAllMocks());
 
-  // AdminUserController: @Controller('admin')，无版本号
-  const baseUrl = '/api/admin';
+  const baseUrl = '/api/v1/admin/ums/admins';
 
   describe('GET /list', () => {
     it('获取管理员列表 → 200', async () => {
@@ -85,75 +84,75 @@ describe('AdminUser API (e2e)', () => {
     });
   });
 
-  describe('POST /update/:id', () => {
-    it('修改管理员信息 → 201', async () => {
+  describe('PUT /update/:id', () => {
+    it('修改管理员信息 → 200', async () => {
       mockAdminUserService.update.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/update/1`)
+        .put(`${baseUrl}/update/1`)
         .set('Authorization', bearerHeader(token))
         .send({ nickName: '新昵称', email: 'test@test.com' })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('POST /updateStatus/:id', () => {
-    it('修改帐号状态 → 201', async () => {
+  describe('PUT /update/status/:id', () => {
+    it('修改帐号状态 → 200', async () => {
       mockAdminUserService.updateStatus.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/updateStatus/1`)
+        .put(`${baseUrl}/update/status/1`)
         .set('Authorization', bearerHeader(token))
-        .query({ status: '1' })
-        .expect(201);
+        .send({ status: 1 })
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('POST /delete/:id', () => {
-    it('删除管理员 → 201', async () => {
+  describe('DELETE /delete/:id', () => {
+    it('删除管理员 → 200', async () => {
       mockAdminUserService.delete.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/delete/1`)
+        .delete(`${baseUrl}/delete/1`)
         .set('Authorization', bearerHeader(token))
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
       expect(mockAdminUserService.delete).toHaveBeenCalledWith(1);
     });
   });
 
-  describe('POST /updatePassword', () => {
-    it('修改密码 → 201', async () => {
+  describe('PUT /password', () => {
+    it('修改密码 → 200', async () => {
       mockAdminUserService.updatePassword.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/updatePassword`)
+        .put(`${baseUrl}/password`)
         .set('Authorization', bearerHeader(token))
         .send({
           username: 'admin',
           oldPassword: 'OldPass123',
           newPassword: 'NewPass123',
         })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('POST /role/update', () => {
-    it('分配角色（有 roleIds）→ 201', async () => {
+  describe('PUT /:adminId/roles', () => {
+    it('分配角色（有 roleIds）→ 200', async () => {
       mockAdminUserService.updateRole.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/role/update`)
+        .put(`${baseUrl}/1/roles`)
         .set('Authorization', bearerHeader(token))
-        .query({ adminId: '1', roleIds: '1,2,3' })
-        .expect(201);
+        .send({ roleIds: [1, 2, 3] })
+        .expect(200);
 
       expect(res.body.code).toBe(200);
       expect(mockAdminUserService.updateRole).toHaveBeenCalledWith(
@@ -162,28 +161,28 @@ describe('AdminUser API (e2e)', () => {
       );
     });
 
-    it('分配角色（无 roleIds）→ 201，传空数组', async () => {
+    it('分配角色（无 roleIds）→ 200，传空数组', async () => {
       mockAdminUserService.updateRole.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/role/update`)
+        .put(`${baseUrl}/1/roles`)
         .set('Authorization', bearerHeader(token))
-        .query({ adminId: '1' })
-        .expect(201);
+        .send({ roleIds: [] })
+        .expect(200);
 
       expect(res.body.code).toBe(200);
       expect(mockAdminUserService.updateRole).toHaveBeenCalledWith(1, []);
     });
   });
 
-  describe('GET /role/:adminId', () => {
+  describe('GET /:id/roles', () => {
     it('获取用户角色列表 → 200', async () => {
       mockAdminUserService.getRoleList.mockResolvedValue([
         { id: 1, name: '超级管理员' },
       ]);
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/role/1`)
+        .get(`${baseUrl}/1/roles`)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 

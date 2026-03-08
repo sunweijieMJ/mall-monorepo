@@ -18,6 +18,8 @@ export class AdminOrderQueryDto extends PageQueryDto {
   @ApiPropertyOptional({
     description:
       '订单状态：0->待付款；1->已付款；2->已发货；3->已完成；4->已取消；5->售后关闭',
+    type: 'integer',
+    enum: [0, 1, 2, 3, 4, 5],
   })
   @IsInt()
   @Min(0)
@@ -28,6 +30,8 @@ export class AdminOrderQueryDto extends PageQueryDto {
 
   @ApiPropertyOptional({
     description: '支付方式：0->未支付；1->支付宝；2->微信',
+    type: 'integer',
+    enum: [0, 1, 2],
   })
   @IsInt()
   @Min(0)
@@ -36,7 +40,11 @@ export class AdminOrderQueryDto extends PageQueryDto {
   @IsOptional()
   payType?: number;
 
-  @ApiPropertyOptional({ description: '订单来源：0->PC；1->app' })
+  @ApiPropertyOptional({
+    description: '订单来源：0->PC；1->app',
+    type: 'integer',
+    enum: [0, 1],
+  })
   @IsInt()
   @Min(0)
   @Max(1)
@@ -44,12 +52,12 @@ export class AdminOrderQueryDto extends PageQueryDto {
   @IsOptional()
   sourceType?: number;
 
-  @ApiPropertyOptional({ description: '创建时间（起）' })
+  @ApiPropertyOptional({ description: '创建时间（起）', format: 'date-time' })
   @IsString()
   @IsOptional()
-  createTime?: string;
+  startTime?: string;
 
-  @ApiPropertyOptional({ description: '创建时间（止）' })
+  @ApiPropertyOptional({ description: '创建时间（止）', format: 'date-time' })
   @IsString()
   @IsOptional()
   endTime?: string;

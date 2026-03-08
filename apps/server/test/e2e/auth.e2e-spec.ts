@@ -474,30 +474,8 @@ describe('Auth API (e2e)', () => {
     });
   });
 
-  // ======================== 移动端获取信息 ========================
-
-  describe('GET /api/v1/portal/auth/info', () => {
-    const url = '/api/v1/portal/auth/info';
-
-    it('member token → 200', async () => {
-      const { generateMemberToken } = await import('../helpers/jwt.helper');
-      const token = generateMemberToken();
-      mockMemberRepo.findOne.mockResolvedValue(createMemberFixture());
-
-      const res = await request(app.getHttpServer())
-        .get(url)
-        .set('Authorization', bearerHeader(token))
-        .expect(200);
-
-      expect(res.body.code).toBe(200);
-    });
-
-    it('无 token → 401', async () => {
-      const res = await request(app.getHttpServer()).get(url).expect(401);
-
-      expect(res.body.code).toBe(401);
-    });
-  });
+  // 注意：移动端获取会员信息功能由 MemberInfoController (portal/member/info) 提供，
+  // 不在 PortalAuthController 中，相关测试在 member.e2e-spec.ts 中覆盖。
 
   // ======================== 移动端登出 ========================
 
@@ -519,7 +497,7 @@ describe('Auth API (e2e)', () => {
 
   // ======================== 移动端短信验证码 ========================
 
-  describe('GET /api/v1/portal/auth/sms-code', () => {
+  describe('POST /api/v1/portal/auth/sms-code', () => {
     const url = '/api/v1/portal/auth/sms-code';
 
     it('获取验证码 → 200', async () => {
@@ -528,8 +506,8 @@ describe('Auth API (e2e)', () => {
       mockCache.set = vi.fn().mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .get(url)
-        .query({ phone: '13800138000' })
+        .post(url)
+        .send({ phone: '13800138000' })
         .expect(200);
 
       expect(res.body.code).toBe(200);
@@ -538,20 +516,19 @@ describe('Auth API (e2e)', () => {
 
   // ======================== 移动端修改密码 ========================
 
-  describe('POST /api/v1/portal/auth/updatePassword', () => {
-    const url = '/api/v1/portal/auth/updatePassword';
+  describe('PUT /api/v1/portal/auth/password', () => {
+    const url = '/api/v1/portal/auth/password';
 
     it('正确修改密码 → 200', async () => {
       const { generateMemberToken } = await import('../helpers/jwt.helper');
-      const token = generateMemberToken();
+      generateMemberToken();
       mockCache.get = vi.fn().mockResolvedValue('123456');
       mockMemberRepo.findOne.mockResolvedValue(createMemberFixture());
       vi.mocked(bcrypt.hash).mockResolvedValue('$new-hash$' as never);
       mockMemberRepo.update.mockResolvedValue({});
 
       const res = await request(app.getHttpServer())
-        .post(url)
-        .set('Authorization', bearerHeader(token))
+        .put(url)
         .send({
           telephone: '13800138000',
           password: 'NewPass@1',

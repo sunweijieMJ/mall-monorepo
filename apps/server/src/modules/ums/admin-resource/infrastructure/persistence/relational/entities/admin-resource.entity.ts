@@ -1,3 +1,4 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   Column,
   CreateDateColumn,
@@ -7,36 +8,46 @@ import {
 
 @Entity('ums_resource')
 export class AdminResourceEntity {
+  @ApiProperty({ description: '主键ID', type: 'integer' })
   @PrimaryGeneratedColumn()
   id: number;
 
+  @ApiPropertyOptional({ description: '分类ID', type: 'integer' })
   @Column({ name: 'category_id', nullable: true })
   categoryId: number;
 
+  @ApiProperty({ description: '资源名称' })
   @Column({ length: 200 })
   name: string;
 
+  @ApiProperty({ description: '资源URL' })
   @Column({ length: 200 })
   url: string;
 
+  @ApiPropertyOptional({ description: '描述' })
   @Column({ length: 200, nullable: true })
   description: string;
 
+  @ApiProperty({ description: '创建时间' })
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }
 
 @Entity('ums_resource_category')
 export class AdminResourceCategoryEntity {
+  @ApiProperty({ description: '主键ID', type: 'integer' })
   @PrimaryGeneratedColumn()
   id: number;
 
+  @ApiProperty({ description: '分类名称' })
   @Column({ length: 200 })
   name: string;
 
+  @ApiProperty({ type: 'integer', description: '排序' })
   @Column({ default: 0 })
   sort: number;
 
+  @ApiProperty({ description: '创建时间' })
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }

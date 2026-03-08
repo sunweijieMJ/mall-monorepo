@@ -3,7 +3,11 @@ import { IsArray, IsNumber, IsOptional } from 'class-validator';
 
 /** 移动端 - 生成确认订单 DTO */
 export class PortalConfirmOrderDto {
-  @ApiPropertyOptional({ description: '购物车条目ID列表', type: [Number] })
+  @ApiPropertyOptional({
+    description: '购物车条目ID列表',
+    type: 'array',
+    items: { type: 'integer' },
+  })
   @IsArray()
   @IsNumber({}, { each: true })
   @IsOptional()

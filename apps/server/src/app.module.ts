@@ -60,7 +60,7 @@ import { HomeContentModule } from './modules/sms/home-content/home-content.modul
 
 // CMS 内容管理
 import { SubjectModule } from './modules/cms/subject/subject.module';
-import { PrefrenceAreaModule } from './modules/cms/prefrence-area/prefrence-area.module';
+import { PreferenceAreaModule } from './modules/cms/preference-area/preference-area.module';
 
 // UMS 权限管理
 import { AdminUserModule } from './modules/ums/admin-user/admin-user.module';
@@ -258,7 +258,7 @@ import { HealthModule } from './infrastructure/health/health.module';
 
     // CMS
     SubjectModule,
-    PrefrenceAreaModule,
+    PreferenceAreaModule,
 
     // UMS
     AdminUserModule,

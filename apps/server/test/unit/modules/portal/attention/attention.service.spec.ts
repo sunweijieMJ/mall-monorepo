@@ -4,6 +4,8 @@ import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { AttentionService } from '@/modules/portal/attention/attention.service';
 import { MemberBrandAttentionNewEntity } from '@/modules/portal/attention/infrastructure/persistence/relational/entities/member-brand-attention.entity';
+import { BrandEntity } from '@/modules/pms/brand/infrastructure/persistence/relational/entities/brand.entity';
+import { MemberEntity } from '@/modules/portal/member/infrastructure/persistence/relational/entities/member.entity';
 import { createMockRepository } from '../../../../helpers/mock.factory';
 
 const attentionFixture = {
@@ -12,12 +14,28 @@ const attentionFixture = {
   brandId: 10,
   brandName: 'Nike',
   brandLogo: 'logo.png',
-  createTime: new Date(),
+  createdAt: new Date(),
 } as MemberBrandAttentionNewEntity;
+
+/** 品牌 mock 数据 */
+const brandFixture = {
+  id: 10,
+  name: 'Nike',
+  logo: 'logo.png',
+} as BrandEntity;
+
+/** 会员 mock 数据 */
+const memberFixture = {
+  id: 100,
+  nickname: '测试用户',
+  icon: 'avatar.png',
+} as MemberEntity;
 
 describe('AttentionService', () => {
   let service: AttentionService;
   const mockRepo = createMockRepository();
+  const mockBrandRepo = createMockRepository();
+  const mockMemberRepo = createMockRepository();
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -28,6 +46,14 @@ describe('AttentionService', () => {
           provide: getRepositoryToken(MemberBrandAttentionNewEntity),
           useValue: mockRepo,
         },
+        {
+          provide: getRepositoryToken(BrandEntity),
+          useValue: mockBrandRepo,
+        },
+        {
+          provide: getRepositoryToken(MemberEntity),
+          useValue: mockMemberRepo,
+        },
       ],
     }).compile();
     service = module.get(AttentionService);
@@ -36,11 +62,14 @@ describe('AttentionService', () => {
   describe('add', () => {
     it('正常关注 -> 返回关注记录', async () => {
       mockRepo.findOne.mockResolvedValue(null);
+      mockBrandRepo.findOne.mockResolvedValue(brandFixture);
+      mockMemberRepo.findOne.mockResolvedValue(memberFixture);
       mockRepo.save.mockResolvedValue(attentionFixture);
 
-      const result = await service.add(100, { brandId: 10, brandName: 'Nike' });
+      const result = await service.add(100, { brandId: 10 });
 
       expect(result).toEqual(attentionFixture);
+      expect(mockBrandRepo.findOne).toHaveBeenCalledWith({ where: { id: 10 } });
       expect(mockRepo.save).toHaveBeenCalled();
     });
 

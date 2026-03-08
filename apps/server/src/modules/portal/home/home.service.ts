@@ -170,8 +170,9 @@ export class HomeService {
           id: product.id,
           name: product.name,
           pic: product.pic,
-          price: product.price,
-          flashPromotionPrice: rel.flashPromotionPrice,
+          price: parseFloat(product.price as string) || 0,
+          flashPromotionPrice:
+            parseFloat(rel.flashPromotionPrice as string) || 0,
           flashPromotionCount: rel.flashPromotionCount,
           flashPromotionLimit: rel.flashPromotionLimit,
         };

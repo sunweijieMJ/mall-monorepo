@@ -3,7 +3,7 @@ import { IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 /** 更新后台菜单 DTO */
 export class UpdateAdminMenuDto {
-  @ApiPropertyOptional({ description: '父级ID' })
+  @ApiPropertyOptional({ description: '父级ID', type: 'integer' })
   @IsInt()
   @IsOptional()
   parentId?: number;
@@ -23,10 +23,14 @@ export class UpdateAdminMenuDto {
   @IsOptional()
   icon?: string;
 
-  @ApiPropertyOptional({ description: '前端隐藏：0->不隐藏；1->隐藏' })
-  @IsString()
+  @ApiPropertyOptional({
+    description: '前端隐藏：0->不隐藏；1->隐藏',
+    type: 'integer',
+    enum: [0, 1],
+  })
+  @IsInt()
   @IsOptional()
-  hidden?: string;
+  hidden?: number;
 
   @ApiPropertyOptional({ description: '是否缓存' })
   @IsString()
@@ -43,7 +47,7 @@ export class UpdateAdminMenuDto {
   @IsOptional()
   path?: string;
 
-  @ApiPropertyOptional({ description: '排序', example: 0 })
+  @ApiPropertyOptional({ type: 'integer', description: '排序', example: 0 })
   @IsInt()
   @Min(0)
   @IsOptional()

@@ -132,7 +132,7 @@ describe('ProductService', () => {
         productFullReductionList: [],
         memberPriceList: [],
         subjectProductRelationList: [],
-        prefrenceAreaProductRelationList: [],
+        preferenceAreaProductRelationList: [],
       } as any;
 
       const result = await service.create(dto);
@@ -169,7 +169,7 @@ describe('ProductService', () => {
         productFullReductionList: [],
         memberPriceList: [],
         subjectProductRelationList: [],
-        prefrenceAreaProductRelationList: [],
+        preferenceAreaProductRelationList: [],
       } as any;
 
       await service.update(1, dto);
@@ -430,7 +430,7 @@ describe('ProductService', () => {
 
       await service.updateRecommendStatus([1, 2, 3], 1);
 
-      expect(qb.set).toHaveBeenCalledWith({ recommandStatus: 1 });
+      expect(qb.set).toHaveBeenCalledWith({ recommendStatus: 1 });
       expect(qb.whereInIds).toHaveBeenCalledWith([1, 2, 3]);
       expect(qb.execute).toHaveBeenCalled();
     });
@@ -448,7 +448,7 @@ describe('ProductService', () => {
         productFullReductionList: [{ fullPrice: '200', reducePrice: '20' }],
         memberPriceList: [],
         subjectProductRelationList: [],
-        prefrenceAreaProductRelationList: [],
+        preferenceAreaProductRelationList: [],
       } as any;
 
       await service.create(dto);
@@ -466,7 +466,7 @@ describe('ProductService', () => {
         productFullReductionList: [],
         memberPriceList: [{ memberLevelId: 1, memberPrice: '90' }],
         subjectProductRelationList: [{ subjectId: 1 }],
-        prefrenceAreaProductRelationList: [{ prefrenceAreaId: 1 }],
+        preferenceAreaProductRelationList: [{ preferenceAreaId: 1 }],
       } as any;
 
       await service.create(dto);
@@ -484,7 +484,7 @@ describe('ProductService', () => {
         productFullReductionList: [],
         memberPriceList: [],
         subjectProductRelationList: [],
-        prefrenceAreaProductRelationList: [],
+        preferenceAreaProductRelationList: [],
       } as any;
 
       await service.create(dto);
@@ -508,7 +508,7 @@ describe('ProductService', () => {
         productFullReductionList: [],
         memberPriceList: [],
         subjectProductRelationList: [],
-        prefrenceAreaProductRelationList: [],
+        preferenceAreaProductRelationList: [],
       } as any;
 
       await service.create(dto);
@@ -531,7 +531,7 @@ describe('ProductService', () => {
       productFullReductionList: [],
       memberPriceList: [],
       subjectProductRelationList: [],
-      prefrenceAreaProductRelationList: [],
+      preferenceAreaProductRelationList: [],
     } as any;
 
     it('skuStockList 为空 → 全删', async () => {

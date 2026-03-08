@@ -9,17 +9,12 @@ import {
 
 /** 移动端 - 申请退货 DTO */
 export class PortalCreateReturnApplyDto {
-  @ApiProperty({ description: '订单ID' })
+  @ApiProperty({ description: '订单ID', type: 'integer' })
   @IsInt()
   @IsNotEmpty()
   orderId: number;
 
-  @ApiProperty({ description: '订单编号' })
-  @IsString()
-  @IsNotEmpty()
-  orderSn: string;
-
-  @ApiProperty({ description: '商品ID' })
+  @ApiProperty({ description: '商品ID', type: 'integer' })
   @IsInt()
   @IsNotEmpty()
   productId: number;
@@ -39,41 +34,6 @@ export class PortalCreateReturnApplyDto {
   @IsOptional()
   proofPics?: string;
 
-  @ApiPropertyOptional({ description: '商品名称' })
-  @IsString()
-  @IsOptional()
-  productName?: string;
-
-  @ApiPropertyOptional({ description: '商品图片' })
-  @IsString()
-  @IsOptional()
-  productPic?: string;
-
-  @ApiPropertyOptional({ description: '商品品牌' })
-  @IsString()
-  @IsOptional()
-  productBrand?: string;
-
-  @ApiPropertyOptional({ description: '商品属性' })
-  @IsString()
-  @IsOptional()
-  productAttr?: string;
-
-  @ApiPropertyOptional({ description: '商品数量' })
-  @IsInt()
-  @IsOptional()
-  productCount?: number;
-
-  @ApiPropertyOptional({ description: '商品单价' })
-  @IsNumber()
-  @IsOptional()
-  productPrice?: number;
-
-  @ApiPropertyOptional({ description: '商品实际支付价格' })
-  @IsNumber()
-  @IsOptional()
-  productRealPrice?: number;
-
   @ApiPropertyOptional({ description: '退款金额' })
   @IsNumber()
   @IsOptional()
@@ -88,9 +48,4 @@ export class PortalCreateReturnApplyDto {
   @IsString()
   @IsOptional()
   returnPhone?: string;
-
-  @ApiPropertyOptional({ description: '会员用户名' })
-  @IsString()
-  @IsOptional()
-  memberUsername?: string;
 }

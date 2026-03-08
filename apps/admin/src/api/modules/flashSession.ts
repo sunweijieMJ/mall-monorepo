@@ -20,7 +20,7 @@ export function fetchList(params?: PageParams) {
  * 获取秒杀时间段下拉列表
  */
 export function fetchSelectList(params?: { flashPromotionId?: number }) {
-  return http.get<FlashSession[]>(`${BASE_URL}/selectList`, { params });
+  return http.get<FlashSession[]>(`${BASE_URL}/options`, { params });
 }
 
 /**

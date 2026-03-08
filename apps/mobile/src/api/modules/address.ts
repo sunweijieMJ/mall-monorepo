@@ -4,7 +4,7 @@ import type { Address, ApiResponse } from '@/interface';
 const Dict = {
   fetchAddressList: `/member/address/list`,
   fetchAddressDetail: `/member/address`,
-  addAddress: `/member/address/add`,
+  addAddress: `/member/address/create`,
   updateAddress: `/member/address/update`,
   deleteAddress: `/member/address/delete`,
 } as const;

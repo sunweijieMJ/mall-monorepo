@@ -54,7 +54,7 @@ describe('Cart API (e2e)', () => {
   afterAll(() => app?.close());
   beforeEach(() => vi.clearAllMocks());
 
-  const baseUrl = '/api/v1/portal/cart';
+  const baseUrl = '/api/v1/portal/carts';
 
   describe('GET /list', () => {
     const url = `${baseUrl}/list`;
@@ -79,12 +79,12 @@ describe('Cart API (e2e)', () => {
     });
   });
 
-  describe('GET /getCartItemCount', () => {
+  describe('GET /count', () => {
     it('获取购物车数量 → 200', async () => {
       mockCartService.getCount.mockResolvedValue(5);
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/getCartItemCount`)
+        .get(`${baseUrl}/count`)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -93,76 +93,63 @@ describe('Cart API (e2e)', () => {
     });
   });
 
-  describe('POST /add', () => {
+  describe('POST /create', () => {
     it('加入购物车 → 200', async () => {
       mockCartService.add.mockResolvedValue({ id: 1 });
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/add`)
+        .post(`${baseUrl}/create`)
         .set('Authorization', bearerHeader(token))
         .send({ productId: 100, productSkuId: 1, quantity: 1 })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('POST /update/quantity', () => {
+  describe('PUT /update/quantity', () => {
     it('修改数量 → 200', async () => {
       mockCartService.updateQuantity.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/update/quantity`)
+        .put(`${baseUrl}/update/quantity`)
         .set('Authorization', bearerHeader(token))
-        .query({ id: '1', quantity: '3' })
-        .expect(201);
+        .send({ id: 1, quantity: 3 })
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('POST /delete', () => {
-    it('缺少 ids → 400', async () => {
+  describe('DELETE /delete', () => {
+    it('缺少 ids → 422', async () => {
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/delete`)
+        .delete(`${baseUrl}/delete`)
         .set('Authorization', bearerHeader(token))
-        .expect(400);
+        .expect(422);
 
-      expect(res.body.code).toBe(400);
+      expect(res.body.code).toBe(422);
     });
 
     it('删除购物车商品 → 200', async () => {
       mockCartService.delete.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/delete`)
+        .delete(`${baseUrl}/delete`)
         .set('Authorization', bearerHeader(token))
-        .query({ ids: '1,2' })
-        .expect(201);
+        .send({ ids: [1, 2] })
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('POST /clear', () => {
-    it('清空购物车 → 201', async () => {
+  describe('DELETE /clear', () => {
+    it('清空购物车 → 200', async () => {
       mockCartService.clear.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/clear`)
-        .set('Authorization', bearerHeader(token))
-        .expect(201);
-
-      expect(res.body.code).toBe(200);
-    });
-  });
-
-  describe('GET /list/promotion', () => {
-    it('获取含促销信息的列表 → 200', async () => {
-      mockOrderService.listCartPromotion.mockResolvedValue([]);
-
-      const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/list/promotion`)
+        .delete(`${baseUrl}/clear`)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -170,7 +157,20 @@ describe('Cart API (e2e)', () => {
     });
   });
 
-  describe('GET /getProduct/:productId', () => {
+  describe('GET /promotion', () => {
+    it('获取含促销信息的列表 → 200', async () => {
+      mockOrderService.listCartPromotion.mockResolvedValue([]);
+
+      const res = await request(app.getHttpServer())
+        .get(`${baseUrl}/promotion`)
+        .set('Authorization', bearerHeader(token))
+        .expect(200);
+
+      expect(res.body.code).toBe(200);
+    });
+  });
+
+  describe('GET /product/:productId', () => {
     it('获取商品规格 → 200', async () => {
       mockCartService.getCartProduct.mockResolvedValue({
         id: 100,
@@ -179,7 +179,7 @@ describe('Cart API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/getProduct/100`)
+        .get(`${baseUrl}/product/100`)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 

@@ -16,7 +16,7 @@ const subjectFixture = {
   categoryId: 10,
   showStatus: 1,
   productCount: 5,
-  createTime: new Date(),
+  createdAt: new Date(),
 } as SubjectEntity;
 
 const relationFixture = {
@@ -117,15 +117,15 @@ describe('SubjectService', () => {
       expect(mockSubjectRepo.save).toHaveBeenCalled();
     });
 
-    it('创建时自动设置 createTime', async () => {
+    it('创建时自动设置 createdAt', async () => {
       mockSubjectRepo.save.mockResolvedValue(subjectFixture);
 
       const dto = { title: '测试专题' } as any;
       await service.create(dto);
 
-      // create 被调用时传入的对象应包含 createTime
+      // create 被调用时传入的对象应包含 createdAt
       const createArg = mockSubjectRepo.create.mock.calls[0][0];
-      expect(createArg.createTime).toBeInstanceOf(Date);
+      expect(createArg.createdAt).toBeInstanceOf(Date);
     });
   });
 

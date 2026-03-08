@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import {
   IsArray,
+  IsIn,
   IsInt,
   IsNotEmpty,
   IsNumber,
@@ -13,10 +14,10 @@ import { Type } from 'class-transformer';
 
 /** 优惠券关联商品 */
 export class CouponProductRelationDto {
-  @ApiPropertyOptional({ description: '商品 ID' })
+  @ApiProperty({ description: '商品 ID', type: 'integer' })
   @IsInt()
-  @IsOptional()
-  productId?: number;
+  @IsNotEmpty()
+  productId: number;
 
   @ApiPropertyOptional({ description: '商品名称' })
   @IsString()
@@ -31,10 +32,10 @@ export class CouponProductRelationDto {
 
 /** 优惠券关联分类 */
 export class CouponProductCategoryRelationDto {
-  @ApiPropertyOptional({ description: '商品分类 ID' })
+  @ApiProperty({ description: '商品分类 ID', type: 'integer' })
   @IsInt()
-  @IsOptional()
-  productCategoryId?: number;
+  @IsNotEmpty()
+  productCategoryId: number;
 
   @ApiPropertyOptional({ description: '商品分类名称' })
   @IsString()
@@ -49,10 +50,12 @@ export class CouponProductCategoryRelationDto {
 
 export class CreateCouponDto {
   @ApiProperty({
+    type: 'integer',
     description: '优惠券类型：0-全场通用 1-指定分类 2-指定商品',
+    enum: [0, 1, 2],
     example: 0,
   })
-  @IsInt()
+  @IsIn([0, 1, 2])
   type: number;
 
   @ApiProperty({ description: '优惠券名称', example: '新人专享券' })
@@ -61,10 +64,12 @@ export class CreateCouponDto {
   name: string;
 
   @ApiPropertyOptional({
+    type: 'integer',
     description: '使用平台：0-全部 1-移动 2-PC',
+    enum: [0, 1, 2],
     example: 0,
   })
-  @IsInt()
+  @IsIn([0, 1, 2])
   @IsOptional()
   platform?: number;
 
@@ -72,7 +77,11 @@ export class CreateCouponDto {
   @IsNumber()
   amount: number;
 
-  @ApiPropertyOptional({ description: '每人限领张数', example: 1 })
+  @ApiPropertyOptional({
+    type: 'integer',
+    description: '每人限领张数',
+    example: 1,
+  })
   @IsInt()
   @Min(0)
   @IsOptional()
@@ -94,10 +103,12 @@ export class CreateCouponDto {
   endTime?: Date;
 
   @ApiPropertyOptional({
+    type: 'integer',
     description: '使用类型：0-全场通用 1-指定分类 2-指定商品',
+    enum: [0, 1, 2],
     example: 0,
   })
-  @IsInt()
+  @IsIn([0, 1, 2])
   @IsOptional()
   useType?: number;
 
@@ -106,7 +117,11 @@ export class CreateCouponDto {
   @IsOptional()
   note?: string;
 
-  @ApiPropertyOptional({ description: '发行数量', example: 100 })
+  @ApiPropertyOptional({
+    type: 'integer',
+    description: '发行数量',
+    example: 100,
+  })
   @IsInt()
   @Min(0)
   @IsOptional()

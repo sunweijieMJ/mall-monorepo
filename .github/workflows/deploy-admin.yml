@@ -266,8 +266,13 @@ jobs:
     needs: [build, package, deploy]
     runs-on: ubuntu-latest
     if: always()
+    permissions:
+      actions: read
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Summary
         run: |
           {
@@ -283,3 +288,16 @@ jobs:
             echo "" >> "$GITHUB_STEP_SUMMARY"
             echo "**服务器**: ${{ secrets.DEPLOY_HOST }}" >> "$GITHUB_STEP_SUMMARY"
           fi
+
+      - name: Feishu notification
+        if: always() && secrets.FEISHU_WEBHOOK_URL != ''
+        uses: ./.github/actions/notify-feishu
+        with:
+          app_name: 'Admin'
+          status: ${{ needs.build.result == 'success' && needs.package.result == 'success' && (needs.deploy.result == 'success' || needs.deploy.result == 'skipped') && 'success' || 'failure' }}
+          details: |
+            构建: ${{ needs.build.result }}
+            打包: ${{ needs.package.result }}
+            部署: ${{ needs.deploy.result || 'skipped' }}
+          webhook_url: ${{ secrets.FEISHU_WEBHOOK_URL }}
+          webhook_secret: ${{ secrets.FEISHU_WEBHOOK_SECRET }}

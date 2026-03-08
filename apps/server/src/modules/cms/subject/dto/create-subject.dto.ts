@@ -1,30 +1,31 @@
-import { ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import { IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
 import { PageQueryDto } from '@/common/dto/page-result.dto';
 
 export class CreateSubjectDto {
-  @ApiPropertyOptional({ description: '分类 ID' })
+  @ApiPropertyOptional({ description: '分类 ID', type: 'integer' })
   @IsInt()
   @IsOptional()
   categoryId?: number;
 
-  @ApiPropertyOptional({ description: '专题标题', example: '夏季穿搭指南' })
+  @ApiProperty({ description: '专题标题', example: '夏季穿搭指南' })
   @IsString()
-  @IsOptional()
-  title?: string;
+  @IsNotEmpty()
+  title: string;
 
   @ApiPropertyOptional({ description: '专题主图 URL' })
   @IsString()
   @IsOptional()
   pic?: string;
 
-  @ApiPropertyOptional({ description: '关联产品数量' })
+  @ApiPropertyOptional({ type: 'integer', description: '关联产品数量' })
   @IsInt()
   @Min(0)
   @IsOptional()
   productCount?: number;
 
   @ApiPropertyOptional({
+    type: 'integer',
     description: '推荐状态：0-不推荐 1-推荐',
     example: 0,
   })
@@ -32,19 +33,19 @@ export class CreateSubjectDto {
   @IsOptional()
   recommendStatus?: number;
 
-  @ApiPropertyOptional({ description: '收藏数' })
+  @ApiPropertyOptional({ type: 'integer', description: '收藏数' })
   @IsInt()
   @Min(0)
   @IsOptional()
   collectCount?: number;
 
-  @ApiPropertyOptional({ description: '阅读数' })
+  @ApiPropertyOptional({ type: 'integer', description: '阅读数' })
   @IsInt()
   @Min(0)
   @IsOptional()
   readCount?: number;
 
-  @ApiPropertyOptional({ description: '评论数' })
+  @ApiPropertyOptional({ type: 'integer', description: '评论数' })
   @IsInt()
   @Min(0)
   @IsOptional()
@@ -61,6 +62,7 @@ export class CreateSubjectDto {
   description?: string;
 
   @ApiPropertyOptional({
+    type: 'integer',
     description: '显示状态：0-不显示 1-显示',
     example: 0,
   })
@@ -68,7 +70,7 @@ export class CreateSubjectDto {
   @IsOptional()
   showStatus?: number;
 
-  @ApiPropertyOptional({ description: '转发数' })
+  @ApiPropertyOptional({ type: 'integer', description: '转发数' })
   @IsInt()
   @Min(0)
   @IsOptional()

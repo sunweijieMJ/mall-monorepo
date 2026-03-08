@@ -1,3 +1,4 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   Column,
   CreateDateColumn,
@@ -23,23 +24,29 @@ export enum OrderStatus {
 @Index(['memberId', 'createdAt'])
 @Index(['status', 'createdAt'])
 export class OrderEntity {
+  @ApiProperty({ description: '主键 ID', type: 'integer' })
   @PrimaryGeneratedColumn()
   id: number;
 
+  @ApiProperty({ description: '会员 ID', type: 'integer' })
   @Index()
   @Column({ name: 'member_id' })
   memberId: number;
 
+  @ApiProperty({ description: '会员用户名' })
   @Column({ name: 'member_username', length: 64, default: '' })
   memberUsername: string;
 
+  @ApiPropertyOptional({ description: '优惠券 ID', type: 'integer' })
   @Column({ name: 'coupon_id', nullable: true })
   couponId: number;
 
+  @ApiProperty({ description: '订单号' })
   @Index()
   @Column({ name: 'order_sn', length: 64, unique: true, comment: '订单号' })
   orderSn: string;
 
+  @ApiProperty({ description: '订单总金额', type: 'number' })
   @Column({
     name: 'total_amount',
     type: 'decimal',
@@ -49,6 +56,7 @@ export class OrderEntity {
   })
   totalAmount: string;
 
+  @ApiPropertyOptional({ description: '应付金额', type: 'number' })
   @Column({
     name: 'pay_amount',
     type: 'decimal',
@@ -59,6 +67,7 @@ export class OrderEntity {
   })
   payAmount: string | null;
 
+  @ApiProperty({ description: '运费', type: 'number' })
   @Column({
     name: 'freight_amount',
     type: 'decimal',
@@ -69,6 +78,7 @@ export class OrderEntity {
   })
   freightAmount: string;
 
+  @ApiProperty({ description: '促销优化金额', type: 'number' })
   @Column({
     name: 'promotion_amount',
     type: 'decimal',
@@ -79,6 +89,7 @@ export class OrderEntity {
   })
   promotionAmount: string;
 
+  @ApiProperty({ description: '优惠券抵扣金额', type: 'number' })
   @Column({
     name: 'coupon_amount',
     type: 'decimal',
@@ -89,6 +100,7 @@ export class OrderEntity {
   })
   couponAmount: string;
 
+  @ApiProperty({ description: '积分抵扣金额', type: 'number' })
   @Column({
     name: 'integration_amount',
     type: 'decimal',
@@ -99,12 +111,27 @@ export class OrderEntity {
   })
   integrationAmount: string;
 
+  @ApiProperty({
+    description: '支付方式：0->未支付；1->支付宝；2->微信',
+    type: 'integer',
+    enum: [0, 1, 2],
+  })
   @Column({ default: 1, comment: '支付方式：0->未支付；1->支付宝；2->微信' })
   payType: number;
 
+  @ApiProperty({
+    description: '订单来源：0->PC订单；1->app订单',
+    type: 'integer',
+    enum: [0, 1],
+  })
   @Column({ default: 1, comment: '订单来源：0->PC订单；1->app订单' })
   sourceType: number;
 
+  @ApiProperty({
+    description: '订单状态',
+    type: 'integer',
+    enum: [0, 1, 2, 3, 4, 5],
+  })
   @Column({
     type: 'smallint',
     default: OrderStatus.PENDING_PAYMENT,
@@ -112,6 +139,11 @@ export class OrderEntity {
   })
   status: OrderStatus;
 
+  @ApiProperty({
+    description: '确认收货状态：0->未确认；1->已确认',
+    type: 'integer',
+    enum: [0, 1],
+  })
   @Column({
     type: 'smallint',
     default: 0,
@@ -119,6 +151,7 @@ export class OrderEntity {
   })
   confirmStatus: number;
 
+  @ApiProperty({ description: '收货人姓名' })
   @Column({
     name: 'receiver_name',
     length: 100,
@@ -127,6 +160,7 @@ export class OrderEntity {
   })
   receiverName: string;
 
+  @ApiProperty({ description: '收货人手机号' })
   @Column({
     name: 'receiver_phone',
     length: 32,
@@ -135,6 +169,7 @@ export class OrderEntity {
   })
   receiverPhone: string;
 
+  @ApiProperty({ description: '邮政编码' })
   @Column({
     name: 'receiver_post_code',
     length: 32,
@@ -143,6 +178,7 @@ export class OrderEntity {
   })
   receiverPostCode: string;
 
+  @ApiProperty({ description: '省份' })
   @Column({
     name: 'receiver_province',
     length: 32,
@@ -151,12 +187,15 @@ export class OrderEntity {
   })
   receiverProvince: string;
 
+  @ApiProperty({ description: '城市' })
   @Column({ name: 'receiver_city', length: 32, default: '', comment: '城市' })
   receiverCity: string;
 
+  @ApiProperty({ description: '区' })
   @Column({ name: 'receiver_region', length: 32, default: '', comment: '区' })
   receiverRegion: string;
 
+  @ApiProperty({ description: '详细地址' })
   @Column({
     name: 'receiver_detail_address',
     length: 200,
@@ -165,9 +204,15 @@ export class OrderEntity {
   })
   receiverDetailAddress: string;
 
+  @ApiPropertyOptional({ description: '订单备注' })
   @Column({ type: 'text', nullable: true, comment: '订单备注' })
   note: string;
 
+  @ApiProperty({
+    description: '订单类型：0->正常订单；1->秒杀订单',
+    type: 'integer',
+    enum: [0, 1],
+  })
   @Column({
     name: 'order_type',
     default: 0,
@@ -175,12 +220,15 @@ export class OrderEntity {
   })
   orderType: number;
 
+  @ApiProperty({ type: 'integer', description: '可获得的积分' })
   @Column({ default: 0, comment: '可获得的积分' })
   integration: number;
 
+  @ApiProperty({ type: 'integer', description: '可获得的成长值' })
   @Column({ default: 0, comment: '可获得的成长值' })
   growth: number;
 
+  @ApiPropertyOptional({ description: '下单时使用的积分' })
   @Column({
     name: 'use_integration',
     nullable: true,
@@ -188,6 +236,7 @@ export class OrderEntity {
   })
   useIntegration: number;
 
+  @ApiPropertyOptional({ description: '自动确认时间（天）' })
   @Column({
     name: 'auto_confirm_day',
     nullable: true,
@@ -195,6 +244,11 @@ export class OrderEntity {
   })
   autoConfirmDay: number;
 
+  @ApiProperty({
+    description: '删除状态：0->未删除；1->已删除',
+    type: 'integer',
+    enum: [0, 1],
+  })
   @Column({
     name: 'delete_status',
     default: 0,
@@ -202,6 +256,7 @@ export class OrderEntity {
   })
   deleteStatus: number;
 
+  @ApiPropertyOptional({ description: '物流公司（配送方式）' })
   @Column({
     name: 'delivery_company',
     length: 64,
@@ -210,6 +265,7 @@ export class OrderEntity {
   })
   deliveryCompany: string;
 
+  @ApiPropertyOptional({ description: '物流单号' })
   @Column({
     name: 'delivery_sn',
     length: 64,
@@ -218,24 +274,31 @@ export class OrderEntity {
   })
   deliverySn: string;
 
+  @ApiPropertyOptional({ description: '支付时间' })
   @Column({ name: 'payment_time', type: 'timestamp', nullable: true })
   paymentTime: Date;
 
+  @ApiPropertyOptional({ description: '发货时间' })
   @Column({ name: 'delivery_time', type: 'timestamp', nullable: true })
   deliveryTime: Date;
 
+  @ApiPropertyOptional({ description: '确认收货时间' })
   @Column({ name: 'receive_time', type: 'timestamp', nullable: true })
   receiveTime: Date;
 
+  @ApiPropertyOptional({ description: '评价时间' })
   @Column({ name: 'comment_time', type: 'timestamp', nullable: true })
   commentTime: Date;
 
+  @ApiPropertyOptional({ description: '修改时间' })
   @Column({ name: 'modify_time', type: 'timestamp', nullable: true })
   modifyTime: Date;
 
+  @ApiProperty({ description: '创建时间' })
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
+  @ApiProperty({ description: '更新时间' })
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 

@@ -8,7 +8,7 @@ export class UpdateResourceCategoryDto {
   @IsOptional()
   name?: string;
 
-  @ApiPropertyOptional({ description: '排序', example: 0 })
+  @ApiPropertyOptional({ type: 'integer', description: '排序', example: 0 })
   @IsInt()
   @Min(0)
   @IsOptional()

@@ -11,12 +11,15 @@ import {
 import { Type } from 'class-transformer';
 
 export class SkuStockItemDto {
-  @ApiPropertyOptional({ description: 'SKU ID（存在则更新，不存在则新增）' })
+  @ApiPropertyOptional({
+    description: 'SKU ID（存在则更新，不存在则新增）',
+    type: 'integer',
+  })
   @IsInt()
   @IsOptional()
   id?: number;
 
-  @ApiPropertyOptional({ description: '商品 ID' })
+  @ApiPropertyOptional({ description: '商品 ID', type: 'integer' })
   @IsInt()
   @IsOptional()
   productId?: number;
@@ -31,13 +34,17 @@ export class SkuStockItemDto {
   @IsOptional()
   price?: number;
 
-  @ApiPropertyOptional({ description: '库存', example: 100 })
+  @ApiPropertyOptional({ type: 'integer', description: '库存', example: 100 })
   @IsInt()
   @Min(0)
   @IsOptional()
   stock?: number;
 
-  @ApiPropertyOptional({ description: '预警库存', example: 10 })
+  @ApiPropertyOptional({
+    type: 'integer',
+    description: '预警库存',
+    example: 10,
+  })
   @IsInt()
   @Min(0)
   @IsOptional()
@@ -48,7 +55,7 @@ export class SkuStockItemDto {
   @IsOptional()
   pic?: string;
 
-  @ApiPropertyOptional({ description: '销量', example: 0 })
+  @ApiPropertyOptional({ type: 'integer', description: '销量', example: 0 })
   @IsInt()
   @Min(0)
   @IsOptional()
@@ -59,7 +66,7 @@ export class SkuStockItemDto {
   @IsOptional()
   promotionPrice?: number;
 
-  @ApiPropertyOptional({ description: '锁定库存', example: 0 })
+  @ApiPropertyOptional({ type: 'integer', description: '锁定库存', example: 0 })
   @IsInt()
   @Min(0)
   @IsOptional()

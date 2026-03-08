@@ -22,6 +22,8 @@ export class CreateAdminRoleDto {
 
   @ApiPropertyOptional({
     description: '启用状态：0->禁用；1->启用',
+    type: 'integer',
+    enum: [0, 1],
     example: 1,
   })
   @IsInt()
@@ -30,7 +32,7 @@ export class CreateAdminRoleDto {
   @IsOptional()
   status?: number;
 
-  @ApiPropertyOptional({ description: '排序', example: 0 })
+  @ApiPropertyOptional({ type: 'integer', description: '排序', example: 0 })
   @IsInt()
   @Min(0)
   @IsOptional()

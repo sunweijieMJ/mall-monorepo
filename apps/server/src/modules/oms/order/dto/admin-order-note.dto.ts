@@ -8,7 +8,7 @@ export class AdminOrderNoteDto {
   @IsNotEmpty()
   note: string;
 
-  @ApiProperty({ description: '订单当前状态' })
+  @ApiProperty({ type: 'integer', description: '订单当前状态' })
   @IsInt()
   status: number;
 }

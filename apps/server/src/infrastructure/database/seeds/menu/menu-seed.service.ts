@@ -27,7 +27,7 @@ export class MenuSeedService {
         sort: 1,
         name: 'pms',
         icon: 'product',
-        hidden: '0',
+        hidden: 0,
       },
       {
         parentId: 0,
@@ -36,7 +36,7 @@ export class MenuSeedService {
         sort: 2,
         name: 'oms',
         icon: 'order',
-        hidden: '0',
+        hidden: 0,
       },
       {
         parentId: 0,
@@ -45,7 +45,7 @@ export class MenuSeedService {
         sort: 3,
         name: 'sms',
         icon: 'sms',
-        hidden: '0',
+        hidden: 0,
       },
       {
         parentId: 0,
@@ -54,7 +54,7 @@ export class MenuSeedService {
         sort: 4,
         name: 'ums',
         icon: 'ums',
-        hidden: '0',
+        hidden: 0,
       },
     ];
 

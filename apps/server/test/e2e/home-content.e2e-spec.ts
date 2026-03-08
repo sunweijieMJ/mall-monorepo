@@ -83,9 +83,9 @@ describe('HomeContent API (e2e)', () => {
   beforeEach(() => vi.clearAllMocks());
 
   // ---- 首页广告 ----
-  const advertiseBase = '/api/v1/admin/sms/home-advertises';
+  const advertiseBase = '/api/v1/admin/sms/home-ads';
 
-  describe('GET /api/v1/admin/sms/home-advertises/list', () => {
+  describe('GET /api/v1/admin/sms/home-ads/list', () => {
     const url = `${advertiseBase}/list`;
 
     it('无 token → 401', async () => {
@@ -113,7 +113,7 @@ describe('HomeContent API (e2e)', () => {
     });
   });
 
-  describe('POST /api/v1/admin/sms/home-advertises/create', () => {
+  describe('POST /api/v1/admin/sms/home-ads/create', () => {
     it('添加广告 → 201', async () => {
       const dto = {
         name: '新广告',
@@ -126,22 +126,22 @@ describe('HomeContent API (e2e)', () => {
         .post(`${advertiseBase}/create`)
         .set('Authorization', bearerHeader(token))
         .send(dto)
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
       expect(mockService.createAdvertise).toHaveBeenCalled();
     });
   });
 
-  describe('POST /api/v1/admin/sms/home-advertises/update/:id', () => {
-    it('修改广告 → 201', async () => {
+  describe('PUT /api/v1/admin/sms/home-ads/update/:id', () => {
+    it('修改广告 → 200', async () => {
       mockService.updateAdvertise.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${advertiseBase}/update/1`)
+        .put(`${advertiseBase}/update/1`)
         .set('Authorization', bearerHeader(token))
         .send({ name: '修改后的广告' })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
       expect(mockService.updateAdvertise).toHaveBeenCalledWith(
@@ -151,22 +151,22 @@ describe('HomeContent API (e2e)', () => {
     });
   });
 
-  describe('POST /api/v1/admin/sms/home-advertises/delete', () => {
-    it('批量删除广告 → 201', async () => {
+  describe('DELETE /api/v1/admin/sms/home-ads/delete', () => {
+    it('批量删除广告 → 200', async () => {
       mockService.deleteAdvertise.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${advertiseBase}/delete`)
+        .delete(`${advertiseBase}/delete`)
         .set('Authorization', bearerHeader(token))
         .send({ ids: [1, 2] })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
       expect(mockService.deleteAdvertise).toHaveBeenCalledWith([1, 2]);
     });
   });
 
-  describe('GET /api/v1/admin/sms/home-advertises/list (带过滤)', () => {
+  describe('GET /api/v1/admin/sms/home-ads/list (带过滤)', () => {
     it('带 name/type/endTime 过滤 → 200', async () => {
       mockService.listAdvertise.mockResolvedValue({
         list: [],
@@ -182,7 +182,7 @@ describe('HomeContent API (e2e)', () => {
         .query({
           pageNum: 1,
           pageSize: 5,
-          name: '春',
+          keyword: '春',
           type: '1',
           endTime: '2026-12-31',
         })
@@ -191,20 +191,24 @@ describe('HomeContent API (e2e)', () => {
       expect(res.body.code).toBe(200);
       // 验证可选参数被正确转换
       expect(mockService.listAdvertise).toHaveBeenCalledWith(
-        expect.objectContaining({ name: '春', type: 1, endTime: '2026-12-31' }),
+        expect.objectContaining({
+          keyword: '春',
+          type: 1,
+          endTime: '2026-12-31',
+        }),
       );
     });
   });
 
-  describe('POST /api/v1/admin/sms/home-advertises/update/status/:id', () => {
-    it('修改上下线状态 → 201', async () => {
+  describe('PUT /api/v1/admin/sms/home-ads/update/status/:id', () => {
+    it('修改上下线状态 → 200', async () => {
       mockService.updateAdvertiseStatus.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${advertiseBase}/update/status/1`)
+        .put(`${advertiseBase}/update/status/1`)
         .set('Authorization', bearerHeader(token))
-        .query({ status: '1' })
-        .expect(201);
+        .send({ status: 1 })
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
@@ -243,7 +247,7 @@ describe('HomeContent API (e2e)', () => {
         .post(`${brandBase}/create`)
         .set('Authorization', bearerHeader(token))
         .send(dto)
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
       expect(mockService.createHomeBrand).toHaveBeenCalled();
@@ -273,29 +277,29 @@ describe('HomeContent API (e2e)', () => {
     });
   });
 
-  describe('POST /api/v1/admin/sms/home-brands/update/recommendStatus', () => {
-    it('批量修改推荐状态 → 201', async () => {
+  describe('PUT /api/v1/admin/sms/home-brands/update/recommend-status', () => {
+    it('批量修改推荐状态 → 200', async () => {
       mockService.updateHomeBrandStatus.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${brandBase}/update/recommendStatus`)
+        .put(`${brandBase}/update/recommend-status`)
         .set('Authorization', bearerHeader(token))
-        .query({ ids: '1,2', recommendStatus: '1' })
-        .expect(201);
+        .send({ ids: [1, 2], status: 1 })
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('POST /api/v1/admin/sms/home-brands/update/sort/:id', () => {
-    it('修改排序 → 201', async () => {
+  describe('PUT /api/v1/admin/sms/home-brands/update/sort/:id', () => {
+    it('修改排序 → 200', async () => {
       mockService.updateHomeBrandSort.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${brandBase}/update/sort/1`)
+        .put(`${brandBase}/update/sort/1`)
         .set('Authorization', bearerHeader(token))
-        .query({ sort: '10' })
-        .expect(201);
+        .send({ sort: 10 })
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
@@ -334,7 +338,7 @@ describe('HomeContent API (e2e)', () => {
         .post(`${subjectBase}/create`)
         .set('Authorization', bearerHeader(token))
         .send(dto)
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
       expect(mockService.createSubject).toHaveBeenCalled();
@@ -364,15 +368,15 @@ describe('HomeContent API (e2e)', () => {
     });
   });
 
-  describe('POST /api/v1/admin/sms/home-subjects/update/recommendStatus', () => {
-    it('批量修改推荐状态 → 201', async () => {
+  describe('PUT /api/v1/admin/sms/home-subjects/update/recommend-status', () => {
+    it('批量修改推荐状态 → 200', async () => {
       mockService.updateSubjectStatus.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${subjectBase}/update/recommendStatus`)
+        .put(`${subjectBase}/update/recommend-status`)
         .set('Authorization', bearerHeader(token))
-        .query({ ids: '1', recommendStatus: '1' })
-        .expect(201);
+        .send({ ids: [1], status: 1 })
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
@@ -425,15 +429,15 @@ describe('HomeContent API (e2e)', () => {
     });
   });
 
-  describe('POST /api/v1/admin/sms/home-new-products/update/recommendStatus', () => {
-    it('批量修改推荐状态 → 201', async () => {
+  describe('PUT /api/v1/admin/sms/home-new-products/update/recommend-status', () => {
+    it('批量修改推荐状态 → 200', async () => {
       mockService.updateNewProductStatus.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${newProductBase}/update/recommendStatus`)
+        .put(`${newProductBase}/update/recommend-status`)
         .set('Authorization', bearerHeader(token))
-        .query({ ids: '1,2', recommendStatus: '0' })
-        .expect(201);
+        .send({ ids: [1, 2], status: 0 })
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
@@ -486,15 +490,15 @@ describe('HomeContent API (e2e)', () => {
     });
   });
 
-  describe('POST /api/v1/admin/sms/home-recommend-products/update/recommendStatus', () => {
-    it('批量修改推荐状态 → 201', async () => {
+  describe('PUT /api/v1/admin/sms/home-recommend-products/update/recommend-status', () => {
+    it('批量修改推荐状态 → 200', async () => {
       mockService.updateHotProductStatus.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${hotProductBase}/update/recommendStatus`)
+        .put(`${hotProductBase}/update/recommend-status`)
         .set('Authorization', bearerHeader(token))
-        .query({ ids: '1', recommendStatus: '1' })
-        .expect(201);
+        .send({ ids: [1], status: 1 })
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });

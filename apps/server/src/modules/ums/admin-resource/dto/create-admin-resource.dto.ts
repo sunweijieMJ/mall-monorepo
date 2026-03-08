@@ -13,7 +13,7 @@ export class CreateAdminResourceDto {
   @IsNotEmpty()
   url: string;
 
-  @ApiPropertyOptional({ description: '资源分类ID' })
+  @ApiPropertyOptional({ description: '资源分类ID', type: 'integer' })
   @IsInt()
   @IsOptional()
   categoryId?: number;

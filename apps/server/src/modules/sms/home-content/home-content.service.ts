@@ -27,12 +27,12 @@ export class HomeContentService {
 
   // ---- 首页广告 ----
   async listAdvertise(
-    query: PageQueryDto & { name?: string; type?: number; endTime?: string },
+    query: PageQueryDto & { keyword?: string; type?: number; endTime?: string },
   ): Promise<PageResult<HomeAdvertiseEntity>> {
     const qb = this.advertiseRepo.createQueryBuilder('a');
 
-    if (query.name) {
-      qb.andWhere('a.name LIKE :name', { name: `%${query.name}%` });
+    if (query.keyword) {
+      qb.andWhere('a.name LIKE :keyword', { keyword: `%${query.keyword}%` });
     }
     if (query.type != null) {
       qb.andWhere('a.type = :type', { type: query.type });

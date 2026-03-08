@@ -48,8 +48,7 @@ describe('ProductCategory API (e2e)', () => {
   afterAll(() => app?.close());
   beforeEach(() => vi.clearAllMocks());
 
-  // ProductCategoryController: @Controller('productCategory')，无版本号
-  const baseUrl = '/api/productCategory';
+  const baseUrl = '/api/v1/admin/pms/product-categories';
 
   describe('GET /list/:parentId', () => {
     it('按父级获取分类列表 → 200', async () => {
@@ -70,14 +69,14 @@ describe('ProductCategory API (e2e)', () => {
     });
   });
 
-  describe('GET /withChildren', () => {
+  describe('GET /with-children', () => {
     it('获取树形分类列表 → 200', async () => {
       mockCategoryService.listWithChildren.mockResolvedValue([
         { id: 1, name: '手机数码', children: [] },
       ]);
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/withChildren`)
+        .get(`${baseUrl}/with-children`)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -100,12 +99,12 @@ describe('ProductCategory API (e2e)', () => {
     });
   });
 
-  describe('POST /update/:id', () => {
+  describe('PUT /update/:id', () => {
     it('更新分类 → 200', async () => {
       mockCategoryService.update.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/update/1`)
+        .put(`${baseUrl}/update/1`)
         .set('Authorization', bearerHeader(token))
         .send({ name: '修改分类名' })
         .expect(200);

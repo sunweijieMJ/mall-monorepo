@@ -198,7 +198,7 @@ describe('AdminMenuService', () => {
       const result = await service.updateHidden(1, 1);
 
       expect(result).toBe(1);
-      expect(mockMenuRepo.update).toHaveBeenCalledWith(1, { hidden: '1' });
+      expect(mockMenuRepo.update).toHaveBeenCalledWith(1, { hidden: 1 });
     });
   });
 });

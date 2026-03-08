@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ReturnApplyEntity } from './infrastructure/persistence/relational/entities/return-apply.entity';
@@ -6,63 +10,12 @@ import {
   OrderEntity,
   OrderStatus,
 } from '../order/infrastructure/persistence/relational/entities/order.entity';
+import { OrderItemEntity } from '../order/infrastructure/persistence/relational/entities/order-item.entity';
+import { MemberEntity } from '@/modules/portal/member/infrastructure/persistence/relational/entities/member.entity';
 import { PageQueryDto, PageResult } from '@/common/dto/page-result.dto';
-
-/** 会员提交退货申请 DTO */
-export interface PortalCreateReturnApplyDto {
-  /** 订单 ID */
-  orderId: number;
-  /** 订单编号 */
-  orderSn: string;
-  /** 商品 ID */
-  productId: number;
-  /** 退货原因（文字描述） */
-  returnReason?: string;
-  /** 退货说明 */
-  description?: string;
-  /** 凭证图片，逗号分隔 */
-  proofPics?: string;
-  /** 商品名称 */
-  productName?: string;
-  /** 商品图片 */
-  productPic?: string;
-  /** 商品品牌 */
-  productBrand?: string;
-  /** 商品属性 */
-  productAttr?: string;
-  /** 商品数量 */
-  productCount?: number;
-  /** 商品单价 */
-  productPrice?: number;
-  /** 商品实际支付价格 */
-  productRealPrice?: number;
-  /** 退款金额 */
-  returnAmount?: number;
-  /** 退货人姓名 */
-  returnName?: string;
-  /** 退货人电话 */
-  returnPhone?: string;
-  /** 会员用户名 */
-  memberUsername?: string;
-}
-
-/** 更新退货状态 DTO */
-export interface UpdateReturnStatusDto {
-  /** 申请状态：0->待处理；1->退货中；2->已完成；3->已拒绝 */
-  status: number;
-  /** 处理备注 */
-  handleNote?: string;
-  /** 处理人 */
-  handleMan?: string;
-  /** 收货人 */
-  receiveMan?: string;
-  /** 退款金额 */
-  refundAmount?: number;
-  /** 公司收货地址 ID */
-  companyAddressId?: number;
-  /** 收货备注 */
-  receiveNote?: string;
-}
+import { ReturnApplyQueryDto } from './dto/return-apply-query.dto';
+import { PortalCreateReturnApplyDto } from './dto/portal-create-return-apply.dto';
+import { UpdateReturnStatusDto } from './dto/update-return-status.dto';
 
 @Injectable()
 export class ReturnApplyService {
@@ -71,6 +24,10 @@ export class ReturnApplyService {
     private readonly repo: Repository<ReturnApplyEntity>,
     @InjectRepository(OrderEntity)
     private readonly orderRepo: Repository<OrderEntity>,
+    @InjectRepository(OrderItemEntity)
+    private readonly orderItemRepo: Repository<OrderItemEntity>,
+    @InjectRepository(MemberEntity)
+    private readonly memberRepo: Repository<MemberEntity>,
   ) {}
 
   /**
@@ -78,12 +35,12 @@ export class ReturnApplyService {
    * 支持 status / 时间范围过滤
    */
   async list(
-    query: PageQueryDto & Record<string, any>,
+    query: ReturnApplyQueryDto,
   ): Promise<PageResult<ReturnApplyEntity>> {
     const qb = this.repo.createQueryBuilder('ra');
 
     // 状态过滤
-    if (query.status !== undefined && query.status !== '') {
+    if (query.status !== undefined) {
       qb.andWhere('ra.status = :status', { status: Number(query.status) });
     }
 
@@ -118,7 +75,10 @@ export class ReturnApplyService {
    * 更新退货申请状态
    * 包含处理备注、处理人、收货人、退款金额等信息更新
    */
-  async updateStatus(id: number, dto: UpdateReturnStatusDto): Promise<void> {
+  async updateStatus(
+    id: number,
+    dto: Omit<UpdateReturnStatusDto, 'id'>,
+  ): Promise<void> {
     const updateFields: Partial<ReturnApplyEntity> = {
       status: dto.status,
     };
@@ -195,29 +155,50 @@ export class ReturnApplyService {
       throw new BadRequestException('当前订单状态不允许申请退货');
     }
 
+    // 从 OrderItem 查询商品信息，防止前端伪造
+    const orderItem = await this.orderItemRepo.findOne({
+      where: { orderId: dto.orderId, productId: dto.productId },
+    });
+    if (!orderItem) {
+      throw new BadRequestException('该订单中不存在此商品');
+    }
+
+    // 从数据库查询会员信息
+    const member = await this.memberRepo.findOne({
+      where: { id: memberId },
+    });
+
     const entity = this.repo.create({
       memberId,
       orderId: dto.orderId,
-      orderSn: dto.orderSn ?? '',
+      orderSn: order.orderSn,
       productId: dto.productId,
       returnName: dto.returnName ?? '',
       returnPhone: dto.returnPhone ?? '',
-      memberUsername: dto.memberUsername ?? '',
+      memberUsername: member?.username ?? '',
       reason: dto.returnReason ?? '',
       description: dto.description,
       proofPics: dto.proofPics,
-      productName: dto.productName ?? '',
-      productPic: dto.productPic,
-      productBrand: dto.productBrand,
-      productAttr: dto.productAttr,
-      productCount: dto.productCount ?? 1,
-      productPrice: dto.productPrice != null ? String(dto.productPrice) : null,
-      productRealPrice:
-        dto.productRealPrice != null ? String(dto.productRealPrice) : null,
+      productName: orderItem.productName ?? '',
+      productPic: orderItem.productPic,
+      productBrand: orderItem.productBrand,
+      productAttr: orderItem.productAttr,
+      productCount: orderItem.productQuantity ?? 1,
+      productPrice: orderItem.productPrice,
+      productRealPrice: orderItem.realAmount,
       returnAmount: String(dto.returnAmount ?? 0),
       status: 0, // 待处理
     });
     return this.repo.save(entity);
+  }
+
+  /**
+   * 会员查看退货申请详情（校验归属权）
+   */
+  async portalDetail(id: number, memberId: number): Promise<ReturnApplyEntity> {
+    const apply = await this.repo.findOne({ where: { id, memberId } });
+    if (!apply) throw new NotFoundException(`退货申请 ${id} 不存在或无权查看`);
+    return apply;
   }
 
   /**

@@ -28,6 +28,7 @@ export class CreateFlashPromotionDto {
   endDate: Date;
 
   @ApiPropertyOptional({
+    type: 'integer',
     description: '上下线状态：0-下线 1-上线',
     example: 0,
   })
@@ -59,6 +60,7 @@ export class CreateFlashSessionDto {
   endTime: string;
 
   @ApiPropertyOptional({
+    type: 'integer',
     description: '启用状态：0-不启用 1-启用',
     example: 1,
   })
@@ -72,33 +74,34 @@ export class UpdateFlashSessionDto extends PartialType(CreateFlashSessionDto) {}
 // ---- 秒杀商品关联 DTO ----
 
 export class CreateFlashProductRelationDto {
-  @ApiProperty({ description: '秒杀活动 ID' })
+  @ApiProperty({ description: '秒杀活动 ID', type: 'integer' })
   @IsInt()
   flashPromotionId: number;
 
-  @ApiProperty({ description: '秒杀场次 ID' })
+  @ApiProperty({ description: '秒杀场次 ID', type: 'integer' })
   @IsInt()
   flashPromotionSessionId: number;
 
-  @ApiProperty({ description: '商品 ID' })
+  @ApiProperty({ description: '商品 ID', type: 'integer' })
   @IsInt()
   productId: number;
 
-  @ApiProperty({ description: '秒杀价格', example: 99.0 })
+  @ApiPropertyOptional({ description: '秒杀价格', example: 99.0 })
   @IsNumber()
-  flashPromotionPrice: number;
+  @IsOptional()
+  flashPromotionPrice?: number;
 
-  @ApiProperty({ description: '秒杀数量', example: 100 })
+  @ApiProperty({ type: 'integer', description: '秒杀数量', example: 100 })
   @IsInt()
   @Min(0)
   flashPromotionCount: number;
 
-  @ApiProperty({ description: '每人限购数量', example: 1 })
+  @ApiProperty({ type: 'integer', description: '每人限购数量', example: 1 })
   @IsInt()
   @Min(0)
   flashPromotionLimit: number;
 
-  @ApiPropertyOptional({ description: '排序', example: 0 })
+  @ApiPropertyOptional({ type: 'integer', description: '排序', example: 0 })
   @IsInt()
   @Min(0)
   @IsOptional()

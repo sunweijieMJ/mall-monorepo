@@ -2,6 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { MemberLevelEntity } from './infrastructure/persistence/relational/entities/member-level.entity';
+import {
+  CreateMemberLevelDto,
+  UpdateMemberLevelDto,
+} from './dto/member-level.dto';
 
 @Injectable()
 export class MemberLevelService {
@@ -37,8 +41,14 @@ export class MemberLevelService {
    * 创建会员等级
    * @param dto 会员等级数据
    */
-  async create(dto: Partial<MemberLevelEntity>): Promise<MemberLevelEntity> {
-    const entity = this.memberLevelRepo.create(dto);
+  async create(dto: CreateMemberLevelDto): Promise<MemberLevelEntity> {
+    const { freeFreightPoint, ...rest } = dto;
+    const entity = this.memberLevelRepo.create({
+      ...rest,
+      ...(freeFreightPoint != null
+        ? { freeFreightPoint: String(freeFreightPoint) }
+        : {}),
+    });
     return this.memberLevelRepo.save(entity);
   }
 
@@ -49,11 +59,17 @@ export class MemberLevelService {
    */
   async update(
     id: number,
-    dto: Partial<MemberLevelEntity>,
+    dto: UpdateMemberLevelDto,
   ): Promise<MemberLevelEntity> {
     // 先确认记录存在
     await this.getItem(id);
-    await this.memberLevelRepo.update(id, dto);
+    const { freeFreightPoint, ...rest } = dto;
+    await this.memberLevelRepo.update(id, {
+      ...rest,
+      ...(freeFreightPoint != null
+        ? { freeFreightPoint: String(freeFreightPoint) }
+        : {}),
+    });
     return this.getItem(id);
   }
 

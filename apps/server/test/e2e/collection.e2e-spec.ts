@@ -43,31 +43,30 @@ describe('Collection API (e2e)', () => {
   afterAll(() => app?.close());
   beforeEach(() => vi.clearAllMocks());
 
-  const baseUrl = '/api/v1/portal/collection';
+  const baseUrl = '/api/v1/portal/collections';
 
-  describe('POST /add', () => {
+  describe('POST /create', () => {
     it('收藏商品 → 201', async () => {
       mockService.add.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/add`)
+        .post(`${baseUrl}/create`)
         .set('Authorization', bearerHeader(token))
         .send({ productId: 1, productName: '测试商品' })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
       expect(mockService.add).toHaveBeenCalled();
     });
   });
 
-  describe('DELETE /delete', () => {
+  describe('DELETE /:productId', () => {
     it('取消收藏商品 → 200', async () => {
       mockService.delete.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .delete(`${baseUrl}/delete`)
+        .delete(`${baseUrl}/1`)
         .set('Authorization', bearerHeader(token))
-        .query({ productId: '1' })
         .expect(200);
 
       expect(res.body.code).toBe(200);
@@ -91,14 +90,14 @@ describe('Collection API (e2e)', () => {
     });
   });
 
-  describe('POST /clear', () => {
-    it('清空全部收藏 → 201', async () => {
+  describe('DELETE /clear', () => {
+    it('清空全部收藏 → 200', async () => {
       mockService.clear.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/clear`)
+        .delete(`${baseUrl}/clear`)
         .set('Authorization', bearerHeader(token))
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });

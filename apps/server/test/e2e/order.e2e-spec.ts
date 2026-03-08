@@ -115,7 +115,7 @@ describe('Order API (e2e)', () => {
         .post('/api/v1/admin/oms/orders/delivery')
         .set('Authorization', bearerHeader(adminToken))
         .send([{ orderId: 1, deliveryCompany: '顺丰', deliverySn: 'SF001' }])
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
@@ -129,7 +129,7 @@ describe('Order API (e2e)', () => {
         .post('/api/v1/admin/oms/orders/close')
         .set('Authorization', bearerHeader(adminToken))
         .send({ ids: [1, 2], note: '手动关闭' })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
@@ -150,13 +150,13 @@ describe('Order API (e2e)', () => {
   });
 
   describe('DELETE /api/v1/admin/oms/orders/delete', () => {
-    it('缺少 ids → 400', async () => {
+    it('缺少 ids → 422', async () => {
       const res = await request(app.getHttpServer())
         .delete('/api/v1/admin/oms/orders/delete')
         .set('Authorization', bearerHeader(adminToken))
-        .expect(400);
+        .expect(422);
 
-      expect(res.body.code).toBe(400);
+      expect(res.body.code).toBe(422);
     });
 
     it('批量删除 → 200', async () => {
@@ -165,19 +165,19 @@ describe('Order API (e2e)', () => {
       const res = await request(app.getHttpServer())
         .delete('/api/v1/admin/oms/orders/delete')
         .set('Authorization', bearerHeader(adminToken))
-        .query({ ids: '1,2' })
+        .send({ ids: [1, 2] })
         .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('PUT /api/v1/admin/oms/orders/:id/receiverInfo', () => {
+  describe('PUT /api/v1/admin/oms/orders/:id/receiver-info', () => {
     it('修改收货人信息 → 200', async () => {
       mockOrderService.updateReceiverInfo.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .put('/api/v1/admin/oms/orders/1/receiverInfo')
+        .put('/api/v1/admin/oms/orders/1/receiver-info')
         .set('Authorization', bearerHeader(adminToken))
         .send({
           receiverName: '张三',
@@ -194,12 +194,12 @@ describe('Order API (e2e)', () => {
     });
   });
 
-  describe('PUT /api/v1/admin/oms/orders/:id/moneyInfo', () => {
+  describe('PUT /api/v1/admin/oms/orders/:id/money-info', () => {
     it('修改费用信息 → 200', async () => {
       mockOrderService.updateMoneyInfo.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .put('/api/v1/admin/oms/orders/1/moneyInfo')
+        .put('/api/v1/admin/oms/orders/1/money-info')
         .set('Authorization', bearerHeader(adminToken))
         .send({ freightAmount: 10, status: 1 })
         .expect(200);
@@ -210,7 +210,7 @@ describe('Order API (e2e)', () => {
 
   // ======================== 移动端 ========================
 
-  describe('POST /api/v1/portal/orders/generateConfirmOrder', () => {
+  describe('POST /api/v1/portal/orders/confirm', () => {
     it('生成确认订单（带 cartIds）→ 201', async () => {
       mockOrderService.generateConfirmOrder.mockResolvedValue({
         cartPromotionItemList: [],
@@ -218,10 +218,10 @@ describe('Order API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .post('/api/v1/portal/orders/generateConfirmOrder')
+        .post('/api/v1/portal/orders/confirm')
         .set('Authorization', bearerHeader(memberToken))
         .send({ cartIds: [1, 2] })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
       expect(mockOrderService.generateConfirmOrder).toHaveBeenCalledWith(
@@ -234,17 +234,17 @@ describe('Order API (e2e)', () => {
       mockOrderService.generateConfirmOrder.mockResolvedValue({});
 
       const res = await request(app.getHttpServer())
-        .post('/api/v1/portal/orders/generateConfirmOrder')
+        .post('/api/v1/portal/orders/confirm')
         .set('Authorization', bearerHeader(memberToken))
         .send({})
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
       expect(mockOrderService.generateConfirmOrder).toHaveBeenCalledWith(1, []);
     });
   });
 
-  describe('POST /api/v1/portal/orders/generateOrder', () => {
+  describe('POST /api/v1/portal/orders/generate', () => {
     it('提交订单 → 201', async () => {
       mockOrderService.generateOrder.mockResolvedValue({
         orderId: 1,
@@ -252,7 +252,7 @@ describe('Order API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .post('/api/v1/portal/orders/generateOrder')
+        .post('/api/v1/portal/orders/generate')
         .set('Authorization', bearerHeader(memberToken))
         .send({
           cartIds: [1],
@@ -260,7 +260,7 @@ describe('Order API (e2e)', () => {
           payType: 1,
           couponId: null,
         })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
@@ -323,57 +323,54 @@ describe('Order API (e2e)', () => {
     });
   });
 
-  describe('POST /api/v1/portal/orders/cancelUserOrder', () => {
+  describe('PUT /api/v1/portal/orders/:orderId/cancel', () => {
     it('取消订单 → 200', async () => {
       mockOrderService.cancelOrder.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .post('/api/v1/portal/orders/cancelUserOrder')
+        .put('/api/v1/portal/orders/1/cancel')
         .set('Authorization', bearerHeader(memberToken))
-        .send({ orderId: 1 })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('POST /api/v1/portal/orders/confirmReceiveOrder', () => {
-    it('确认收货 → 201', async () => {
+  describe('PUT /api/v1/portal/orders/:orderId/confirm-receive', () => {
+    it('确认收货 → 200', async () => {
       mockOrderService.confirmReceive.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .post('/api/v1/portal/orders/confirmReceiveOrder')
+        .put('/api/v1/portal/orders/1/confirm-receive')
         .set('Authorization', bearerHeader(memberToken))
-        .send({ orderId: 1 })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('POST /api/v1/portal/orders/deleteOrder', () => {
-    it('删除订单 → 201', async () => {
+  describe('DELETE /api/v1/portal/orders/:orderId', () => {
+    it('删除订单 → 200', async () => {
       mockOrderService.deleteOrder.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .post('/api/v1/portal/orders/deleteOrder')
+        .delete('/api/v1/portal/orders/1')
         .set('Authorization', bearerHeader(memberToken))
-        .send({ orderId: 1 })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('POST /api/v1/portal/orders/paySuccess', () => {
+  describe('POST /api/v1/portal/orders/:orderId/pay', () => {
     it('支付成功回调 → 201', async () => {
       mockOrderService.paySuccess.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .post('/api/v1/portal/orders/paySuccess')
+        .post('/api/v1/portal/orders/1/pay')
         .set('Authorization', bearerHeader(memberToken))
-        .send({ orderId: 1, payType: 1 })
-        .expect(201);
+        .send({ payType: 1 })
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });

@@ -40,9 +40,9 @@ describe('SkuStock API (e2e)', () => {
   afterAll(() => app?.close());
   beforeEach(() => vi.clearAllMocks());
 
-  const baseUrl = '/api/sku/stock';
+  const baseUrl = '/api/v1/admin/pms/sku-stocks';
 
-  describe('GET /:pid', () => {
+  describe('GET /:productId', () => {
     it('查询 SKU 库存列表 → 200', async () => {
       mockService.getList.mockResolvedValue([
         { id: 1, skuCode: 'SP001', stock: 100 },
@@ -71,12 +71,12 @@ describe('SkuStock API (e2e)', () => {
     });
   });
 
-  describe('POST /update/:pid', () => {
+  describe('PUT /update/:productId', () => {
     it('批量更新 SKU 库存 → 200', async () => {
       mockService.update.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/update/1`)
+        .put(`${baseUrl}/update/1`)
         .set('Authorization', bearerHeader(token))
         .send([
           {
@@ -100,7 +100,7 @@ describe('SkuStock API (e2e)', () => {
       mockService.update.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/update/1`)
+        .put(`${baseUrl}/update/1`)
         .set('Authorization', bearerHeader(token))
         .send([{ id: 1, skuCode: 'SP001', stock: 200 }])
         .expect(200);
@@ -110,7 +110,7 @@ describe('SkuStock API (e2e)', () => {
   });
 
   describe('无 token', () => {
-    it('GET /:pid → 401', async () => {
+    it('GET /:productId → 401', async () => {
       const res = await request(app.getHttpServer())
         .get(`${baseUrl}/1`)
         .expect(401);

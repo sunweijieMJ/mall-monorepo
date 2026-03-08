@@ -1,16 +1,15 @@
 import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiQuery,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
 import { PortalProductService } from './portal-product.service';
 import { Public } from '@/core/auth/decorators/public.decorator';
-import { PageQueryDto } from '@/common/dto/page-result.dto';
+import { ProductVo } from '@/modules/pms/product/vo/product.vo';
+import { ProductCategoryWithChildrenVo } from '@/modules/pms/product-category/vo/product-category-with-children.vo';
+import { ApiPaginatedResponse } from '@/common/decorators/api-paginated-response.decorator';
+import { PortalProductDetailVo } from './vo/portal-product-detail.vo';
+import { PortalProductSearchDto } from './dto/portal-product-search.dto';
 
-@ApiTags('移动端-PMS-商品')
-@ApiBearerAuth()
+@ApiTags('portal-product')
 @Controller({ path: 'portal/products', version: '1' })
 export class PortalProductController {
   constructor(private readonly portalProductService: PortalProductService) {}
@@ -22,40 +21,24 @@ export class PortalProductController {
     description:
       '支持关键词、品牌、分类过滤；sort: 1-新品(默认) 2-销量 3-价格升序 4-价格降序',
   })
-  @ApiQuery({ name: 'keyword', required: false, description: '关键词' })
-  @ApiQuery({ name: 'brandId', required: false, description: '品牌 ID' })
-  @ApiQuery({
-    name: 'productCategoryId',
-    required: false,
-    description: '分类 ID',
-  })
-  @ApiQuery({
-    name: 'sort',
-    required: false,
-    description: '排序方式：1-新品 2-销量 3-价格升序 4-价格降序',
-  })
-  search(
-    @Query() query: PageQueryDto,
-    @Query('keyword') keyword?: string,
-    @Query('brandId') brandId?: string,
-    @Query('productCategoryId') productCategoryId?: string,
-    @Query('sort') sort?: string,
-  ) {
+  @ApiPaginatedResponse(ProductVo)
+  search(@Query() query: PortalProductSearchDto) {
     return this.portalProductService.search(
       query,
-      keyword,
-      brandId != null ? Number(brandId) : undefined,
-      productCategoryId != null ? Number(productCategoryId) : undefined,
-      sort != null ? Number(sort) : undefined,
+      query.keyword,
+      query.brandId,
+      query.productCategoryId,
+      query.sort,
     );
   }
 
-  @Get('categoryTreeList')
+  @Get('category-tree-list')
   @Public()
   @ApiOperation({
     summary: '获取商品分类树',
     description: '返回两级分类树，无需登录',
   })
+  @ApiWrappedResponse(ProductCategoryWithChildrenVo, { isArray: true })
   categoryTreeList() {
     return this.portalProductService.categoryTreeList();
   }
@@ -67,7 +50,8 @@ export class PortalProductController {
     description:
       '聚合商品主体、品牌、SKU、属性、促销价格、可用优惠券等信息，无需登录',
   })
-  detail(@Param('id', ParseIntPipe) id: number) {
+  @ApiWrappedResponse(PortalProductDetailVo)
+  getItem(@Param('id', ParseIntPipe) id: number) {
     return this.portalProductService.detail(id);
   }
 }

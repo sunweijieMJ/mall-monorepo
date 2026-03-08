@@ -43,7 +43,7 @@ export interface Product extends BaseEntity {
   /** 新品状态 0-不是新品 1-新品 */
   newStatus?: number;
   /** 推荐状态 0-不推荐 1-推荐 */
-  recommandStatus?: number;
+  recommendStatus?: number;
   /** 审核状态 0-未审核 1-审核通过 */
   verifyStatus?: number;
   /** 排序 */

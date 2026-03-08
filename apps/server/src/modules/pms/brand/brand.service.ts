@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository } from 'typeorm';
 import { BrandEntity } from './infrastructure/persistence/relational/entities/brand.entity';
-import { CreateBrandDto } from './dto/create-brand.dto';
+import { CreateBrandDto, UpdateBrandDto } from './dto/create-brand.dto';
 import { QueryBrandDto } from './dto/query-brand.dto';
 import { PageQueryDto, PageResult } from '@/common/dto/page-result.dto';
 import { ProductEntity } from '@/modules/pms/product/infrastructure/persistence/relational/entities/product.entity';
@@ -50,7 +50,7 @@ export class BrandService {
     return this.brandRepo.save(entity);
   }
 
-  async update(id: number, dto: Partial<CreateBrandDto>): Promise<BrandEntity> {
+  async update(id: number, dto: UpdateBrandDto): Promise<BrandEntity> {
     if (!dto.firstLetter && dto.name) {
       dto.firstLetter = dto.name.substring(0, 1);
     }

@@ -1,25 +1,43 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseIntPipe,
+  Put,
+  Delete,
   Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { BatchDeleteDto } from '@/common/dto/batch-delete.dto';
+import {
+  BatchUpdateStatusDto,
+  BatchUpdateVerifyStatusDto,
+} from '@/common/dto/batch-update-status.dto';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 
 import { ProductService } from './product.service';
-import { PageQueryDto } from '@/common/dto/page-result.dto';
 import { CreateProductDto, UpdateProductDto } from './dto/product-param.dto';
+import { ProductQueryDto } from './dto/product-query.dto';
 import { CurrentUser } from '@/core/auth/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/auth/types/jwt-payload.type';
+import { ApiPaginatedResponse } from '@/common/decorators/api-paginated-response.decorator';
+import { ProductVo } from './vo/product.vo';
+import { ProductUpdateInfoVo } from './vo/product-update-info.vo';
+import { ProductOptionVo } from './vo/product-option.vo';
 
-@ApiTags('管理端-PMS-商品管理')
-@ApiBearerAuth()
+@ApiTags('admin-product')
+@ApiBearerAuth('admin-jwt')
 @UseGuards(AuthGuard('jwt'))
 @Controller({ path: 'admin/pms/products', version: '1' })
 export class ProductController {
@@ -31,140 +49,100 @@ export class ProductController {
     description:
       '支持 keyword / publishStatus / verifyStatus / brandId / productCategoryId / productSn 过滤',
   })
-  findList(
-    @Query()
-    query: PageQueryDto & {
-      keyword?: string;
-      productSn?: string;
-      publishStatus?: number;
-      verifyStatus?: number;
-      brandId?: number;
-      productCategoryId?: number;
-    },
-  ) {
+  @ApiPaginatedResponse(ProductVo)
+  list(@Query() query: ProductQueryDto) {
     return this.productService.findList(query);
   }
 
-  @Get('simpleList')
+  @Get('options')
   @ApiOperation({
     summary: '简单商品列表（选择器用）',
     description: '只返回 id/name/pic，支持关键词搜索',
   })
-  findSimpleList(@Query('keyword') keyword?: string) {
+  @ApiOkResponse({ type: [ProductOptionVo] })
+  @ApiQuery({ name: 'keyword', required: false })
+  listSimple(@Query('keyword') keyword?: string) {
     return this.productService.findSimpleList(keyword);
   }
 
-  @Get('updateInfo/:id')
+  @Get(':id')
   @ApiOperation({
     summary: '获取商品详情（含SKU、属性值等聚合信息）',
-    description: '对应前端 GET /product/updateInfo/:id',
+    description: '获取商品完整信息，包括 SKU、属性值、阶梯价、满减等',
   })
+  @ApiOkResponse({ type: ProductUpdateInfoVo })
   getUpdateInfo(@Param('id', ParseIntPipe) id: number) {
     return this.productService.getUpdateInfo(id);
   }
 
   @Post('create')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: '创建商品（事务写入多张关联表）',
     description:
       '创建商品主表 + SKU + 属性值 + 阶梯价 + 满减价 + 会员价 + 专题/优选区域关联',
   })
+  @ApiOkResponse({ type: ProductVo })
   create(@Body() dto: CreateProductDto) {
     return this.productService.create(dto);
   }
 
-  @Post('update/:id')
-  @ApiOperation({
-    summary: '更新商品（先删后插 + SKU 增量更新）',
-    description: '更新商品主表，子表先删后插，SKU 做增量三路处理',
-  })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProductDto) {
-    return this.productService.update(id, dto);
-  }
-
-  @Post('updateVerifyStatus')
+  @Put('update/verify-status')
   @ApiOperation({
     summary: '批量更新审核状态',
     description: '更新商品审核状态，同时写入审核记录',
   })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updateVerifyStatus(
     @CurrentUser() user: JwtPayload,
-    @Query('ids') ids: string,
-    @Query('verifyStatus') verifyStatus: string,
-    @Query('detail') detail: string,
+    @Body() dto: BatchUpdateVerifyStatusDto,
   ) {
-    if (!ids) throw new BadRequestException('ids 参数不能为空');
     return this.productService.updateVerifyStatus(
-      ids
-        .split(',')
-        .map(Number)
-        .filter((n) => n > 0),
-      Number(verifyStatus),
-      detail,
+      dto.ids,
+      dto.verifyStatus,
+      dto.detail ?? '',
       user.username,
     );
   }
 
-  @Post('delete')
+  @Put('update/publish-status')
+  @ApiOperation({ summary: '批量更新上架状态' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  updatePublishStatus(@Body() dto: BatchUpdateStatusDto) {
+    return this.productService.updatePublishStatus(dto.ids, dto.status);
+  }
+
+  @Put('update/new-status')
+  @ApiOperation({ summary: '批量更新新品状态' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  updateNewStatus(@Body() dto: BatchUpdateStatusDto) {
+    return this.productService.updateNewStatus(dto.ids, dto.status);
+  }
+
+  @Put('update/recommend-status')
+  @ApiOperation({ summary: '批量更新推荐状态' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  updateRecommendStatus(@Body() dto: BatchUpdateStatusDto) {
+    return this.productService.updateRecommendStatus(dto.ids, dto.status);
+  }
+
+  @Put('update/:id')
+  @ApiOperation({
+    summary: '更新商品（先删后插 + SKU 增量更新）',
+    description: '更新商品主表，子表先删后插，SKU 做增量三路处理',
+  })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProductDto) {
+    return this.productService.update(id, dto);
+  }
+
+  @Delete('delete')
   @ApiOperation({
     summary: '批量删除商品（软删除）',
     description: '将 deleteStatus 设置为 1',
   })
-  delete(@Query('ids') ids: string) {
-    if (!ids) throw new BadRequestException('ids 参数不能为空');
-    return this.productService.delete(
-      ids
-        .split(',')
-        .map(Number)
-        .filter((n) => n > 0),
-    );
-  }
-
-  @Post('update/publishStatus')
-  @ApiOperation({ summary: '批量更新上架状态' })
-  updatePublishStatus(
-    @Query('ids') ids: string,
-    @Query('publishStatus') publishStatus: string,
-  ) {
-    if (!ids) throw new BadRequestException('ids 参数不能为空');
-    return this.productService.updatePublishStatus(
-      ids
-        .split(',')
-        .map(Number)
-        .filter((n) => n > 0),
-      Number(publishStatus),
-    );
-  }
-
-  @Post('update/newStatus')
-  @ApiOperation({ summary: '批量更新新品状态' })
-  updateNewStatus(
-    @Query('ids') ids: string,
-    @Query('newStatus') newStatus: string,
-  ) {
-    if (!ids) throw new BadRequestException('ids 参数不能为空');
-    return this.productService.updateNewStatus(
-      ids
-        .split(',')
-        .map(Number)
-        .filter((n) => n > 0),
-      Number(newStatus),
-    );
-  }
-
-  @Post('update/recommendStatus')
-  @ApiOperation({ summary: '批量更新推荐状态' })
-  updateRecommendStatus(
-    @Query('ids') ids: string,
-    @Query('recommendStatus') recommendStatus: string,
-  ) {
-    if (!ids) throw new BadRequestException('ids 参数不能为空');
-    return this.productService.updateRecommendStatus(
-      ids
-        .split(',')
-        .map(Number)
-        .filter((n) => n > 0),
-      Number(recommendStatus),
-    );
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  batchDelete(@Body() dto: BatchDeleteDto) {
+    return this.productService.delete(dto.ids);
   }
 }

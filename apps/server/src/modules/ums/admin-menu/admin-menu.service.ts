@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AdminMenuEntity } from './infrastructure/persistence/relational/entities/admin-menu.entity';
+import { AdminMenuTreeNodeVo } from './vo/admin-menu-tree-node.vo';
 import { PageQueryDto, PageResult } from '@/common/dto/page-result.dto';
 
 @Injectable()
@@ -95,21 +96,21 @@ export class AdminMenuService {
   }
 
   /** 树形菜单 */
-  async treeList(): Promise<any[]> {
+  async treeList(): Promise<AdminMenuTreeNodeVo[]> {
     const menuList = await this.menuRepo.find();
     return this.buildTree(menuList, 0);
   }
 
   /** 更新隐藏状态 */
   async updateHidden(id: number, hidden: number): Promise<number> {
-    await this.menuRepo.update(id, { hidden: String(hidden) });
+    await this.menuRepo.update(id, { hidden });
     return 1;
   }
 
   private buildTree(
     menus: AdminMenuEntity[],
     parentId: number,
-  ): (AdminMenuEntity & { children: any[] })[] {
+  ): AdminMenuTreeNodeVo[] {
     return menus
       .filter((m) => m.parentId === parentId)
       .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))

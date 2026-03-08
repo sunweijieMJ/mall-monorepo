@@ -1,26 +1,40 @@
 import {
-  BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseIntPipe,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { BatchDeleteDto } from '@/common/dto/batch-delete.dto';
+import { UpdateCartQuantityDto } from '@/common/dto/batch-update-status.dto';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import { CartService, AddCartDto } from './cart.service';
+import { CartService } from './cart.service';
+import { AddCartDto } from './dto/add-cart.dto';
 import { UpdateCartAttrDto } from './dto/update-cart-attr.dto';
 import { OrderService } from '@/modules/oms/order/order.service';
 import { CurrentUser } from '@/core/auth/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/auth/types/jwt-payload.type';
+import { CartItemVo } from './vo/cart-item.vo';
+import { CartPromotionItemVo } from '@/modules/oms/order/vo/cart-promotion-item.vo';
+import { CartProductVo } from './vo/cart-product.vo';
 
-@ApiTags('移动端-购物车')
-@ApiBearerAuth()
+@ApiTags('portal-cart')
+@ApiBearerAuth('portal-jwt')
 @UseGuards(AuthGuard('jwt'))
-@Controller({ path: 'portal/cart', version: '1' })
+@Controller({ path: 'portal/carts', version: '1' })
 export class CartController {
   constructor(
     private readonly service: CartService,
@@ -32,67 +46,63 @@ export class CartController {
     summary: '获取购物车列表',
     description: '对应前端 GET /cart/list',
   })
-  getList(@CurrentUser() user: JwtPayload) {
+  @ApiOkResponse({ type: [CartItemVo] })
+  list(@CurrentUser() user: JwtPayload) {
     return this.service.getCartList(user.sub);
   }
 
-  @Get('getCartItemCount')
+  @Get('count')
   @ApiOperation({ summary: '获取购物车商品数量' })
-  getCount(@CurrentUser() user: JwtPayload) {
+  @ApiOkResponse({ type: Number, description: '购物车商品数量' })
+  count(@CurrentUser() user: JwtPayload) {
     return this.service.getCount(user.sub);
   }
 
-  @Post('add')
+  @Post('create')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: '加入购物车',
     description: '对应前端 POST /cart/add',
   })
-  add(@CurrentUser() user: JwtPayload, @Body() dto: AddCartDto) {
+  @ApiOkResponse({ type: CartItemVo })
+  create(@CurrentUser() user: JwtPayload, @Body() dto: AddCartDto) {
     return this.service.add(user.sub, dto);
   }
 
-  @Post('update/quantity')
+  @Put('update/quantity')
   @ApiOperation({ summary: '修改购物车商品数量' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updateQuantity(
     @CurrentUser() user: JwtPayload,
-    @Query('id') id: string,
-    @Query('quantity') quantity: string,
+    @Body() dto: UpdateCartQuantityDto,
   ) {
-    return this.service.updateQuantity(user.sub, Number(id), Number(quantity));
+    return this.service.updateQuantity(user.sub, dto.id, dto.quantity);
   }
 
-  @Post('delete')
+  @Delete('delete')
   @ApiOperation({
     summary: '删除购物车商品',
     description: '对应前端 POST /cart/delete?ids=1,2',
   })
-  delete(@CurrentUser() user: JwtPayload, @Query('ids') ids: string) {
-    if (!ids) {
-      throw new BadRequestException('ids 参数不能为空');
-    }
-    const idList = ids
-      .split(',')
-      .map(Number)
-      .filter((n) => !isNaN(n));
-    if (!idList.length) {
-      throw new BadRequestException('ids 参数格式无效');
-    }
-    return this.service.delete(user.sub, idList);
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  delete(@CurrentUser() user: JwtPayload, @Body() dto: BatchDeleteDto) {
+    return this.service.delete(user.sub, dto.ids);
   }
 
-  @Post('clear')
+  @Delete('clear')
   @ApiOperation({ summary: '清空购物车' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
   clear(@CurrentUser() user: JwtPayload) {
     return this.service.clear(user.sub);
   }
 
-  @Get('list/promotion')
+  @Get('promotion')
   @ApiOperation({
     summary: '获取含促销信息的购物车列表',
-    description:
-      '对应前端 GET /cart/list/promotion，结算页用于展示折后价和优惠信息',
+    description: '对应前端 GET /cart/promotion，结算页用于展示折后价和优惠信息',
   })
-  listPromotion(
+  @ApiOkResponse({ type: [CartPromotionItemVo] })
+  promotionList(
     @CurrentUser() user: JwtPayload,
     @Query('cartIds') cartIds?: string,
   ) {
@@ -100,20 +110,22 @@ export class CartController {
     return this.orderService.listCartPromotion(user.sub, ids);
   }
 
-  @Get('getProduct/:productId')
+  @Get('product/:productId')
   @ApiOperation({
     summary: '获取购物车商品的规格列表',
     description: '对应前端 GET /cart/getProduct/:productId，用于重新选择规格',
   })
-  getCartProduct(@Param('productId', ParseIntPipe) productId: number) {
+  @ApiOkResponse({ type: CartProductVo })
+  cartProduct(@Param('productId', ParseIntPipe) productId: number) {
     return this.service.getCartProduct(productId);
   }
 
-  @Post('update/attr')
+  @Put('update/attr')
   @ApiOperation({
     summary: '修改购物车商品规格',
     description: '对应前端 POST /cart/update/attr',
   })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updateAttr(@CurrentUser() user: JwtPayload, @Body() dto: UpdateCartAttrDto) {
     return this.service.updateAttr(user.sub, dto);
   }

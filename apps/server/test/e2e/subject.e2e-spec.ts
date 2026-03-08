@@ -80,7 +80,7 @@ describe('Subject API (e2e)', () => {
         .post(`${baseUrl}/create`)
         .set('Authorization', bearerHeader(token))
         .send({ title: '新专题', categoryName: '手机' })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
@@ -107,7 +107,7 @@ describe('Subject API (e2e)', () => {
       const res = await request(app.getHttpServer())
         .delete(`${baseUrl}/delete`)
         .set('Authorization', bearerHeader(token))
-        .query({ ids: '1,2' })
+        .send({ ids: [1, 2] })
         .expect(200);
 
       expect(res.body.code).toBe(200);
@@ -115,7 +115,7 @@ describe('Subject API (e2e)', () => {
     });
   });
 
-  describe('GET /productList', () => {
+  describe('GET /product-list', () => {
     it('查询专题关联商品列表 → 200', async () => {
       mockService.getProductList.mockResolvedValue({
         list: [{ id: 1, name: '商品A' }],
@@ -123,7 +123,7 @@ describe('Subject API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/productList`)
+        .get(`${baseUrl}/product-list`)
         .set('Authorization', bearerHeader(token))
         .query({ subjectId: 1, pageNum: 1, pageSize: 10 })
         .expect(200);

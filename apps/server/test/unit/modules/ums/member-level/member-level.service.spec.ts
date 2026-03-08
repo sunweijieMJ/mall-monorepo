@@ -13,7 +13,7 @@ const levelFixture = {
   defaultStatus: 0,
   freeFreightPoint: '199.00',
   commentGrowthPoint: 5,
-  priviledgeFreeFreight: 1,
+  privilegeFreeFreight: 1,
 } as MemberLevelEntity;
 
 describe('MemberLevelService', () => {

@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import {
   IsArray,
+  IsIn,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -18,10 +19,12 @@ export class CreateHomeAdvertiseDto {
   name: string;
 
   @ApiPropertyOptional({
+    type: 'integer',
     description: '轮播位置：0-PC首页轮播 1-app首页轮播',
+    enum: [0, 1],
     example: 0,
   })
-  @IsInt()
+  @IsIn([0, 1])
   @IsOptional()
   type?: number;
 
@@ -41,10 +44,12 @@ export class CreateHomeAdvertiseDto {
   endTime?: Date;
 
   @ApiPropertyOptional({
+    type: 'integer',
     description: '上下线状态：0-下线 1-上线',
+    enum: [0, 1],
     example: 0,
   })
-  @IsInt()
+  @IsIn([0, 1])
   @IsOptional()
   status?: number;
 
@@ -58,7 +63,7 @@ export class CreateHomeAdvertiseDto {
   @IsOptional()
   note?: string;
 
-  @ApiPropertyOptional({ description: '排序', example: 0 })
+  @ApiPropertyOptional({ type: 'integer', description: '排序', example: 0 })
   @IsInt()
   @Min(0)
   @IsOptional()
@@ -72,7 +77,11 @@ export class UpdateHomeAdvertiseDto extends PartialType(
 // ---- 批量删除 DTO ----
 
 export class BatchDeleteDto {
-  @ApiProperty({ description: 'ID 数组', type: [Number] })
+  @ApiProperty({
+    description: 'ID 数组',
+    type: 'array',
+    items: { type: 'integer' },
+  })
   @IsArray()
   @IsInt({ each: true })
   ids: number[];
@@ -81,7 +90,7 @@ export class BatchDeleteDto {
 // ---- 首页品牌推荐 DTO ----
 
 export class CreateHomeBrandDto {
-  @ApiProperty({ description: '品牌 ID' })
+  @ApiProperty({ description: '品牌 ID', type: 'integer' })
   @IsInt()
   brandId: number;
 
@@ -91,6 +100,7 @@ export class CreateHomeBrandDto {
   brandName: string;
 
   @ApiPropertyOptional({
+    type: 'integer',
     description: '推荐状态：0-不推荐 1-推荐',
     example: 1,
   })
@@ -98,7 +108,7 @@ export class CreateHomeBrandDto {
   @IsOptional()
   recommendStatus?: number;
 
-  @ApiPropertyOptional({ description: '排序', example: 0 })
+  @ApiPropertyOptional({ type: 'integer', description: '排序', example: 0 })
   @IsInt()
   @Min(0)
   @IsOptional()
@@ -108,7 +118,7 @@ export class CreateHomeBrandDto {
 // ---- 首页推荐专题 DTO ----
 
 export class CreateHomeSubjectDto {
-  @ApiProperty({ description: '专题 ID' })
+  @ApiProperty({ description: '专题 ID', type: 'integer' })
   @IsInt()
   subjectId: number;
 
@@ -118,6 +128,7 @@ export class CreateHomeSubjectDto {
   subjectName: string;
 
   @ApiPropertyOptional({
+    type: 'integer',
     description: '推荐状态：0-不推荐 1-推荐',
     example: 1,
   })
@@ -125,7 +136,7 @@ export class CreateHomeSubjectDto {
   @IsOptional()
   recommendStatus?: number;
 
-  @ApiPropertyOptional({ description: '排序', example: 0 })
+  @ApiPropertyOptional({ type: 'integer', description: '排序', example: 0 })
   @IsInt()
   @Min(0)
   @IsOptional()
@@ -135,7 +146,7 @@ export class CreateHomeSubjectDto {
 // ---- 新品推荐 DTO ----
 
 export class CreateHomeNewProductDto {
-  @ApiProperty({ description: '商品 ID' })
+  @ApiProperty({ description: '商品 ID', type: 'integer' })
   @IsInt()
   productId: number;
 
@@ -145,6 +156,7 @@ export class CreateHomeNewProductDto {
   productName: string;
 
   @ApiPropertyOptional({
+    type: 'integer',
     description: '推荐状态：0-不推荐 1-推荐',
     example: 1,
   })
@@ -152,7 +164,7 @@ export class CreateHomeNewProductDto {
   @IsOptional()
   recommendStatus?: number;
 
-  @ApiPropertyOptional({ description: '排序', example: 0 })
+  @ApiPropertyOptional({ type: 'integer', description: '排序', example: 0 })
   @IsInt()
   @Min(0)
   @IsOptional()
@@ -162,7 +174,7 @@ export class CreateHomeNewProductDto {
 // ---- 人气推荐 DTO ----
 
 export class CreateHomeRecommendProductDto {
-  @ApiProperty({ description: '商品 ID' })
+  @ApiProperty({ description: '商品 ID', type: 'integer' })
   @IsInt()
   productId: number;
 
@@ -172,6 +184,7 @@ export class CreateHomeRecommendProductDto {
   productName: string;
 
   @ApiPropertyOptional({
+    type: 'integer',
     description: '推荐状态：0-不推荐 1-推荐',
     example: 1,
   })
@@ -179,7 +192,7 @@ export class CreateHomeRecommendProductDto {
   @IsOptional()
   recommendStatus?: number;
 
-  @ApiPropertyOptional({ description: '排序', example: 0 })
+  @ApiPropertyOptional({ type: 'integer', description: '排序', example: 0 })
   @IsInt()
   @Min(0)
   @IsOptional()

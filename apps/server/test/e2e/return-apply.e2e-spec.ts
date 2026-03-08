@@ -51,8 +51,8 @@ describe('ReturnApply API (e2e)', () => {
   afterAll(() => app?.close());
   beforeEach(() => vi.clearAllMocks());
 
-  // ReturnApplyController: @Controller({ path: 'admin/oms/returns', version: '1' })
-  const baseUrl = '/api/v1/admin/oms/returns';
+  // ReturnApplyController: @Controller({ path: 'admin/oms/return-applies', version: '1' })
+  const baseUrl = '/api/v1/admin/oms/return-applies';
 
   describe('GET /list', () => {
     it('获取退货申请列表 → 200', async () => {

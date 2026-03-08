@@ -8,14 +8,21 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+} from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { PaymentService } from './payment.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { Public } from '@/core/auth/decorators/public.decorator';
+import { CurrentUser } from '@/core/auth/decorators/current-user.decorator';
+import { JwtPayload } from '@/core/auth/types/jwt-payload.type';
 import { SkipResponseTransform } from '@/common/decorators/skip-response-transform.decorator';
 
-@ApiTags('移动端-支付')
+@ApiTags('portal-payment')
 @Controller({ path: 'portal/payment', version: '1' })
 export class PaymentController {
   private readonly logger = new Logger(PaymentController.name);
@@ -26,8 +33,15 @@ export class PaymentController {
   @ApiBearerAuth('portal-jwt')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '创建支付宝支付' })
-  createAlipayPayment(@Body() dto: CreatePaymentDto, @Req() req: any) {
-    return this.paymentService.createAlipayPayment(dto.orderId, req.user.sub);
+  @ApiOkResponse({
+    description: '支付表单 HTML',
+    schema: { properties: { payForm: { type: 'string' } } },
+  })
+  createAlipayPayment(
+    @Body() dto: CreatePaymentDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.paymentService.createAlipayPayment(dto.orderId, user.sub);
   }
 
   @Public()
@@ -35,6 +49,10 @@ export class PaymentController {
   @HttpCode(HttpStatus.OK)
   @SkipResponseTransform()
   @ApiOperation({ summary: '支付宝异步通知回调' })
+  @ApiOkResponse({
+    description: '返回 success 或 failure',
+    schema: { type: 'string', example: 'success' },
+  })
   async alipayNotify(@Req() req: Request, @Res() res: Response) {
     const params = req.body as Record<string, string>;
     try {

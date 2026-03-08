@@ -168,7 +168,7 @@ describe('HomeService', () => {
       const relations = [
         {
           productId: 100,
-          flashPromotionPrice: '99.00',
+          flashPromotionPrice: '99.00', // 数据库中为 string，service 中会 parseFloat
           flashPromotionCount: 50,
           flashPromotionLimit: 1,
         },
@@ -198,7 +198,8 @@ describe('HomeService', () => {
       expect(flash.nextStartTime).toBe('14:00:00');
       expect(flash.productList).toHaveLength(2);
       expect(flash.productList[0].name).toBe('商品A');
-      expect(flash.productList[0].flashPromotionPrice).toBe('99.00');
+      // B3 修复后 flashPromotionPrice 通过 parseFloat 转为 number
+      expect(flash.productList[0].flashPromotionPrice).toBe(99);
     });
 
     it('秒杀商品为空 → productList 空数组', async () => {

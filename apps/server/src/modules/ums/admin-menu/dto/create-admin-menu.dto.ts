@@ -3,7 +3,7 @@ import { IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
 
 /** 创建后台菜单 DTO */
 export class CreateAdminMenuDto {
-  @ApiProperty({ description: '父级ID', example: 0 })
+  @ApiProperty({ description: '父级ID', type: 'integer', example: 0 })
   @IsInt()
   parentId: number;
 
@@ -24,11 +24,13 @@ export class CreateAdminMenuDto {
 
   @ApiPropertyOptional({
     description: '前端隐藏：0->不隐藏；1->隐藏',
-    example: '0',
+    type: 'integer',
+    enum: [0, 1],
+    example: 0,
   })
-  @IsString()
+  @IsInt()
   @IsOptional()
-  hidden?: string;
+  hidden?: number;
 
   @ApiPropertyOptional({ description: '是否缓存' })
   @IsString()
@@ -45,7 +47,7 @@ export class CreateAdminMenuDto {
   @IsOptional()
   path?: string;
 
-  @ApiPropertyOptional({ description: '排序', example: 0 })
+  @ApiPropertyOptional({ type: 'integer', description: '排序', example: 0 })
   @IsInt()
   @Min(0)
   @IsOptional()

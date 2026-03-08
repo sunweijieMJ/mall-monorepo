@@ -43,7 +43,7 @@ describe('CompanyAddress API (e2e)', () => {
   afterAll(() => app?.close());
   beforeEach(() => vi.clearAllMocks());
 
-  const baseUrl = '/api/v1/companyAddress';
+  const baseUrl = '/api/v1/admin/oms/company-addresses';
 
   describe('GET /list', () => {
     it('获取地址列表 → 200', async () => {
@@ -97,36 +97,36 @@ describe('CompanyAddress API (e2e)', () => {
           region: '南山区',
           detailAddress: '科技园路1号',
         })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
       expect(mockService.create).toHaveBeenCalled();
     });
   });
 
-  describe('POST /update/:id', () => {
-    it('更新地址 → 201', async () => {
+  describe('PUT /update/:id', () => {
+    it('更新地址 → 200', async () => {
       mockService.update.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/update/1`)
+        .put(`${baseUrl}/update/1`)
         .set('Authorization', bearerHeader(token))
         .send({ addressName: '修改后的总部' })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
       expect(mockService.update).toHaveBeenCalledWith(1, expect.any(Object));
     });
   });
 
-  describe('POST /delete/:id', () => {
-    it('删除地址 → 201', async () => {
+  describe('DELETE /delete/:id', () => {
+    it('删除地址 → 200', async () => {
       mockService.delete.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/delete/1`)
+        .delete(`${baseUrl}/delete/1`)
         .set('Authorization', bearerHeader(token))
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
       expect(mockService.delete).toHaveBeenCalledWith(1);

@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 /** 统一成功响应格式 */
 export class ApiResponse<T = unknown> {
-  @ApiProperty({ example: 200 })
+  @ApiProperty({ type: 'integer', example: 200 })
   code: number;
 
   @ApiProperty({ example: 'success' })
@@ -14,12 +14,15 @@ export class ApiResponse<T = unknown> {
 
 /** 统一错误响应格式 */
 export class ApiErrorResponse {
-  @ApiProperty({ example: 400 })
+  @ApiProperty({ type: 'integer', example: 400 })
   code: number;
 
-  @ApiProperty({ example: '请求参数错误' })
+  @ApiProperty({
+    example: '请求参数错误',
+    oneOf: [{ type: 'string' }, { type: 'array', items: { type: 'string' } }],
+  })
   message: string | string[];
 
-  @ApiProperty()
+  @ApiProperty({ nullable: true, example: null })
   data: Record<string, unknown> | null;
 }

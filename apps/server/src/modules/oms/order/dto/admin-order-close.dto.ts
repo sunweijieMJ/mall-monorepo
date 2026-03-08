@@ -3,7 +3,11 @@ import { IsArray, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 /** 关闭订单 DTO */
 export class AdminOrderCloseDto {
-  @ApiProperty({ description: '订单ID列表', type: [Number] })
+  @ApiProperty({
+    description: '订单ID列表',
+    type: 'array',
+    items: { type: 'integer' },
+  })
   @IsArray()
   @IsNumber({}, { each: true })
   ids: number[];

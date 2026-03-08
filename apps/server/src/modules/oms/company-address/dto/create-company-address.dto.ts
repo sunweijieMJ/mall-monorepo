@@ -17,6 +17,8 @@ export class CreateCompanyAddressDto {
 
   @ApiPropertyOptional({
     description: '默认发货地址：0->否；1->是',
+    type: 'integer',
+    enum: [0, 1],
     example: 0,
   })
   @IsInt()
@@ -27,6 +29,8 @@ export class CreateCompanyAddressDto {
 
   @ApiPropertyOptional({
     description: '默认收货地址：0->否；1->是',
+    type: 'integer',
+    enum: [0, 1],
     example: 0,
   })
   @IsInt()

@@ -11,8 +11,9 @@ import { MemberPriceEntity } from './infrastructure/persistence/relational/entit
 import { ProductVertifyRecordEntity } from './infrastructure/persistence/relational/entities/product-vertify-record.entity';
 import { SkuStockEntity } from '@/modules/pms/sku-stock/infrastructure/persistence/relational/entities/sku-stock.entity';
 import { SubjectProductRelationEntity } from '@/modules/cms/subject/infrastructure/persistence/relational/entities/subject-product-relation.entity';
-import { PrefrenceAreaProductRelationEntity } from '@/modules/cms/prefrence-area/infrastructure/persistence/relational/entities/prefrence-area-product-relation.entity';
-import { PageQueryDto, PageResult } from '@/common/dto/page-result.dto';
+import { PreferenceAreaProductRelationEntity } from '@/modules/cms/preference-area/infrastructure/persistence/relational/entities/preference-area-product-relation.entity';
+import { PageResult } from '@/common/dto/page-result.dto';
+import { ProductQueryDto } from './dto/product-query.dto';
 import { CreateProductDto, UpdateProductDto } from './dto/product-param.dto';
 
 /**
@@ -41,16 +42,7 @@ export class ProductService {
    * 分页查询商品列表
    * 支持 keyword / publishStatus / verifyStatus / brandId / productCategoryId / productSn 过滤
    */
-  async findList(
-    query: PageQueryDto & {
-      keyword?: string;
-      productSn?: string;
-      publishStatus?: number;
-      verifyStatus?: number;
-      brandId?: number;
-      productCategoryId?: number;
-    },
-  ): Promise<PageResult<ProductEntity>> {
+  async findList(query: ProductQueryDto): Promise<PageResult<ProductEntity>> {
     const qb = this.productRepo
       .createQueryBuilder('p')
       .where('p.deleteStatus = :deleteStatus', { deleteStatus: 0 });
@@ -211,19 +203,19 @@ export class ProductService {
       }
 
       // 8. 批量插入优选区域关联
-      const prefrenceAreaList: any[] =
-        dto.prefrenceAreaProductRelationList ?? [];
-      if (prefrenceAreaList.length > 0) {
-        const prefrenceAreaEntities = prefrenceAreaList.map((item) =>
-          manager.create(PrefrenceAreaProductRelationEntity, {
+      const preferenceAreaList: any[] =
+        dto.preferenceAreaProductRelationList ?? [];
+      if (preferenceAreaList.length > 0) {
+        const preferenceAreaEntities = preferenceAreaList.map((item) =>
+          manager.create(PreferenceAreaProductRelationEntity, {
             ...item,
             id: undefined,
             productId,
           }),
         );
         await manager.save(
-          PrefrenceAreaProductRelationEntity,
-          prefrenceAreaEntities,
+          PreferenceAreaProductRelationEntity,
+          preferenceAreaEntities,
         );
       }
 
@@ -252,7 +244,7 @@ export class ProductService {
         productFullReductionList: undefined,
         memberPriceList: undefined,
         subjectProductRelationList: undefined,
-        prefrenceAreaProductRelationList: undefined,
+        preferenceAreaProductRelationList: undefined,
       } as any);
 
       const dateStr = formatDateYMD(new Date());
@@ -388,22 +380,22 @@ export class ProductService {
       }
 
       // 8. 优选区域关联：先删后插
-      await manager.delete(PrefrenceAreaProductRelationEntity, {
+      await manager.delete(PreferenceAreaProductRelationEntity, {
         productId: id,
       });
-      const prefrenceAreaList: any[] =
-        dto.prefrenceAreaProductRelationList ?? [];
-      if (prefrenceAreaList.length > 0) {
-        const prefrenceAreaEntities = prefrenceAreaList.map((item) =>
-          manager.create(PrefrenceAreaProductRelationEntity, {
+      const preferenceAreaList: any[] =
+        dto.preferenceAreaProductRelationList ?? [];
+      if (preferenceAreaList.length > 0) {
+        const preferenceAreaEntities = preferenceAreaList.map((item) =>
+          manager.create(PreferenceAreaProductRelationEntity, {
             ...item,
             id: undefined,
             productId: id,
           }),
         );
         await manager.save(
-          PrefrenceAreaProductRelationEntity,
-          prefrenceAreaEntities,
+          PreferenceAreaProductRelationEntity,
+          preferenceAreaEntities,
         );
       }
 
@@ -427,7 +419,7 @@ export class ProductService {
       productFullReductionList,
       memberPriceList,
       subjectProductRelationList,
-      prefrenceAreaProductRelationList,
+      preferenceAreaProductRelationList,
     ] = await Promise.all([
       this.productRepo.findOne({ where: { id } }),
       this.dataSource
@@ -449,7 +441,7 @@ export class ProductService {
         .getRepository(SubjectProductRelationEntity)
         .find({ where: { productId: id } }),
       this.dataSource
-        .getRepository(PrefrenceAreaProductRelationEntity)
+        .getRepository(PreferenceAreaProductRelationEntity)
         .find({ where: { productId: id } }),
     ]);
 
@@ -465,7 +457,7 @@ export class ProductService {
       productFullReductionList,
       memberPriceList,
       subjectProductRelationList,
-      prefrenceAreaProductRelationList,
+      preferenceAreaProductRelationList,
     };
   }
 
@@ -511,7 +503,7 @@ export class ProductService {
           productId,
           status: verifyStatus,
           detail,
-          createTime: now,
+          createdAt: now,
           vertifyMan: verifyMan,
         }),
       );
@@ -545,12 +537,12 @@ export class ProductService {
   /** 批量更新推荐状态 */
   async updateRecommendStatus(
     ids: number[],
-    recommandStatus: number,
+    recommendStatus: number,
   ): Promise<void> {
     await this.productRepo
       .createQueryBuilder()
       .update()
-      .set({ recommandStatus })
+      .set({ recommendStatus })
       .whereInIds(ids)
       .execute();
   }

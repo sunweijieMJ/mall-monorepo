@@ -16,7 +16,8 @@
     "lint": "npm run lint:script && npm run lint:style",
     "lint:script": "eslint src/**/*.{js,jsx,ts,tsx} --no-error-on-unmatched-pattern --fix",
     "lint:style": "stylelint 'src/**/*.{css,scss,less,vue}' --fix",
-    "test": "vitest --run"
+    "test": "vitest --run",
+    "api:gen": "orval"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
@@ -50,6 +51,8 @@
     "code-inspector-plugin": "^1.4.2",
     "cross-env": "*",
     "eslint": "*",
+    "openapi3-ts": "^4.5.0",
+    "orval": "^8.5.3",
     "postcss": "^8.5.8",
     "postcss-scss": "^4.0.9",
     "rimraf": "*",

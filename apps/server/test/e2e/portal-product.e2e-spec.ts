@@ -83,14 +83,14 @@ describe('Portal Product API (e2e)', () => {
     });
   });
 
-  describe('GET /categoryTreeList', () => {
+  describe('GET /category-tree-list', () => {
     it('获取商品分类树（@Public）→ 200', async () => {
       mockService.categoryTreeList.mockResolvedValue([
         { id: 1, name: '服装', children: [{ id: 2, name: 'T恤' }] },
       ]);
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/categoryTreeList`)
+        .get(`${baseUrl}/category-tree-list`)
         .expect(200);
 
       expect(res.body.code).toBe(200);

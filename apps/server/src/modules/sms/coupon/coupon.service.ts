@@ -25,12 +25,12 @@ export class CouponService {
 
   // 分页列表
   async list(
-    query: PageQueryDto & { name?: string; type?: number },
+    query: PageQueryDto & { keyword?: string; type?: number },
   ): Promise<PageResult<CouponEntity>> {
     const qb = this.repo.createQueryBuilder('c');
 
-    if (query.name) {
-      qb.andWhere('c.name LIKE :name', { name: `%${query.name}%` });
+    if (query.keyword) {
+      qb.andWhere('c.name LIKE :keyword', { keyword: `%${query.keyword}%` });
     }
     if (query.type != null) {
       qb.andWhere('c.type = :type', { type: query.type });

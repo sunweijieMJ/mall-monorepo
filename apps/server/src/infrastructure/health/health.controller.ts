@@ -9,7 +9,7 @@ import {
 import { Public } from '@/core/auth/decorators/public.decorator';
 import { RedisHealthIndicator } from './indicators/redis.health';
 
-@ApiTags('健康检查')
+@ApiTags('health')
 @Controller({ path: 'health', version: '1' })
 export class HealthController {
   constructor(

@@ -1,32 +1,62 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { BatchDeleteDto } from '@/common/dto/batch-delete.dto';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import { ReadHistoryService, SaveReadHistoryDto } from './read-history.service';
+import { ReadHistoryService } from './read-history.service';
+import { SaveReadHistoryDto } from './dto/save-read-history.dto';
 import { CurrentUser } from '@/core/auth/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/auth/types/jwt-payload.type';
 import { PageQueryDto } from '@/common/dto/page-result.dto';
+import { MemberReadHistoryVo } from './vo/member-read-history.vo';
+import { ApiPaginatedResponse } from '@/common/decorators/api-paginated-response.decorator';
 
-@ApiTags('移动端-浏览历史(独立模块)')
-@ApiBearerAuth()
+@ApiTags('portal-read-history')
+@ApiBearerAuth('portal-jwt')
 @UseGuards(AuthGuard('jwt'))
-@Controller({ path: 'portal/read-history', version: '1' })
+@Controller({ path: 'portal/read-histories', version: '1' })
 export class ReadHistoryController {
   constructor(private readonly readHistoryService: ReadHistoryService) {}
 
-  @Post('add')
+  @Post('create')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '保存商品浏览历史' })
-  save(@CurrentUser() user: JwtPayload, @Body() dto: SaveReadHistoryDto) {
+  @ApiOkResponse({ type: MemberReadHistoryVo })
+  create(@CurrentUser() user: JwtPayload, @Body() dto: SaveReadHistoryDto) {
     return this.readHistoryService.save(user.sub, dto);
   }
 
   @Get('list')
   @ApiOperation({ summary: '分页查询浏览历史（按时间倒序）' })
+  @ApiPaginatedResponse(MemberReadHistoryVo)
   list(@CurrentUser() user: JwtPayload, @Query() query: PageQueryDto) {
     return this.readHistoryService.list(user.sub, query);
   }
 
-  @Post('clear')
+  @Delete('delete')
+  @ApiOperation({ summary: '批量删除浏览历史' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  batchDelete(@CurrentUser() user: JwtPayload, @Body() dto: BatchDeleteDto) {
+    return this.readHistoryService.batchDelete(user.sub, dto.ids);
+  }
+
+  @Delete('clear')
   @ApiOperation({ summary: '清空全部浏览历史' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
   clear(@CurrentUser() user: JwtPayload) {
     return this.readHistoryService.clear(user.sub);
   }

@@ -17,6 +17,12 @@ import { CouponProductRelationEntity } from '@/modules/sms/coupon/infrastructure
 import { CouponProductCategoryRelationEntity } from '@/modules/sms/coupon/infrastructure/persistence/relational/entities/coupon-product-category-relation.entity';
 import { ProductEntity } from '@/modules/pms/product/infrastructure/persistence/relational/entities/product.entity';
 import { CartItemEntity } from '@/modules/portal/cart/infrastructure/persistence/relational/entities/cart-item.entity';
+import { PageQueryDto, PageResult } from '@/common/dto/page-result.dto';
+import { UpdateMemberInfoDto } from './dto/update-member-info.dto';
+import {
+  CreateMemberAddressDto,
+  UpdateMemberAddressDto,
+} from './dto/member-address.dto';
 
 @Injectable()
 export class MemberService {
@@ -64,10 +70,7 @@ export class MemberService {
   /**
    * 更新会员基本信息
    */
-  async updateInfo(
-    memberId: number,
-    data: Record<string, unknown>,
-  ): Promise<void> {
+  async updateInfo(memberId: number, data: UpdateMemberInfoDto): Promise<void> {
     // 白名单：只允许客户端修改以下安全字段
     const allowedFields = [
       'nickname',
@@ -76,7 +79,7 @@ export class MemberService {
       'birthday',
       'city',
       'job',
-      'personalizedSignature',
+      'personalSign',
       'phone',
     ] as const;
     const safeData: Partial<MemberEntity> = {};
@@ -115,7 +118,7 @@ export class MemberService {
    */
   async addAddress(
     memberId: number,
-    data: Record<string, unknown>,
+    data: CreateMemberAddressDto,
   ): Promise<void> {
     if (data.defaultStatus === 1) {
       // 清除该会员所有地址的默认状态
@@ -135,7 +138,7 @@ export class MemberService {
   async updateAddress(
     id: number,
     memberId: number,
-    data: Record<string, unknown>,
+    data: UpdateMemberAddressDto,
   ): Promise<void> {
     // 验证归属权
     await this.getAddress(id, memberId);
@@ -235,7 +238,7 @@ export class MemberService {
         memberId,
         couponId,
         couponCode: randomUUID().replace(/-/g, '').substring(0, 32),
-        createTime: now,
+        createdAt: now,
         useStatus: 0,
         getType: 1,
       });
@@ -244,13 +247,15 @@ export class MemberService {
   }
 
   /**
-   * 查询会员优惠券历史列表
+   * 查询会员优惠券历史列表（分页）
    * useStatus: 0->未使用；1->已使用；2->已过期
    */
   async listMemberCoupons(
     memberId: number,
     useStatus?: number,
-  ): Promise<CouponHistoryEntity[]> {
+    query?: PageQueryDto,
+  ): Promise<PageResult<CouponHistoryEntity>> {
+    const pageQuery = query ?? new PageQueryDto();
     const qb = this.couponHistoryRepo
       .createQueryBuilder('ch')
       .where('ch.member_id = :memberId', { memberId });
@@ -261,9 +266,12 @@ export class MemberService {
       });
     }
 
-    qb.orderBy('ch.id', 'DESC');
+    qb.orderBy('ch.id', 'DESC')
+      .skip((pageQuery.page - 1) * pageQuery.limit)
+      .take(pageQuery.limit);
 
-    return qb.getMany();
+    const [list, total] = await qb.getManyAndCount();
+    return PageResult.of(list, total, pageQuery);
   }
 
   /**
@@ -318,28 +326,41 @@ export class MemberService {
   }
 
   /**
-   * 获取会员已领优惠券列表（返回优惠券对象，含使用状态过滤）
+   * 获取会员已领优惠券列表（返回优惠券对象，含使用状态过滤，分页）
    * 迁移自 UmsMemberCouponServiceImpl.list()
    * useStatus: 0->未使用；1->已使用；2->已过期
    */
   async listCouponObjects(
     memberId: number,
     useStatus?: number,
-  ): Promise<CouponEntity[]> {
-    // 查询该会员的领取记录
-    const qb = this.couponHistoryRepo
+    query?: PageQueryDto,
+  ): Promise<PageResult<CouponEntity>> {
+    const pageQuery = query ?? new PageQueryDto();
+
+    // 先查领取记录，获取 couponId 集合
+    const historyQb = this.couponHistoryRepo
       .createQueryBuilder('ch')
+      .select('DISTINCT ch.coupon_id', 'couponId')
       .where('ch.member_id = :memberId', { memberId });
 
     if (useStatus !== undefined && useStatus !== null) {
-      qb.andWhere('ch.use_status = :useStatus', { useStatus });
+      historyQb.andWhere('ch.use_status = :useStatus', { useStatus });
     }
 
-    const histories = await qb.getMany();
-    const couponIds = [...new Set(histories.map((h) => h.couponId))];
-    if (couponIds.length === 0) return [];
+    const historyRows = await historyQb.getRawMany<{ couponId: number }>();
+    const couponIds = historyRows.map((r) => Number(r.couponId));
+    if (couponIds.length === 0) {
+      return PageResult.of([], 0, pageQuery);
+    }
 
-    return this.couponRepo.findBy({ id: In(couponIds) });
+    const [list, total] = await this.couponRepo.findAndCount({
+      where: { id: In(couponIds) },
+      order: { id: 'DESC' },
+      skip: (pageQuery.page - 1) * pageQuery.limit,
+      take: pageQuery.limit,
+    });
+
+    return PageResult.of(list, total, pageQuery);
   }
 
   /**

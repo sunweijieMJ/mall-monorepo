@@ -2,16 +2,19 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
   Param,
   ParseIntPipe,
   Post,
+  Put,
   Query,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiOkResponse,
   ApiOperation,
   ApiQuery,
   ApiTags,
@@ -20,36 +23,51 @@ import { MemberService } from './member.service';
 import { CurrentUser } from '@/core/auth/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/auth/types/jwt-payload.type';
 import { Public } from '@/core/auth/decorators/public.decorator';
+import { UpdateMemberInfoDto } from './dto/update-member-info.dto';
+import {
+  CreateMemberAddressDto,
+  UpdateMemberAddressDto,
+} from './dto/member-address.dto';
+import { MemberVo } from './vo/member.vo';
+import { MemberAddressVo } from './vo/member-address.vo';
+import { CouponVo } from '@/modules/sms/coupon/vo/coupon.vo';
+import { CouponHistoryVo } from '@/modules/sms/coupon/vo/coupon-history.vo';
+import { ApiPaginatedResponse } from '@/common/decorators/api-paginated-response.decorator';
+import { PageQueryDto } from '@/common/dto/page-result.dto';
 
-@ApiTags('移动端-会员信息')
-@Controller({ path: 'portal/sso', version: '1' })
+@ApiTags('portal-member-profile')
+@ApiBearerAuth('portal-jwt')
+@Controller({ path: 'portal/member', version: '1' })
 export class MemberInfoController {
   constructor(private readonly memberService: MemberService) {}
 
   @Get('info')
   @ApiOperation({
     summary: '获取当前会员信息',
-    description: '对应前端 GET /sso/info',
+    description: '对应前端 GET /member/info',
   })
+  @ApiOkResponse({ type: MemberVo })
   getInfo(@CurrentUser() user: JwtPayload) {
     return this.memberService.getCurrentMember(user.sub);
   }
 
-  @Post('update')
+  @Put('update')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: '更新会员基本信息',
-    description: '对应前端 POST /sso/update',
+    description: '对应前端 POST /member/update',
   })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updateInfo(
-    @Body() body: Record<string, unknown>,
+    @Body() body: UpdateMemberInfoDto,
     @CurrentUser() user: JwtPayload,
   ) {
     return this.memberService.updateInfo(user.sub, body);
   }
 }
 
-@ApiTags('移动端-收货地址')
+@ApiTags('portal-member-address')
+@ApiBearerAuth('portal-jwt')
 @Controller({ path: 'portal/member/address', version: '1' })
 export class MemberAddressController {
   constructor(private readonly memberService: MemberService) {}
@@ -59,6 +77,7 @@ export class MemberAddressController {
     summary: '获取收货地址列表',
     description: '对应前端 GET /member/address/list',
   })
+  @ApiOkResponse({ type: [MemberAddressVo] })
   list(@CurrentUser() user: JwtPayload) {
     return this.memberService.listAddress(user.sub);
   }
@@ -68,40 +87,48 @@ export class MemberAddressController {
     summary: '获取收货地址详情',
     description: '对应前端 GET /member/address/:id',
   })
-  detail(
+  @ApiOkResponse({ type: MemberAddressVo })
+  getItem(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: JwtPayload,
   ) {
     return this.memberService.getAddress(id, user.sub);
   }
 
-  @Post('add')
+  @Post('create')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: '添加收货地址',
-    description: '对应前端 POST /member/address/add',
+    description: '对应前端 POST /member/address/create',
   })
-  add(@Body() body: Record<string, unknown>, @CurrentUser() user: JwtPayload) {
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  create(
+    @Body() body: CreateMemberAddressDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
     return this.memberService.addAddress(user.sub, body);
   }
 
-  @Post('update/:id')
+  @Put('update/:id')
   @ApiOperation({
     summary: '更新收货地址',
-    description: '对应前端 POST /member/address/update/:id',
+    description: '对应前端 PUT /member/address/update/:id',
   })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: Record<string, unknown>,
+    @Body() body: UpdateMemberAddressDto,
     @CurrentUser() user: JwtPayload,
   ) {
     return this.memberService.updateAddress(id, user.sub, body);
   }
 
-  @Post('delete/:id')
+  @Delete('delete/:id')
   @ApiOperation({
     summary: '删除收货地址',
-    description: '对应前端 POST /member/address/delete/:id',
+    description: '对应前端 DELETE /member/address/delete/:id',
   })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
   delete(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: JwtPayload,
@@ -111,15 +138,17 @@ export class MemberAddressController {
 }
 
 /** 移动端会员优惠券 Controller */
-@ApiTags('移动端-会员优惠券')
-@ApiBearerAuth()
+@ApiTags('portal-coupon')
+@ApiBearerAuth('portal-jwt')
 @Controller({ path: 'portal/member/coupons', version: '1' })
 export class MemberCouponController {
   constructor(private readonly memberService: MemberService) {}
 
   @Post(':couponId')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '领取优惠券' })
-  addCoupon(
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  create(
     @Param('couponId', ParseIntPipe) couponId: number,
     @CurrentUser() user: JwtPayload,
   ) {
@@ -128,36 +157,45 @@ export class MemberCouponController {
 
   @Get('list')
   @ApiOperation({ summary: '我的优惠券列表（返回优惠券对象）' })
+  @ApiPaginatedResponse(CouponVo)
   @ApiQuery({
     name: 'useStatus',
     required: false,
+    type: Number,
+    enum: [0, 1, 2],
     description: '使用状态：0->未使用；1->已使用；2->已过期',
   })
   listCouponObjects(
     @CurrentUser() user: JwtPayload,
-    @Query('useStatus') useStatus?: string,
+    @Query('useStatus', new ParseIntPipe({ optional: true }))
+    useStatus?: number,
+    @Query() query?: PageQueryDto,
   ) {
-    const status = useStatus !== undefined ? Number(useStatus) : undefined;
-    return this.memberService.listCouponObjects(user.sub, status);
+    return this.memberService.listCouponObjects(user.sub, useStatus, query);
   }
 
-  @Get('listHistory')
+  @Get('list-history')
   @ApiOperation({ summary: '我的优惠券历史记录（返回领取历史）' })
+  @ApiPaginatedResponse(CouponHistoryVo)
   @ApiQuery({
     name: 'useStatus',
     required: false,
+    type: Number,
+    enum: [0, 1, 2],
     description: '使用状态：0->未使用；1->已使用；2->已过期',
   })
   listMemberCoupons(
     @CurrentUser() user: JwtPayload,
-    @Query('useStatus') useStatus?: string,
+    @Query('useStatus', new ParseIntPipe({ optional: true }))
+    useStatus?: number,
+    @Query() query?: PageQueryDto,
   ) {
-    const status = useStatus !== undefined ? Number(useStatus) : undefined;
-    return this.memberService.listMemberCoupons(user.sub, status);
+    return this.memberService.listMemberCoupons(user.sub, useStatus, query);
   }
 
   @Get('product/:productId')
   @ApiOperation({ summary: '查询商品相关可用优惠券' })
+  @ApiOkResponse({ type: [CouponVo] })
   listCouponsByProduct(
     @Param('productId', ParseIntPipe) productId: number,
     @CurrentUser() user: JwtPayload,
@@ -165,8 +203,9 @@ export class MemberCouponController {
     return this.memberService.listCouponsByProduct(user.sub, productId);
   }
 
-  @Get('listCart')
+  @Get('list-cart')
   @ApiOperation({ summary: '获取购物车可用优惠券列表（结算页使用）' })
+  @ApiOkResponse({ type: [CouponVo] })
   @ApiQuery({
     name: 'cartIds',
     required: true,
@@ -187,7 +226,7 @@ export class MemberCouponController {
 }
 
 /** 移动端领券中心（公开接口） */
-@ApiTags('移动端-领券中心')
+@ApiTags('portal-coupon')
 @Controller({ path: 'portal/coupons', version: '1' })
 export class PortalCouponController {
   constructor(private readonly memberService: MemberService) {}
@@ -195,25 +234,8 @@ export class PortalCouponController {
   @Public()
   @Get()
   @ApiOperation({ summary: '获取可领取的优惠券列表（领券中心）' })
-  @ApiQuery({
-    name: 'pageNum',
-    required: false,
-    description: '页码',
-    example: 1,
-  })
-  @ApiQuery({
-    name: 'pageSize',
-    required: false,
-    description: '每页数量',
-    example: 10,
-  })
-  listAvailableCoupons(
-    @Query('pageNum') pageNum?: string,
-    @Query('pageSize') pageSize?: string,
-  ) {
-    return this.memberService.listAvailableCoupons(
-      Number(pageNum) || 1,
-      Number(pageSize) || 10,
-    );
+  @ApiPaginatedResponse(CouponVo)
+  listAvailableCoupons(@Query() query: PageQueryDto) {
+    return this.memberService.listAvailableCoupons(query.page, query.limit);
   }
 }

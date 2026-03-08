@@ -99,7 +99,7 @@ describe('MemberLevel API (e2e)', () => {
         .post(`${baseUrl}/create`)
         .set('Authorization', bearerHeader(token))
         .send({ name: 'VIP', growthPoint: 1000 })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
@@ -126,7 +126,7 @@ describe('MemberLevel API (e2e)', () => {
       const res = await request(app.getHttpServer())
         .delete(`${baseUrl}/delete`)
         .set('Authorization', bearerHeader(token))
-        .query({ ids: '1,2' })
+        .send({ ids: [1, 2] })
         .expect(200);
 
       expect(res.body.code).toBe(200);

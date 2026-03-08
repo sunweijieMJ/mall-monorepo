@@ -7,7 +7,7 @@ import http from '@/api';
 import type { HomeAdvertise } from '@/interface';
 import type { PageParams, PageResult } from '@/interface/common';
 
-const BASE_URL = '/home/advertise';
+const BASE_URL = '/admin/sms/home-ads';
 
 /**
  * 获取首页广告列表

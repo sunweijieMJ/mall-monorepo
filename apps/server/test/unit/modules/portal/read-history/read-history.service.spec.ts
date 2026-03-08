@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ReadHistoryService } from '@/modules/portal/read-history/read-history.service';
 import { MemberReadHistoryNewEntity } from '@/modules/portal/read-history/infrastructure/persistence/relational/entities/member-read-history.entity';
+import { ProductEntity } from '@/modules/pms/product/infrastructure/persistence/relational/entities/product.entity';
 import { createMockRepository } from '../../../../helpers/mock.factory';
 
 const historyFixture = {
@@ -12,12 +13,21 @@ const historyFixture = {
   productName: '测试商品',
   productPic: 'pic.png',
   productPrice: '99.00',
-  createTime: new Date(),
+  createdAt: new Date(),
 } as MemberReadHistoryNewEntity;
+
+/** 商品 mock 数据 */
+const productFixture = {
+  id: 20,
+  name: '测试商品',
+  pic: 'pic.png',
+  price: '99.00',
+} as ProductEntity;
 
 describe('ReadHistoryService', () => {
   let service: ReadHistoryService;
   const mockRepo = createMockRepository();
+  const mockProductRepo = createMockRepository();
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -28,6 +38,10 @@ describe('ReadHistoryService', () => {
           provide: getRepositoryToken(MemberReadHistoryNewEntity),
           useValue: mockRepo,
         },
+        {
+          provide: getRepositoryToken(ProductEntity),
+          useValue: mockProductRepo,
+        },
       ],
     }).compile();
     service = module.get(ReadHistoryService);
@@ -35,14 +49,16 @@ describe('ReadHistoryService', () => {
 
   describe('save', () => {
     it('先删除旧记录再插入新记录', async () => {
+      mockProductRepo.findOne.mockResolvedValue(productFixture);
       mockRepo.delete.mockResolvedValue({ affected: 1 });
       mockRepo.save.mockResolvedValue(historyFixture);
 
-      const result = await service.save(100, {
-        productId: 20,
-        productName: '测试商品',
-      });
+      const result = await service.save(100, { productId: 20 });
 
+      // 验证查询了商品信息
+      expect(mockProductRepo.findOne).toHaveBeenCalledWith({
+        where: { id: 20 },
+      });
       // 验证先删除旧记录
       expect(mockRepo.delete).toHaveBeenCalledWith({
         memberId: 100,
@@ -54,6 +70,7 @@ describe('ReadHistoryService', () => {
     });
 
     it('无旧记录时也能正常插入', async () => {
+      mockProductRepo.findOne.mockResolvedValue(productFixture);
       mockRepo.delete.mockResolvedValue({ affected: 0 });
       mockRepo.save.mockResolvedValue(historyFixture);
 
@@ -75,7 +92,7 @@ describe('ReadHistoryService', () => {
       expect(result.total).toBe(1);
       const callArgs = mockRepo.findAndCount.mock.calls[0][0];
       expect(callArgs.where.memberId).toBe(100);
-      expect(callArgs.order.createTime).toBe('DESC');
+      expect(callArgs.order.createdAt).toBe('DESC');
     });
   });
 

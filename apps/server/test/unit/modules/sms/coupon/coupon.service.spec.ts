@@ -219,10 +219,10 @@ describe('CouponService', () => {
       mockRepo.createQueryBuilder.mockReturnValue(qb);
       qb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      await service.list({ page: 1, limit: 10, name: '满减' } as any);
+      await service.list({ page: 1, limit: 10, keyword: '满减' } as any);
 
-      expect(qb.andWhere).toHaveBeenCalledWith('c.name LIKE :name', {
-        name: '%满减%',
+      expect(qb.andWhere).toHaveBeenCalledWith('c.name LIKE :keyword', {
+        keyword: '%满减%',
       });
     });
   });
@@ -309,10 +309,15 @@ describe('CouponService', () => {
       mockRepo.createQueryBuilder.mockReturnValue(qb);
       qb.getManyAndCount.mockResolvedValue([[], 0]);
 
-      await service.list({ page: 1, limit: 10, name: '折扣', type: 1 } as any);
+      await service.list({
+        page: 1,
+        limit: 10,
+        keyword: '折扣',
+        type: 1,
+      } as any);
 
-      expect(qb.andWhere).toHaveBeenCalledWith('c.name LIKE :name', {
-        name: '%折扣%',
+      expect(qb.andWhere).toHaveBeenCalledWith('c.name LIKE :keyword', {
+        keyword: '%折扣%',
       });
       expect(qb.andWhere).toHaveBeenCalledWith('c.type = :type', { type: 1 });
     });

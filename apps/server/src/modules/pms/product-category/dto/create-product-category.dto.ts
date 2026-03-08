@@ -2,7 +2,11 @@ import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreateProductCategoryDto {
-  @ApiProperty({ description: '父级分类 ID，0 表示一级分类', example: 0 })
+  @ApiProperty({
+    description: '父级分类 ID，0 表示一级分类',
+    type: 'integer',
+    example: 0,
+  })
   @IsInt()
   @Min(0)
   parentId: number;
@@ -18,6 +22,7 @@ export class CreateProductCategoryDto {
   productUnit?: string;
 
   @ApiPropertyOptional({
+    type: 'integer',
     description: '是否显示在导航栏：0-不显示 1-显示',
     example: 0,
   })
@@ -26,6 +31,7 @@ export class CreateProductCategoryDto {
   navStatus?: number;
 
   @ApiPropertyOptional({
+    type: 'integer',
     description: '显示状态：0-不显示 1-显示',
     example: 1,
   })
@@ -33,7 +39,7 @@ export class CreateProductCategoryDto {
   @IsOptional()
   showStatus?: number;
 
-  @ApiPropertyOptional({ description: '排序', example: 0 })
+  @ApiPropertyOptional({ type: 'integer', description: '排序', example: 0 })
   @IsInt()
   @Min(0)
   @IsOptional()

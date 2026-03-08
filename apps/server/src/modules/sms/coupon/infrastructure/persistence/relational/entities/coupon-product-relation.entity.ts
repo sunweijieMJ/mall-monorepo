@@ -1,3 +1,4 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   Column,
   Entity,
@@ -10,15 +11,19 @@ import type { CouponEntity } from './coupon.entity';
 
 @Entity('sms_coupon_product_relation')
 export class CouponProductRelationEntity {
+  @ApiProperty({ description: '主键ID', type: 'integer' })
   @PrimaryGeneratedColumn()
   id: number;
 
+  @ApiPropertyOptional({ description: '优惠券ID', type: 'integer' })
   @Column({ name: 'coupon_id', nullable: true })
   couponId: number;
 
+  @ApiPropertyOptional({ description: '商品ID', type: 'integer' })
   @Column({ name: 'product_id', nullable: true })
   productId: number;
 
+  @ApiPropertyOptional({ description: '商品名称' })
   @Column({
     name: 'product_name',
     length: 200,
@@ -27,6 +32,7 @@ export class CouponProductRelationEntity {
   })
   productName: string;
 
+  @ApiPropertyOptional({ description: '商品编码' })
   @Column({
     name: 'product_sn',
     length: 64,

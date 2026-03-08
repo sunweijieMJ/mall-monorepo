@@ -1,3 +1,4 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   Column,
   Entity,
@@ -11,32 +12,41 @@ import type { OrderEntity } from './order.entity';
 
 @Entity('oms_order_item')
 export class OrderItemEntity {
+  @ApiProperty({ description: '主键 ID', type: 'integer' })
   @PrimaryGeneratedColumn()
   id: number;
 
+  @ApiPropertyOptional({ description: '订单id', type: 'integer' })
   @Index()
   @Column({ name: 'order_id', nullable: true, comment: '订单id' })
   orderId: number;
 
+  @ApiPropertyOptional({ description: '订单编号' })
   @Column({ name: 'order_sn', length: 64, nullable: true, comment: '订单编号' })
   orderSn: string;
 
+  @ApiPropertyOptional({ description: '商品 ID', type: 'integer' })
   @Index()
   @Column({ name: 'product_id', nullable: true })
   productId: number;
 
+  @ApiPropertyOptional({ description: '商品图片' })
   @Column({ name: 'product_pic', length: 500, nullable: true })
   productPic: string;
 
+  @ApiPropertyOptional({ description: '商品名称' })
   @Column({ name: 'product_name', length: 200, nullable: true })
   productName: string;
 
+  @ApiPropertyOptional({ description: '商品品牌' })
   @Column({ name: 'product_brand', length: 200, nullable: true })
   productBrand: string;
 
+  @ApiPropertyOptional({ description: '商品货号' })
   @Column({ name: 'product_sn', length: 64, nullable: true })
   productSn: string;
 
+  @ApiPropertyOptional({ description: '销售价格', type: 'number' })
   @Column({
     name: 'product_price',
     type: 'decimal',
@@ -47,6 +57,7 @@ export class OrderItemEntity {
   })
   productPrice: string | null;
 
+  @ApiPropertyOptional({ description: '购买数量' })
   @Column({
     name: 'product_quantity',
     nullable: true,
@@ -54,6 +65,7 @@ export class OrderItemEntity {
   })
   productQuantity: number;
 
+  @ApiPropertyOptional({ description: '商品sku编号', type: 'integer' })
   @Column({
     name: 'product_sku_id',
     nullable: true,
@@ -61,6 +73,7 @@ export class OrderItemEntity {
   })
   productSkuId: number;
 
+  @ApiPropertyOptional({ description: '商品sku条码' })
   @Column({
     name: 'product_sku_code',
     length: 50,
@@ -69,6 +82,7 @@ export class OrderItemEntity {
   })
   productSkuCode: string;
 
+  @ApiPropertyOptional({ description: '商品分类id', type: 'integer' })
   @Column({
     name: 'product_category_id',
     nullable: true,
@@ -76,6 +90,7 @@ export class OrderItemEntity {
   })
   productCategoryId: number;
 
+  @ApiPropertyOptional({ description: '商品促销名称' })
   @Column({
     name: 'promotion_name',
     length: 200,
@@ -84,6 +99,7 @@ export class OrderItemEntity {
   })
   promotionName: string;
 
+  @ApiPropertyOptional({ description: '商品促销分解金额', type: 'number' })
   @Column({
     name: 'promotion_amount',
     type: 'decimal',
@@ -94,6 +110,7 @@ export class OrderItemEntity {
   })
   promotionAmount: string | null;
 
+  @ApiPropertyOptional({ description: '优惠券优惠分解金额', type: 'number' })
   @Column({
     name: 'coupon_amount',
     type: 'decimal',
@@ -104,6 +121,7 @@ export class OrderItemEntity {
   })
   couponAmount: string | null;
 
+  @ApiPropertyOptional({ description: '积分优惠分解金额', type: 'number' })
   @Column({
     name: 'integration_amount',
     type: 'decimal',
@@ -114,6 +132,10 @@ export class OrderItemEntity {
   })
   integrationAmount: string | null;
 
+  @ApiPropertyOptional({
+    description: '该商品经过优惠后的分解金额',
+    type: 'number',
+  })
   @Column({
     name: 'real_amount',
     type: 'decimal',
@@ -124,12 +146,15 @@ export class OrderItemEntity {
   })
   realAmount: string | null;
 
+  @ApiPropertyOptional({ description: '赠送积分' })
   @Column({ name: 'gift_integration', nullable: true })
   giftIntegration: number;
 
+  @ApiPropertyOptional({ type: 'integer', description: '赠送成长值' })
   @Column({ name: 'gift_growth', nullable: true })
   giftGrowth: number;
 
+  @ApiPropertyOptional({ description: '商品销售属性' })
   @Column({
     name: 'product_attr',
     length: 500,

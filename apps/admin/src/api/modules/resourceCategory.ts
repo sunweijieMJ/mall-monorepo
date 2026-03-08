@@ -12,7 +12,7 @@ const BASE_URL = '/resourceCategory';
  * 获取所有资源分类
  */
 export function listAllCate() {
-  return http.get<ResourceCategory[]>(`${BASE_URL}/listAll`);
+  return http.get<ResourceCategory[]>(`${BASE_URL}/all`);
 }
 
 /**

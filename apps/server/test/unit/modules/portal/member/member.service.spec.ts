@@ -333,13 +333,14 @@ describe('MemberService', () => {
     const historyQb = mockCouponHistoryRepo.createQueryBuilder();
     mockCouponHistoryRepo.createQueryBuilder.mockReturnValue(historyQb);
 
-    it('无过滤 → 返回所有记录', async () => {
+    it('无过滤 → 返回分页记录', async () => {
       const histories = [{ id: 1, memberId: 1, couponId: 1, useStatus: 0 }];
-      historyQb.getMany.mockResolvedValue(histories);
+      historyQb.getManyAndCount.mockResolvedValue([histories, 1]);
 
       const result = await service.listMemberCoupons(1);
 
-      expect(result).toEqual(histories);
+      expect(result.list).toEqual(histories);
+      expect(result.total).toBe(1);
       expect(historyQb.where).toHaveBeenCalledWith('ch.member_id = :memberId', {
         memberId: 1,
       });
@@ -348,7 +349,7 @@ describe('MemberService', () => {
     });
 
     it('有 useStatus 过滤 → 验证 andWhere', async () => {
-      historyQb.getMany.mockResolvedValue([]);
+      historyQb.getManyAndCount.mockResolvedValue([[], 0]);
 
       await service.listMemberCoupons(1, 0);
 
@@ -404,27 +405,29 @@ describe('MemberService', () => {
     const historyQb2 = mockCouponHistoryRepo.createQueryBuilder();
     mockCouponHistoryRepo.createQueryBuilder.mockReturnValue(historyQb2);
 
-    it('正常返回优惠券对象', async () => {
-      historyQb2.getMany.mockResolvedValue([
-        { id: 1, memberId: 1, couponId: 1 },
-        { id: 2, memberId: 1, couponId: 2 },
+    it('正常返回优惠券对象（分页）', async () => {
+      historyQb2.getRawMany.mockResolvedValue([
+        { couponId: 1 },
+        { couponId: 2 },
       ]);
       const coupons = [couponFixture({ id: 1 }), couponFixture({ id: 2 })];
-      mockCouponRepo.findBy.mockResolvedValue(coupons);
+      mockCouponRepo.findAndCount.mockResolvedValue([coupons, 2]);
 
       const result = await service.listCouponObjects(1);
 
-      expect(result).toEqual(coupons);
-      expect(mockCouponRepo.findBy).toHaveBeenCalled();
+      expect(result.list).toEqual(coupons);
+      expect(result.total).toBe(2);
+      expect(mockCouponRepo.findAndCount).toHaveBeenCalled();
     });
 
-    it('无领取记录 → 返回空数组', async () => {
-      historyQb2.getMany.mockResolvedValue([]);
+    it('无领取记录 → 返回空分页', async () => {
+      historyQb2.getRawMany.mockResolvedValue([]);
 
       const result = await service.listCouponObjects(1);
 
-      expect(result).toEqual([]);
-      expect(mockCouponRepo.findBy).not.toHaveBeenCalled();
+      expect(result.list).toEqual([]);
+      expect(result.total).toBe(0);
+      expect(mockCouponRepo.findAndCount).not.toHaveBeenCalled();
     });
   });
 

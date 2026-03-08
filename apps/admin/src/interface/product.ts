@@ -19,7 +19,7 @@ export interface Product {
   deleteStatus: number;
   publishStatus: number; // 上架状态：0->下架；1->上架
   newStatus: number; // 新品状态：0->不是新品；1->新品
-  recommandStatus: number; // 推荐状态：0->不推荐；1->推荐
+  recommendStatus: number; // 推荐状态：0->不推荐；1->推荐
   verifyStatus: number; // 审核状态：0->未审核；1->审核通过
   sort: number; // 排序
   sale: number; // 销量
@@ -174,7 +174,7 @@ export interface Subject {
   categoryId?: number;
   pic?: string | null;
   productCount?: number;
-  recommandStatus?: number;
+  recommendStatus?: number;
   createTime?: string;
   collectCount?: number;
   readCount?: number;
@@ -224,7 +224,7 @@ export interface ProductParam {
   previewStatus?: number;
   publishStatus?: number;
   newStatus?: number;
-  recommandStatus?: number;
+  recommendStatus?: number;
   verifyStatus?: number;
   serviceIds?: string | null;
   detailTitle?: string | null;

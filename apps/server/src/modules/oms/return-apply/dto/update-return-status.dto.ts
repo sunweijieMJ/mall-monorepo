@@ -11,13 +11,15 @@ import {
 
 /** 更新退货申请状态 DTO */
 export class UpdateReturnStatusDto {
-  @ApiProperty({ description: '退货申请ID' })
+  @ApiProperty({ description: '退货申请ID', type: 'integer' })
   @IsInt()
   @IsNotEmpty()
   id: number;
 
   @ApiProperty({
     description: '申请状态：0->待处理；1->退货中；2->已完成；3->已拒绝',
+    type: 'integer',
+    enum: [0, 1, 2, 3],
   })
   @IsInt()
   @Min(0)
@@ -44,7 +46,7 @@ export class UpdateReturnStatusDto {
   @IsOptional()
   refundAmount?: number;
 
-  @ApiPropertyOptional({ description: '公司收货地址ID' })
+  @ApiPropertyOptional({ description: '公司收货地址ID', type: 'integer' })
   @IsInt()
   @IsOptional()
   companyAddressId?: number;

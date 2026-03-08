@@ -8,12 +8,16 @@ import {
   OrderEntity,
   OrderStatus,
 } from '@/modules/oms/order/infrastructure/persistence/relational/entities/order.entity';
+import { OrderItemEntity } from '@/modules/oms/order/infrastructure/persistence/relational/entities/order-item.entity';
+import { MemberEntity } from '@/modules/portal/member/infrastructure/persistence/relational/entities/member.entity';
 import { createMockRepository } from '../../../../helpers/mock.factory';
 
 describe('ReturnApplyService', () => {
   let service: ReturnApplyService;
   const mockRepo = createMockRepository();
   const mockOrderRepo = createMockRepository();
+  const mockOrderItemRepo = createMockRepository();
+  const mockMemberRepo = createMockRepository();
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -23,6 +27,14 @@ describe('ReturnApplyService', () => {
         ReturnApplyService,
         { provide: getRepositoryToken(ReturnApplyEntity), useValue: mockRepo },
         { provide: getRepositoryToken(OrderEntity), useValue: mockOrderRepo },
+        {
+          provide: getRepositoryToken(OrderItemEntity),
+          useValue: mockOrderItemRepo,
+        },
+        {
+          provide: getRepositoryToken(MemberEntity),
+          useValue: mockMemberRepo,
+        },
       ],
     }).compile();
 
@@ -210,6 +222,21 @@ describe('ReturnApplyService', () => {
         memberId: 1,
         status: OrderStatus.SHIPPING,
       });
+      mockOrderItemRepo.findOne.mockResolvedValue({
+        id: 1,
+        orderId: 100,
+        productId: 200,
+        productName: '测试商品',
+        productPic: 'test.jpg',
+        productAttr: '',
+        productCount: 1,
+        productPrice: '99.00',
+        productRealPrice: '89.00',
+      });
+      mockMemberRepo.findOne.mockResolvedValue({
+        id: 1,
+        username: 'testuser',
+      });
       mockRepo.save.mockImplementation((entity) =>
         Promise.resolve({ id: 1, ...entity }),
       );
@@ -227,6 +254,21 @@ describe('ReturnApplyService', () => {
         id: 100,
         memberId: 1,
         status: OrderStatus.COMPLETED,
+      });
+      mockOrderItemRepo.findOne.mockResolvedValue({
+        id: 2,
+        orderId: 100,
+        productId: 200,
+        productName: '测试商品',
+        productPic: 'test.jpg',
+        productAttr: '',
+        productCount: 1,
+        productPrice: '99.00',
+        productRealPrice: '89.00',
+      });
+      mockMemberRepo.findOne.mockResolvedValue({
+        id: 1,
+        username: 'testuser',
       });
       mockRepo.save.mockImplementation((entity) =>
         Promise.resolve({ id: 2, ...entity }),

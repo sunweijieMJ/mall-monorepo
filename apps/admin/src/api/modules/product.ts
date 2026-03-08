@@ -20,7 +20,7 @@ export function fetchList(params: ProductListQuery) {
  * 获取简单商品列表（用于选择器）
  */
 export function fetchSimpleList(params?: { keyword?: string }) {
-  return http.get<Product[]>(`${BASE_URL}/simpleList`, { params });
+  return http.get<Product[]>(`${BASE_URL}/options`, { params });
 }
 
 /**

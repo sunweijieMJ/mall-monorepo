@@ -41,7 +41,7 @@ describe('Admin Role API (e2e)', () => {
   let app: INestApplication;
   const token = generateAdminToken();
 
-  // 注意：AdminRoleController 的路径是 'role'，没有 version，URL 为 /api/role/...
+  // AdminRoleController: /api/v1/admin/ums/roles/...
   beforeAll(async () => {
     app = await createTestApp(TestAdminRoleModule);
   });
@@ -49,8 +49,8 @@ describe('Admin Role API (e2e)', () => {
   afterAll(() => app?.close());
   beforeEach(() => vi.clearAllMocks());
 
-  describe('POST /api/role/create', () => {
-    const url = '/api/role/create';
+  describe('POST /api/v1/admin/ums/roles/create', () => {
+    const url = '/api/v1/admin/ums/roles/create';
 
     it('无 token → 401', async () => {
       const res = await request(app.getHttpServer()).post(url).expect(401);
@@ -64,42 +64,42 @@ describe('Admin Role API (e2e)', () => {
         .post(url)
         .set('Authorization', bearerHeader(token))
         .send({ name: '编辑', description: '编辑角色' })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
       expect(res.body.data.name).toBe('编辑');
     });
   });
 
-  describe('POST /api/role/update/:id', () => {
+  describe('PUT /api/v1/admin/ums/roles/update/:id', () => {
     it('更新角色 → 200', async () => {
       mockRoleService.update.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .post('/api/role/update/1')
+        .put('/api/v1/admin/ums/roles/update/1')
         .set('Authorization', bearerHeader(token))
         .send({ name: '新名称' })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('POST /api/role/delete', () => {
+  describe('DELETE /api/v1/admin/ums/roles/delete', () => {
     it('批量删除 → 200', async () => {
       mockRoleService.delete.mockResolvedValue(2);
 
       const res = await request(app.getHttpServer())
-        .post('/api/role/delete')
+        .delete('/api/v1/admin/ums/roles/delete')
         .set('Authorization', bearerHeader(token))
-        .query({ ids: '1,2' })
-        .expect(201);
+        .send({ ids: [1, 2] })
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('GET /api/role/listAll', () => {
+  describe('GET /api/v1/admin/ums/roles/all', () => {
     it('获取所有角色 → 200', async () => {
       mockRoleService.listAll.mockResolvedValue([
         { id: 1, name: '超级管理员' },
@@ -107,7 +107,7 @@ describe('Admin Role API (e2e)', () => {
       ]);
 
       const res = await request(app.getHttpServer())
-        .get('/api/role/listAll')
+        .get('/api/v1/admin/ums/roles/all')
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -116,7 +116,7 @@ describe('Admin Role API (e2e)', () => {
     });
   });
 
-  describe('GET /api/role/list', () => {
+  describe('GET /api/v1/admin/ums/roles/list', () => {
     it('分页查询 → 200', async () => {
       mockRoleService.list.mockResolvedValue({
         list: [{ id: 1, name: '管理员' }],
@@ -124,7 +124,7 @@ describe('Admin Role API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get('/api/role/list')
+        .get('/api/v1/admin/ums/roles/list')
         .set('Authorization', bearerHeader(token))
         .query({ keyword: '管理', pageNum: 1, pageSize: 10 })
         .expect(200);
@@ -133,14 +133,14 @@ describe('Admin Role API (e2e)', () => {
     });
   });
 
-  describe('GET /api/role/listMenu/:roleId', () => {
+  describe('GET /api/v1/admin/ums/roles/:id/menus', () => {
     it('获取角色菜单 → 200', async () => {
       mockRoleService.listMenu.mockResolvedValue([
         { id: 1, title: '系统管理' },
       ]);
 
       const res = await request(app.getHttpServer())
-        .get('/api/role/listMenu/1')
+        .get('/api/v1/admin/ums/roles/1/menus')
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -149,14 +149,14 @@ describe('Admin Role API (e2e)', () => {
     });
   });
 
-  describe('GET /api/role/listResource/:roleId', () => {
+  describe('GET /api/v1/admin/ums/roles/:id/resources', () => {
     it('获取角色资源 → 200', async () => {
       mockRoleService.listResource.mockResolvedValue([
         { id: 1, name: '商品管理' },
       ]);
 
       const res = await request(app.getHttpServer())
-        .get('/api/role/listResource/1')
+        .get('/api/v1/admin/ums/roles/1/resources')
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -164,29 +164,29 @@ describe('Admin Role API (e2e)', () => {
     });
   });
 
-  describe('POST /api/role/allocMenu', () => {
+  describe('PUT /api/v1/admin/ums/roles/:id/menus', () => {
     it('分配菜单 → 200', async () => {
       mockRoleService.allocMenu.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post('/api/role/allocMenu')
+        .put('/api/v1/admin/ums/roles/1/menus')
         .set('Authorization', bearerHeader(token))
-        .query({ roleId: 1, menuIds: '1,2,3' })
-        .expect(201);
+        .send({ menuIds: [1, 2, 3] })
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('POST /api/role/allocResource', () => {
+  describe('PUT /api/v1/admin/ums/roles/:id/resources', () => {
     it('分配资源 → 200', async () => {
       mockRoleService.allocResource.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post('/api/role/allocResource')
+        .put('/api/v1/admin/ums/roles/1/resources')
         .set('Authorization', bearerHeader(token))
-        .query({ roleId: 1, resourceIds: '10,20' })
-        .expect(201);
+        .send({ resourceIds: [10, 20] })
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });

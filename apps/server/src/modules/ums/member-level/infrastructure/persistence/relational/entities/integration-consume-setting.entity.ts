@@ -1,10 +1,13 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('ums_integration_consume_setting')
 export class IntegrationConsumeSettingEntity {
+  @ApiProperty({ description: '主键ID', type: 'integer' })
   @PrimaryGeneratedColumn()
   id: number;
 
+  @ApiPropertyOptional({ description: '每一元需要抵扣的积分数量' })
   @Column({
     name: 'deduction_per_amount',
     nullable: true,
@@ -12,6 +15,7 @@ export class IntegrationConsumeSettingEntity {
   })
   deductionPerAmount: number;
 
+  @ApiPropertyOptional({ description: '每笔订单最高抵用百分比' })
   @Column({
     name: 'max_percent_per_order',
     nullable: true,
@@ -19,6 +23,7 @@ export class IntegrationConsumeSettingEntity {
   })
   maxPercentPerOrder: number;
 
+  @ApiPropertyOptional({ description: '每次使用积分最小单位100' })
   @Column({
     name: 'use_unit',
     nullable: true,
@@ -26,6 +31,11 @@ export class IntegrationConsumeSettingEntity {
   })
   useUnit: number;
 
+  @ApiPropertyOptional({
+    description: '是否可以和优惠券同用；0->不可以；1->可以',
+    type: 'integer',
+    enum: [0, 1],
+  })
   @Column({
     name: 'coupon_status',
     nullable: true,

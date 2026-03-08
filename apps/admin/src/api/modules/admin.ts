@@ -72,14 +72,15 @@ export function deleteAdmin(id: number) {
  * 获取管理员的角色
  */
 export function getRoleByAdmin(id: number) {
-  return http.get(`${BASE_URL}/role/${id}`);
+  return http.get(`${BASE_URL}/${id}/roles`);
 }
 
 /**
  * 分配角色
  */
 export function allocRole(data: { adminId: number; roleIds: number[] }) {
-  return http.post(`${BASE_URL}/role/update`, data);
+  const { adminId, ...body } = data;
+  return http.put(`${BASE_URL}/${adminId}/roles`, body);
 }
 
 export default {

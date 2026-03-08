@@ -313,8 +313,13 @@ jobs:
     needs: [build, deploy-h5, deploy-mp-weixin]
     runs-on: ubuntu-latest
     if: always()
+    permissions:
+      actions: read
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Summary
         run: |
           {
@@ -327,3 +332,16 @@ jobs:
             echo "| H5 部署 | ${{ needs.deploy-h5.result || 'skipped' }} |"
             echo "| 微信小程序 | ${{ needs.deploy-mp-weixin.result || 'skipped' }} |"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Feishu notification
+        if: always() && secrets.FEISHU_WEBHOOK_URL != ''
+        uses: ./.github/actions/notify-feishu
+        with:
+          app_name: 'Mobile'
+          status: ${{ needs.build.result == 'success' && (needs.deploy-h5.result == 'success' || needs.deploy-h5.result == 'skipped') && (needs.deploy-mp-weixin.result == 'success' || needs.deploy-mp-weixin.result == 'skipped') && 'success' || 'failure' }}
+          details: |
+            构建: ${{ needs.build.result }}
+            H5 部署: ${{ needs.deploy-h5.result || 'skipped' }}
+            微信小程序: ${{ needs.deploy-mp-weixin.result || 'skipped' }}
+          webhook_url: ${{ secrets.FEISHU_WEBHOOK_URL }}
+          webhook_secret: ${{ secrets.FEISHU_WEBHOOK_SECRET }}

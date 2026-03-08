@@ -36,6 +36,7 @@ import { CouponHistoryEntity } from '../../sms/coupon/infrastructure/persistence
 import { CouponProductRelationEntity } from '../../sms/coupon/infrastructure/persistence/relational/entities/coupon-product-relation.entity';
 import { CouponProductCategoryRelationEntity } from '../../sms/coupon/infrastructure/persistence/relational/entities/coupon-product-category-relation.entity';
 import { IntegrationConsumeSettingEntity } from '../../ums/member-level/infrastructure/persistence/relational/entities/integration-consume-setting.entity';
+import { CouponHistoryDetailVo } from './vo/coupon-history-detail.vo';
 
 import { PageQueryDto, PageResult } from '@/common/dto/page-result.dto';
 
@@ -248,7 +249,7 @@ export class OrderService {
     const historyList = await this.historyRepo
       .createQueryBuilder('h')
       .where('h.orderId = :orderId', { orderId: id })
-      .orderBy('h.createTime', 'DESC')
+      .orderBy('h.createdAt', 'DESC')
       .getMany();
 
     return { ...order, orderItemList, historyList };
@@ -291,7 +292,7 @@ export class OrderService {
             operateMan: '后台管理员',
             orderStatus: OrderStatus.SHIPPING,
             note: '完成发货',
-            createTime: new Date(),
+            createdAt: new Date(),
           }),
         );
         await manager.save(OrderOperateHistoryEntity, histories);
@@ -329,7 +330,7 @@ export class OrderService {
           operateMan: '后台管理员',
           orderStatus: OrderStatus.CLOSED,
           note: `订单关闭:${note}`,
-          createTime: new Date(),
+          createdAt: new Date(),
         }),
       );
       await manager.save(OrderOperateHistoryEntity, histories);
@@ -365,7 +366,7 @@ export class OrderService {
         operateMan: '后台管理员',
         orderStatus: status,
         note: '修改收货人信息',
-        createTime: new Date(),
+        createdAt: new Date(),
       });
     });
   }
@@ -397,7 +398,7 @@ export class OrderService {
         operateMan: '后台管理员',
         orderStatus: status,
         note: '修改费用信息',
-        createTime: new Date(),
+        createdAt: new Date(),
       });
     });
   }
@@ -420,7 +421,7 @@ export class OrderService {
         operateMan: '后台管理员',
         orderStatus: status,
         note: `修改备注信息：${note}`,
-        createTime: new Date(),
+        createdAt: new Date(),
       });
     });
   }
@@ -743,7 +744,7 @@ export class OrderService {
       useStatus: 0,
     });
     const couponIds = couponHistoryList.map((h) => h.couponId);
-    let couponHistoryDetailList: any[] = [];
+    let couponHistoryDetailList: CouponHistoryDetailVo[] = [];
     if (couponIds.length > 0) {
       const coupons = await this.couponRepo.findBy({ id: In(couponIds) });
       // 过滤可以使用的优惠券（满足最低消费）
@@ -1196,7 +1197,7 @@ export class OrderService {
         operateMan: '系统',
         orderStatus: OrderStatus.PAID,
         note: `支付成功（支付方式: ${payType}）`,
-        createTime: new Date(),
+        createdAt: new Date(),
       });
     });
   }
@@ -1285,7 +1286,7 @@ export class OrderService {
         operateMan,
         orderStatus: OrderStatus.CANCELLED,
         note: memberId === 0 ? '超时未支付，系统自动取消' : '用户取消订单',
-        createTime: new Date(),
+        createdAt: new Date(),
       });
     });
   }
@@ -1350,7 +1351,7 @@ export class OrderService {
         operateMan: '用户',
         orderStatus: OrderStatus.COMPLETED,
         note: '确认收货',
-        createTime: new Date(),
+        createdAt: new Date(),
       });
     });
   }

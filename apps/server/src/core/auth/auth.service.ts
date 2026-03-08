@@ -130,7 +130,7 @@ export class AuthService {
     const loginLog = this.loginLogRepo.create({
       adminId: admin.id,
       ip,
-      createTime: new Date(),
+      createdAt: new Date(),
     });
     await this.loginLogRepo.save(loginLog);
 
@@ -420,7 +420,7 @@ export class AuthService {
       password: hashedPassword,
       phone: dto.telephone,
       status: 1,
-      createTime: new Date(),
+      createdAt: new Date(),
       memberLevelId: defaultLevel?.id,
     });
     await this.memberRepo.save(member);

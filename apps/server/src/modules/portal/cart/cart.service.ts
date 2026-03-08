@@ -8,20 +8,7 @@ import { In, Repository } from 'typeorm';
 import { CartItemEntity } from './infrastructure/persistence/relational/entities/cart-item.entity';
 import { SkuStockEntity } from '@/modules/pms/sku-stock/infrastructure/persistence/relational/entities/sku-stock.entity';
 import { ProductEntity } from '@/modules/pms/product/infrastructure/persistence/relational/entities/product.entity';
-
-/** 加入购物车的请求体 */
-export interface AddCartDto {
-  productId: number;
-  productSkuId: number;
-  quantity: number;
-  /** 其他可选字段（商品名、规格等），如果不传则从数据库读取 */
-  productName?: string;
-  productPic?: string;
-  productAttr?: string;
-  productBrand?: string;
-  productSn?: string;
-  productSkuCode?: string;
-}
+import { AddCartDto } from './dto/add-cart.dto';
 
 @Injectable()
 export class CartService {

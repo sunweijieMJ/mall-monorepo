@@ -17,7 +17,7 @@ export class UpdateProductAttrCategoryDto extends PartialType(
 // ---- 商品属性 DTO ----
 
 export class CreateProductAttrDto {
-  @ApiProperty({ description: '所属属性分类 ID', example: 1 })
+  @ApiProperty({ description: '所属属性分类 ID', type: 'integer', example: 1 })
   @IsInt()
   productAttributeCategoryId: number;
 
@@ -27,6 +27,7 @@ export class CreateProductAttrDto {
   name: string;
 
   @ApiPropertyOptional({
+    type: 'integer',
     description: '属性选择类型：0-唯一 1-单选 2-多选',
     example: 0,
   })
@@ -35,6 +36,7 @@ export class CreateProductAttrDto {
   selectType?: number;
 
   @ApiPropertyOptional({
+    type: 'integer',
     description: '属性录入方式：0-手工录入 1-从列表中选取',
     example: 0,
   })
@@ -50,13 +52,14 @@ export class CreateProductAttrDto {
   @IsOptional()
   inputList?: string;
 
-  @ApiPropertyOptional({ description: '排序', example: 0 })
+  @ApiPropertyOptional({ type: 'integer', description: '排序', example: 0 })
   @IsInt()
   @Min(0)
   @IsOptional()
   sort?: number;
 
   @ApiPropertyOptional({
+    type: 'integer',
     description: '分类筛选样式：0-普通 1-颜色',
     example: 0,
   })
@@ -65,6 +68,7 @@ export class CreateProductAttrDto {
   filterType?: number;
 
   @ApiPropertyOptional({
+    type: 'integer',
     description: '检索类型：0-不检索 1-关键字检索 2-范围检索',
     example: 0,
   })
@@ -73,6 +77,7 @@ export class CreateProductAttrDto {
   searchType?: number;
 
   @ApiPropertyOptional({
+    type: 'integer',
     description: '相同属性产品是否关联：0-不关联 1-关联',
     example: 0,
   })
@@ -81,6 +86,7 @@ export class CreateProductAttrDto {
   relatedStatus?: number;
 
   @ApiPropertyOptional({
+    type: 'integer',
     description: '是否支持手动新增：0-不支持 1-支持',
     example: 0,
   })
@@ -89,6 +95,7 @@ export class CreateProductAttrDto {
   handAddStatus?: number;
 
   @ApiPropertyOptional({
+    type: 'integer',
     description: '属性类型：0-规格 1-参数',
     example: 0,
   })

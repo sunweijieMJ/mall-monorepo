@@ -51,12 +51,8 @@ describe('AdminResource API (e2e)', () => {
   afterAll(() => app?.close());
   beforeEach(() => vi.clearAllMocks());
 
-  // AdminResourceController: @Controller('resource')，无版本号
-  // 注意：controller 中 GET ':id' 在 GET 'list'/'listAll' 之前声明，
-  // 导致 GET /resource/list 和 GET /resource/listAll 被 ':id' 路由拦截。
-  // 因此仅测试 POST 路由和数字 ID 路由。
-  const resourceUrl = '/api/resource';
-  const categoryUrl = '/api/resourceCategory';
+  const resourceUrl = '/api/v1/admin/ums/resources';
+  const categoryUrl = '/api/v1/admin/ums/resource-categories';
 
   describe('POST /resource/create', () => {
     it('创建资源 → 201', async () => {
@@ -66,7 +62,7 @@ describe('AdminResource API (e2e)', () => {
         .post(`${resourceUrl}/create`)
         .set('Authorization', bearerHeader(token))
         .send({ name: '新资源', url: '/test/**', categoryId: 1 })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
@@ -90,27 +86,27 @@ describe('AdminResource API (e2e)', () => {
     });
   });
 
-  describe('POST /resource/delete/:id', () => {
-    it('删除资源 → 201', async () => {
+  describe('DELETE /resource/delete/:id', () => {
+    it('删除资源 → 200', async () => {
       mockResourceService.delete.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .post(`${resourceUrl}/delete/1`)
+        .delete(`${resourceUrl}/delete/1`)
         .set('Authorization', bearerHeader(token))
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('GET /resourceCategory/listAll', () => {
+  describe('GET /resourceCategory/all', () => {
     it('获取所有资源分类 → 200', async () => {
       mockResourceService.listCategory.mockResolvedValue([
         { id: 1, name: '商品模块' },
       ]);
 
       const res = await request(app.getHttpServer())
-        .get(`${categoryUrl}/listAll`)
+        .get(`${categoryUrl}/all`)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -127,48 +123,48 @@ describe('AdminResource API (e2e)', () => {
         .post(`${categoryUrl}/create`)
         .set('Authorization', bearerHeader(token))
         .send({ name: '商品模块', sort: 0 })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('POST /resourceCategory/update/:id', () => {
-    it('修改资源分类 → 201', async () => {
+  describe('PUT /resourceCategory/update/:id', () => {
+    it('修改资源分类 → 200', async () => {
       mockResourceService.updateCategory.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${categoryUrl}/update/1`)
+        .put(`${categoryUrl}/update/1`)
         .set('Authorization', bearerHeader(token))
         .send({ name: '订单模块' })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('POST /resourceCategory/delete/:id', () => {
-    it('删除资源分类 → 201', async () => {
+  describe('DELETE /resourceCategory/delete/:id', () => {
+    it('删除资源分类 → 200', async () => {
       mockResourceService.deleteCategory.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${categoryUrl}/delete/1`)
+        .delete(`${categoryUrl}/delete/1`)
         .set('Authorization', bearerHeader(token))
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('POST /resource/update/:id', () => {
-    it('修改资源 → 201', async () => {
+  describe('PUT /resource/update/:id', () => {
+    it('修改资源 → 200', async () => {
       mockResourceService.update.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${resourceUrl}/update/1`)
+        .put(`${resourceUrl}/update/1`)
         .set('Authorization', bearerHeader(token))
         .send({ name: '修改后的资源', url: '/updated/**' })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });

@@ -2,40 +2,49 @@ import {
   Body,
   Controller,
   Get,
-  HttpCode,
-  HttpStatus,
   Param,
   ParseIntPipe,
-  Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOkResponse,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { SkuStockService } from './sku-stock.service';
 import { SkuStockItemDto } from './dto/update-sku-stock.dto';
+import { SkuStockVo } from './vo/sku-stock.vo';
 
-@ApiTags('管理端-PMS-SKU库存')
-@ApiBearerAuth()
+@ApiTags('admin-sku-stock')
+@ApiBearerAuth('admin-jwt')
 @UseGuards(AuthGuard('jwt'))
-@Controller('sku/stock')
+@Controller({ path: 'admin/pms/sku-stocks', version: '1' })
 export class SkuStockController {
   constructor(private readonly service: SkuStockService) {}
 
-  @Get(':pid')
+  @Get(':productId')
   @ApiOperation({ summary: '查询 SKU 库存列表' })
-  getList(
-    @Param('pid', ParseIntPipe) pid: number,
+  @ApiOkResponse({ type: [SkuStockVo] })
+  @ApiQuery({ name: 'keyword', required: false })
+  list(
+    @Param('productId', ParseIntPipe) productId: number,
     @Query('keyword') keyword?: string,
   ) {
-    return this.service.getList(pid, keyword);
+    return this.service.getList(productId, keyword);
   }
 
-  @Post('update/:pid')
-  @HttpCode(HttpStatus.OK)
+  @Put('update/:productId')
   @ApiOperation({ summary: '批量更新SKU库存' })
+  @ApiBody({ type: [SkuStockItemDto] })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(
-    @Param('pid', ParseIntPipe) pid: number,
+    @Param('productId', ParseIntPipe) productId: number,
     @Body() stocks: SkuStockItemDto[],
   ) {
     // 将 DTO 中的 decimal 字段从 number 转为 string，以匹配 Entity 类型
@@ -46,6 +55,6 @@ export class SkuStockController {
         ? { promotionPrice: String(promotionPrice) }
         : {}),
     }));
-    return this.service.update(pid, converted);
+    return this.service.update(productId, converted);
   }
 }

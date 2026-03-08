@@ -50,6 +50,12 @@ export class ProductAttrService {
     await this.cateRepo.delete(id);
   }
 
+  async getAttrCategoryItem(id: number): Promise<ProductAttrCategoryEntity> {
+    const category = await this.cateRepo.findOneBy({ id });
+    if (!category) throw new NotFoundException(`属性分类 ${id} 不存在`);
+    return category;
+  }
+
   async listAttrCategoryWithAttr(): Promise<any[]> {
     const categories = await this.cateRepo.find();
     const attrs = await this.attrRepo.find({ where: { type: 0 } });

@@ -41,17 +41,17 @@ describe('ReadHistory API (e2e)', () => {
   afterAll(() => app?.close());
   beforeEach(() => vi.clearAllMocks());
 
-  const baseUrl = '/api/v1/portal/read-history';
+  const baseUrl = '/api/v1/portal/read-histories';
 
-  describe('POST /add', () => {
+  describe('POST /create', () => {
     it('保存浏览历史 → 201', async () => {
       mockService.save.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/add`)
+        .post(`${baseUrl}/create`)
         .set('Authorization', bearerHeader(token))
         .send({ productId: 1, productName: '测试商品' })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
       expect(mockService.save).toHaveBeenCalled();
@@ -75,14 +75,14 @@ describe('ReadHistory API (e2e)', () => {
     });
   });
 
-  describe('POST /clear', () => {
-    it('清空浏览历史 → 201', async () => {
+  describe('DELETE /clear', () => {
+    it('清空浏览历史 → 200', async () => {
       mockService.clear.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/clear`)
+        .delete(`${baseUrl}/clear`)
         .set('Authorization', bearerHeader(token))
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });

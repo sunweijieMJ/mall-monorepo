@@ -1,35 +1,58 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseIntPipe,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { BatchDeleteDto } from '@/common/dto/batch-delete.dto';
+import {
+  AllocMenuDto,
+  AllocResourceDto,
+  UpdateSingleStatusDto,
+} from '@/common/dto/batch-update-status.dto';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminRoleService } from './admin-role.service';
 import { PageQueryDto } from '@/common/dto/page-result.dto';
+import { ApiPaginatedResponse } from '@/common/decorators/api-paginated-response.decorator';
 import { CreateAdminRoleDto } from './dto/create-admin-role.dto';
 import { UpdateAdminRoleDto } from './dto/update-admin-role.dto';
+import { AdminRoleVo } from './vo/admin-role.vo';
+import { AdminMenuVo } from '@/modules/ums/admin-menu/vo/admin-menu.vo';
+import { AdminResourceVo } from '@/modules/ums/admin-resource/vo/admin-resource.vo';
 
-@ApiTags('后台角色管理')
-@ApiBearerAuth()
+@ApiTags('admin-role')
+@ApiBearerAuth('admin-jwt')
 @UseGuards(AuthGuard('jwt'))
-@Controller('role')
+@Controller({ path: 'admin/ums/roles', version: '1' })
 export class AdminRoleController {
   constructor(private readonly service: AdminRoleService) {}
 
   @Post('create')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '添加角色' })
+  @ApiOkResponse({ type: AdminRoleVo })
   create(@Body() dto: CreateAdminRoleDto) {
     return this.service.create(dto);
   }
 
-  @Post('update/:id')
+  @Put('update/:id')
   @ApiOperation({ summary: '修改角色' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateAdminRoleDto,
@@ -37,62 +60,66 @@ export class AdminRoleController {
     return this.service.update(id, dto);
   }
 
-  @Post('delete')
+  @Delete('delete')
   @ApiOperation({ summary: '批量删除角色' })
-  delete(@Query('ids') ids: string) {
-    return this.service.delete(ids.split(',').map(Number));
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  batchDelete(@Body() dto: BatchDeleteDto) {
+    return this.service.delete(dto.ids);
   }
 
-  @Get('listAll')
+  @Get('all')
   @ApiOperation({ summary: '获取所有角色' })
+  @ApiOkResponse({ type: [AdminRoleVo] })
   listAll() {
     return this.service.listAll();
   }
 
   @Get('list')
   @ApiOperation({ summary: '根据角色名称分页获取角色列表' })
+  @ApiPaginatedResponse(AdminRoleVo)
+  @ApiQuery({ name: 'keyword', required: false })
   list(@Query('keyword') keyword: string, @Query() q: PageQueryDto) {
     return this.service.list(keyword, q);
   }
 
-  @Post('updateStatus/:id')
+  @Put('update/status/:id')
   @ApiOperation({ summary: '修改角色状态' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updateStatus(
     @Param('id', ParseIntPipe) id: number,
-    @Query('status') status: string,
+    @Body() dto: UpdateSingleStatusDto,
   ) {
-    return this.service.updateStatus(id, Number(status));
+    return this.service.updateStatus(id, dto.status);
   }
 
-  @Get('listMenu/:roleId')
+  @Get(':id/menus')
   @ApiOperation({ summary: '获取角色相关菜单' })
-  listMenu(@Param('roleId', ParseIntPipe) roleId: number) {
-    return this.service.listMenu(roleId);
+  @ApiOkResponse({ type: [AdminMenuVo] })
+  listMenu(@Param('id', ParseIntPipe) id: number) {
+    return this.service.listMenu(id);
   }
 
-  @Get('listResource/:roleId')
+  @Get(':id/resources')
   @ApiOperation({ summary: '获取角色相关资源' })
-  listResource(@Param('roleId', ParseIntPipe) roleId: number) {
-    return this.service.listResource(roleId);
+  @ApiOkResponse({ type: [AdminResourceVo] })
+  listResource(@Param('id', ParseIntPipe) id: number) {
+    return this.service.listResource(id);
   }
 
-  @Post('allocMenu')
+  @Put(':id/menus')
   @ApiOperation({ summary: '给角色分配菜单' })
-  allocMenu(
-    @Query('roleId', ParseIntPipe) roleId: number,
-    @Query('menuIds') menuIds: string,
-  ) {
-    const ids = menuIds ? menuIds.split(',').map(Number) : [];
-    return this.service.allocMenu(roleId, ids);
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  allocMenu(@Param('id', ParseIntPipe) id: number, @Body() dto: AllocMenuDto) {
+    return this.service.allocMenu(id, dto.menuIds);
   }
 
-  @Post('allocResource')
+  @Put(':id/resources')
   @ApiOperation({ summary: '给角色分配资源' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
   allocResource(
-    @Query('roleId', ParseIntPipe) roleId: number,
-    @Query('resourceIds') resourceIds: string,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: AllocResourceDto,
   ) {
-    const ids = resourceIds ? resourceIds.split(',').map(Number) : [];
-    return this.service.allocResource(roleId, ids);
+    return this.service.allocResource(id, dto.resourceIds);
   }
 }

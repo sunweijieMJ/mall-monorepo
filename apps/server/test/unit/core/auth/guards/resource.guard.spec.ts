@@ -59,7 +59,7 @@ describe('ResourceGuard', () => {
   it('member token 访问非 admin 路径 → 放行（不走资源校验）', async () => {
     vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
     const user = { sub: 1, username: 'member1', type: 'member' };
-    const ctx = createMockContext(user, '/api/v1/portal/cart/list');
+    const ctx = createMockContext(user, '/api/v1/portal/carts/list');
 
     expect(await guard.canActivate(ctx as any)).toBe(true);
   });

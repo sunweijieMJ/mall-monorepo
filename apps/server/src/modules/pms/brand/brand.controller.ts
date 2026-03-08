@@ -5,101 +5,107 @@ import {
   HttpCode,
   HttpStatus,
   Param,
-  ParseArrayPipe,
   ParseIntPipe,
+  Put,
+  Delete,
   Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { BatchDeleteDto } from '@/common/dto/batch-delete.dto';
+import { BatchUpdateStatusDto } from '@/common/dto/batch-update-status.dto';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
+import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
 import { AuthGuard } from '@nestjs/passport';
 import { BrandService } from './brand.service';
-import { CreateBrandDto } from './dto/create-brand.dto';
+import { CreateBrandDto, UpdateBrandDto } from './dto/create-brand.dto';
 import { QueryBrandDto } from './dto/query-brand.dto';
 import { PageQueryDto } from '@/common/dto/page-result.dto';
 import { Public } from '@/core/auth/decorators/public.decorator';
+import { ApiPaginatedResponse } from '@/common/decorators/api-paginated-response.decorator';
+import { BrandVo } from './vo/brand.vo';
+import { ProductVo } from '@/modules/pms/product/vo/product.vo';
 
-@ApiTags('管理端-PMS-品牌管理')
-@ApiBearerAuth()
+@ApiTags('admin-brand')
+@ApiBearerAuth('admin-jwt')
 @UseGuards(AuthGuard('jwt'))
-@Controller('brand')
+@Controller({ path: 'admin/pms/brands', version: '1' })
 export class BrandController {
   constructor(private readonly brandService: BrandService) {}
 
   @Post('create')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '创建品牌' })
+  @ApiWrappedResponse(BrandVo)
   create(@Body() dto: CreateBrandDto) {
     return this.brandService.create(dto);
   }
 
-  @Post('update/:id')
-  @HttpCode(HttpStatus.OK)
+  @Put('update/show-status')
+  @ApiOperation({ summary: '更新显示状态' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  updateShowStatus(@Body() dto: BatchUpdateStatusDto) {
+    return this.brandService.updateShowStatus(dto.ids, dto.status);
+  }
+
+  @Put('update/factory-status')
+  @ApiOperation({ summary: '更新厂家制造商状态' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  updateFactoryStatus(@Body() dto: BatchUpdateStatusDto) {
+    return this.brandService.updateFactoryStatus(dto.ids, dto.status);
+  }
+
+  @Put('update/:id')
   @ApiOperation({ summary: '更新品牌' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: CreateBrandDto) {
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateBrandDto) {
     return this.brandService.update(id, dto);
   }
 
-  @Post('delete')
-  @HttpCode(HttpStatus.OK)
+  @Delete('delete')
   @ApiOperation({ summary: '批量删除品牌' })
-  remove(
-    @Query('ids', new ParseArrayPipe({ items: Number, separator: ',' }))
-    ids: number[],
-  ) {
-    return this.brandService.remove(ids);
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  batchDelete(@Body() dto: BatchDeleteDto) {
+    return this.brandService.remove(dto.ids);
   }
 
   @Get('list')
   @ApiOperation({ summary: '品牌列表（分页）' })
-  findList(@Query() query: QueryBrandDto) {
+  @ApiPaginatedResponse(BrandVo)
+  list(@Query() query: QueryBrandDto) {
     return this.brandService.findList(query);
   }
 
-  @Get('listAll')
+  @Get('all')
   @ApiOperation({ summary: '获取所有品牌（不分页）' })
-  findAll() {
+  @ApiWrappedResponse(BrandVo, { isArray: true })
+  listAll() {
     return this.brandService.findAll();
   }
 
   @Get(':id')
   @ApiOperation({ summary: '获取品牌详情' })
+  @ApiWrappedResponse(BrandVo)
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.brandService.getItem(id);
-  }
-
-  @Post('update/showStatus')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: '更新显示状态' })
-  updateShowStatus(
-    @Query('ids', new ParseArrayPipe({ items: Number, separator: ',' }))
-    ids: number[],
-    @Query('showStatus', ParseIntPipe) showStatus: number,
-  ) {
-    return this.brandService.updateShowStatus(ids, showStatus);
-  }
-
-  @Post('update/factoryStatus')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: '更新厂家制造商状态' })
-  updateFactoryStatus(
-    @Query('ids', new ParseArrayPipe({ items: Number, separator: ',' }))
-    ids: number[],
-    @Query('factoryStatus', ParseIntPipe) factoryStatus: number,
-  ) {
-    return this.brandService.updateFactoryStatus(ids, factoryStatus);
   }
 }
 
 /** 移动端品牌 Controller（无需登录） */
-@ApiTags('移动端-PMS-品牌')
+@ApiTags('portal-brand')
 @Controller({ path: 'portal/brands', version: '1' })
 export class PortalBrandController {
   constructor(private readonly brandService: BrandService) {}
 
   @Public()
-  @Get('recommendList')
+  @Get('recommend-list')
   @ApiOperation({ summary: '推荐品牌列表（分页）' })
+  @ApiPaginatedResponse(BrandVo)
   recommendList(@Query() query: PageQueryDto) {
     return this.brandService.recommendList(query.page, query.limit);
   }
@@ -107,6 +113,7 @@ export class PortalBrandController {
   @Public()
   @Get(':brandId/products')
   @ApiOperation({ summary: '品牌下的商品列表（分页）' })
+  @ApiPaginatedResponse(ProductVo)
   productList(
     @Param('brandId', ParseIntPipe) brandId: number,
     @Query() query: PageQueryDto,
@@ -117,7 +124,8 @@ export class PortalBrandController {
   @Public()
   @Get(':brandId')
   @ApiOperation({ summary: '品牌详情' })
-  detail(@Param('brandId', ParseIntPipe) brandId: number) {
+  @ApiWrappedResponse(BrandVo)
+  getItem(@Param('brandId', ParseIntPipe) brandId: number) {
     return this.brandService.getItem(brandId);
   }
 }

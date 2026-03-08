@@ -40,7 +40,7 @@ describe('OrderSetting API (e2e)', () => {
   afterAll(() => app?.close());
   beforeEach(() => vi.clearAllMocks());
 
-  const baseUrl = '/api/v1/orderSetting';
+  const baseUrl = '/api/v1/admin/oms/order-settings';
 
   describe('GET /:id', () => {
     it('获取订单设置 → 200', async () => {
@@ -68,15 +68,15 @@ describe('OrderSetting API (e2e)', () => {
     });
   });
 
-  describe('POST /update/:id', () => {
-    it('更新订单设置 → 201', async () => {
+  describe('PUT /update/:id', () => {
+    it('更新订单设置 → 200', async () => {
       mockService.update.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/update/1`)
+        .put(`${baseUrl}/update/1`)
         .set('Authorization', bearerHeader(token))
         .send({ flashOrderOvertime: 30, normalOrderOvertime: 60 })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
       expect(mockService.update).toHaveBeenCalledWith(1, expect.any(Object));

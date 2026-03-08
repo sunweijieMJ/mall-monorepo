@@ -8,13 +8,18 @@ export class UpdateReturnReasonDto {
   @IsOptional()
   name?: string;
 
-  @ApiPropertyOptional({ description: '排序' })
+  @ApiPropertyOptional({ type: 'integer', description: '排序' })
   @IsInt()
   @Min(0)
   @IsOptional()
   sort?: number;
 
-  @ApiPropertyOptional({ description: '状态：0->不可用；1->可用', example: 1 })
+  @ApiPropertyOptional({
+    description: '状态：0->不可用；1->可用',
+    type: 'integer',
+    enum: [0, 1],
+    example: 1,
+  })
   @IsInt()
   @Min(0)
   @Max(1)

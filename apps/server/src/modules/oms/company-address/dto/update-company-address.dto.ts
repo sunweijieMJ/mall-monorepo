@@ -8,14 +8,22 @@ export class UpdateCompanyAddressDto {
   @IsOptional()
   addressName?: string;
 
-  @ApiPropertyOptional({ description: '默认发货地址：0->否；1->是' })
+  @ApiPropertyOptional({
+    description: '默认发货地址：0->否；1->是',
+    type: 'integer',
+    enum: [0, 1],
+  })
   @IsInt()
   @Min(0)
   @Max(1)
   @IsOptional()
   sendStatus?: number;
 
-  @ApiPropertyOptional({ description: '默认收货地址：0->否；1->是' })
+  @ApiPropertyOptional({
+    description: '默认收货地址：0->否；1->是',
+    type: 'integer',
+    enum: [0, 1],
+  })
   @IsInt()
   @Min(0)
   @Max(1)

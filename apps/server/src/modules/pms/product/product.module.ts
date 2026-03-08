@@ -9,7 +9,7 @@ import { MemberPriceEntity } from './infrastructure/persistence/relational/entit
 import { ProductVertifyRecordEntity } from './infrastructure/persistence/relational/entities/product-vertify-record.entity';
 import { SkuStockEntity } from '@/modules/pms/sku-stock/infrastructure/persistence/relational/entities/sku-stock.entity';
 import { SubjectProductRelationEntity } from '@/modules/cms/subject/infrastructure/persistence/relational/entities/subject-product-relation.entity';
-import { PrefrenceAreaProductRelationEntity } from '@/modules/cms/prefrence-area/infrastructure/persistence/relational/entities/prefrence-area-product-relation.entity';
+import { PreferenceAreaProductRelationEntity } from '@/modules/cms/preference-area/infrastructure/persistence/relational/entities/preference-area-product-relation.entity';
 
 import { ProductService } from './product.service';
 import { ProductController } from './product.controller';
@@ -28,7 +28,7 @@ import { ProductController } from './product.controller';
       SkuStockEntity,
       // CMS 关联表
       SubjectProductRelationEntity,
-      PrefrenceAreaProductRelationEntity,
+      PreferenceAreaProductRelationEntity,
     ]),
   ],
   controllers: [ProductController],

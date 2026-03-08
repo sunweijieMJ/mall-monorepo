@@ -35,6 +35,8 @@ export class UpdateAdminUserDto {
 
   @ApiPropertyOptional({
     description: '帐号启用状态：0->禁用；1->启用',
+    type: 'integer',
+    enum: [0, 1],
     example: 1,
   })
   @IsInt()

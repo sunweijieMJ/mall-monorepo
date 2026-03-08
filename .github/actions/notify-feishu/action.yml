@@ -1,0 +1,199 @@
+# 飞书机器人部署通知 Composite Action
+# 发送飞书交互卡片消息，支持签名校验
+#
+# 使用方式:
+#   - uses: ./.github/actions/notify-feishu
+#     with:
+#       app_name: 'Server'
+#       status: 'success'
+#       details: |
+#         构建推送: success
+#         部署: success
+#       webhook_url: ${{ secrets.FEISHU_WEBHOOK_URL }}
+#
+# 前置配置（GitHub Secrets）:
+#   FEISHU_WEBHOOK_URL    - 飞书自定义机器人 Webhook 地址
+#   FEISHU_WEBHOOK_SECRET - 签名校验密钥（可选）
+
+name: '飞书部署通知'
+description: '发送飞书交互卡片消息通知部署结果'
+
+inputs:
+  app_name:
+    description: '应用名称（Server / Admin / Mobile）'
+    required: true
+  status:
+    description: '部署状态（success / failure）'
+    required: true
+  details:
+    description: '各阶段状态，每行一条，格式: "阶段名: 状态"'
+    required: true
+  git_hash:
+    description: 'Git 短 Hash'
+    required: false
+    default: ''
+  webhook_url:
+    description: '飞书 Webhook URL'
+    required: true
+  webhook_secret:
+    description: '飞书 Webhook 签名密钥（可选）'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Send Feishu notification
+      if: inputs.webhook_url != ''
+      shell: bash
+      env:
+        APP_NAME: ${{ inputs.app_name }}
+        STATUS: ${{ inputs.status }}
+        DETAILS: ${{ inputs.details }}
+        GIT_HASH: ${{ inputs.git_hash }}
+        WEBHOOK_URL: ${{ inputs.webhook_url }}
+        WEBHOOK_SECRET: ${{ inputs.webhook_secret }}
+        GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        GIT_BRANCH: ${{ github.ref_name }}
+        GIT_ACTOR: ${{ github.actor }}
+      run: |
+        # === 构建阶段状态行 ===
+        detail_elements=""
+        while IFS= read -r line; do
+          [ -z "$line" ] && continue
+          stage_name="${line%%:*}"
+          stage_status="${line#*: }"
+          # 去除首尾空格
+          stage_name="$(echo "$stage_name" | xargs)"
+          stage_status="$(echo "$stage_status" | xargs)"
+
+          if [[ "$stage_status" == "success" ]]; then
+            icon="✅"
+          elif [[ "$stage_status" == "skipped" ]]; then
+            icon="⏭️"
+          else
+            icon="❌"
+          fi
+
+          detail_elements="${detail_elements}
+          {
+            \"tag\": \"div\",
+            \"text\": {
+              \"tag\": \"lark_md\",
+              \"content\": \"${stage_name}  ${icon} ${stage_status}\"
+            }
+          },"
+        done <<< "$DETAILS"
+
+        # 去掉末尾逗号
+        detail_elements="${detail_elements%,}"
+
+        # === 卡片颜色和标题 ===
+        if [[ "$STATUS" == "success" ]]; then
+          header_color="green"
+          header_title="✅ ${APP_NAME} 部署成功"
+        else
+          header_color="red"
+          header_title="❌ ${APP_NAME} 部署失败"
+        fi
+
+        # === Git Hash 显示 ===
+        git_hash_display="${GIT_HASH:-${GITHUB_SHA:0:7}}"
+
+        # === 构建时间（UTC+8） ===
+        build_time=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M')
+
+        # === 构造卡片 JSON ===
+        card_json=$(cat <<CARD_EOF
+        {
+          "msg_type": "interactive",
+          "card": {
+            "header": {
+              "title": {
+                "tag": "plain_text",
+                "content": "${header_title}"
+              },
+              "template": "${header_color}"
+            },
+            "elements": [
+              ${detail_elements},
+              {
+                "tag": "hr"
+              },
+              {
+                "tag": "div",
+                "fields": [
+                  {
+                    "is_short": true,
+                    "text": {
+                      "tag": "lark_md",
+                      "content": "**分支**\n${GIT_BRANCH}"
+                    }
+                  },
+                  {
+                    "is_short": true,
+                    "text": {
+                      "tag": "lark_md",
+                      "content": "**提交**\n${git_hash_display}"
+                    }
+                  },
+                  {
+                    "is_short": true,
+                    "text": {
+                      "tag": "lark_md",
+                      "content": "**触发**\n${GIT_ACTOR}"
+                    }
+                  },
+                  {
+                    "is_short": true,
+                    "text": {
+                      "tag": "lark_md",
+                      "content": "**时间**\n${build_time}"
+                    }
+                  }
+                ]
+              },
+              {
+                "tag": "action",
+                "actions": [
+                  {
+                    "tag": "button",
+                    "text": {
+                      "tag": "plain_text",
+                      "content": "查看详情"
+                    },
+                    "type": "primary",
+                    "url": "${GITHUB_RUN_URL}"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+        CARD_EOF
+        )
+
+        # === 签名计算（可选） ===
+        # 飞书签名算法: HMAC-SHA256(key="${timestamp}\n${secret}", msg="")
+        if [[ -n "$WEBHOOK_SECRET" ]]; then
+          timestamp=$(date +%s)
+          string_to_sign=$(printf '%s\n%s' "$timestamp" "$WEBHOOK_SECRET")
+          sign=$(printf '' | openssl dgst -sha256 -hmac "$string_to_sign" -binary | openssl base64 -A)
+
+          # 将签名字段注入 JSON
+          card_json=$(echo "$card_json" | jq --arg ts "$timestamp" --arg sign "$sign" '. + {timestamp: $ts, sign: $sign}')
+        fi
+
+        # === 发送请求 ===
+        response=$(curl -s -w "\n%{http_code}" -X POST "$WEBHOOK_URL" \
+          -H "Content-Type: application/json" \
+          -d "$card_json")
+
+        http_code=$(echo "$response" | tail -1)
+        body=$(echo "$response" | head -n -1)
+
+        if [[ "$http_code" -ne 200 ]]; then
+          echo "::warning::飞书通知发送失败 (HTTP ${http_code}): ${body}"
+        else
+          echo "飞书通知发送成功"
+        fi

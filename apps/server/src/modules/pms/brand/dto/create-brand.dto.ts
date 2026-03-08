@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreateBrandDto {
@@ -12,13 +12,14 @@ export class CreateBrandDto {
   @IsOptional()
   firstLetter?: string;
 
-  @ApiPropertyOptional({ example: 0 })
+  @ApiPropertyOptional({ type: 'integer', example: 0 })
   @IsInt()
   @Min(0)
   @IsOptional()
   sort?: number;
 
   @ApiPropertyOptional({
+    type: 'integer',
     description: '是否为品牌制造商：0-否 1-是',
     example: 0,
   })
@@ -26,7 +27,7 @@ export class CreateBrandDto {
   @IsOptional()
   factoryStatus?: number;
 
-  @ApiPropertyOptional({ example: 1 })
+  @ApiPropertyOptional({ type: 'integer', example: 1 })
   @IsInt()
   @IsOptional()
   showStatus?: number;
@@ -46,3 +47,5 @@ export class CreateBrandDto {
   @IsOptional()
   brandStory?: string;
 }
+
+export class UpdateBrandDto extends PartialType(CreateBrandDto) {}

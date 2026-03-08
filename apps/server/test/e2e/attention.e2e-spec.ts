@@ -42,31 +42,30 @@ describe('Attention API (e2e)', () => {
   afterAll(() => app?.close());
   beforeEach(() => vi.clearAllMocks());
 
-  const baseUrl = '/api/v1/portal/attention';
+  const baseUrl = '/api/v1/portal/attentions';
 
-  describe('POST /add', () => {
+  describe('POST /create', () => {
     it('关注品牌 → 201', async () => {
       mockService.add.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/add`)
+        .post(`${baseUrl}/create`)
         .set('Authorization', bearerHeader(token))
         .send({ brandId: 1, brandName: '测试品牌' })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
       expect(mockService.add).toHaveBeenCalled();
     });
   });
 
-  describe('DELETE /delete', () => {
+  describe('DELETE /:brandId', () => {
     it('取消关注品牌 → 200', async () => {
       mockService.delete.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .delete(`${baseUrl}/delete`)
+        .delete(`${baseUrl}/1`)
         .set('Authorization', bearerHeader(token))
-        .query({ brandId: '1' })
         .expect(200);
 
       expect(res.body.code).toBe(200);
@@ -90,14 +89,14 @@ describe('Attention API (e2e)', () => {
     });
   });
 
-  describe('POST /clear', () => {
-    it('清空全部关注记录 → 201', async () => {
+  describe('DELETE /clear', () => {
+    it('清空全部关注记录 → 200', async () => {
       mockService.clear.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/clear`)
+        .delete(`${baseUrl}/clear`)
         .set('Authorization', bearerHeader(token))
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });

@@ -44,7 +44,7 @@ describe('ReturnReason API (e2e)', () => {
   afterAll(() => app?.close());
   beforeEach(() => vi.clearAllMocks());
 
-  const baseUrl = '/api/v1/returnReason';
+  const baseUrl = '/api/v1/admin/oms/return-reasons';
 
   describe('GET /list', () => {
     it('分页查询退货原因 → 200', async () => {
@@ -101,36 +101,47 @@ describe('ReturnReason API (e2e)', () => {
     });
   });
 
-  describe('POST /update/:id', () => {
-    it('更新退货原因 → 201', async () => {
+  describe('PUT /update/:id', () => {
+    it('更新退货原因 → 200', async () => {
       mockService.update.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/update/1`)
+        .put(`${baseUrl}/update/1`)
         .set('Authorization', bearerHeader(token))
         .send({ name: '质量不合格' })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('POST /delete', () => {
-    it('批量删除退货原因 → 201', async () => {
+  describe('DELETE /delete', () => {
+    it('批量删除退货原因 → 200', async () => {
       mockService.delete.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/delete`)
+        .delete(`${baseUrl}/delete`)
         .set('Authorization', bearerHeader(token))
-        .query({ ids: '1,2' })
-        .expect(201);
+        .send({ ids: [1, 2] })
+        .expect(200);
 
       expect(res.body.code).toBe(200);
       expect(mockService.delete).toHaveBeenCalledWith([1, 2]);
     });
   });
 
-  // 注意：POST /update/status 被 POST /update/:id 路由先匹配
-  // （NestJS 按声明顺序匹配，:id 在 status 之前），
-  // 这是控制器路由设计的已知限制，在此跳过 E2E 测试。
+  describe('PUT /update/status', () => {
+    it('批量更新退货原因状态 → 200', async () => {
+      mockService.updateStatus.mockResolvedValue(undefined);
+
+      const res = await request(app.getHttpServer())
+        .put(`${baseUrl}/update/status`)
+        .set('Authorization', bearerHeader(token))
+        .send({ ids: [1, 2], status: 0 })
+        .expect(200);
+
+      expect(res.body.code).toBe(200);
+      expect(mockService.updateStatus).toHaveBeenCalledWith([1, 2], 0);
+    });
+  });
 });

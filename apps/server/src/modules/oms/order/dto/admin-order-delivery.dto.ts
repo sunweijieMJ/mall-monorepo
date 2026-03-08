@@ -3,7 +3,7 @@ import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 /** 单条发货信息 */
 export class AdminOrderDeliveryDto {
-  @ApiProperty({ description: '订单ID' })
+  @ApiProperty({ description: '订单ID', type: 'integer' })
   @IsNumber()
   @IsNotEmpty()
   orderId: number;

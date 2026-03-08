@@ -1,3 +1,4 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   Column,
   Entity,
@@ -14,31 +15,40 @@ import type { ProductEntity } from '../../../../../product/infrastructure/persis
 
 @Entity('pms_sku_stock')
 export class SkuStockEntity {
+  @ApiProperty({ description: '主键ID', type: 'integer' })
   @PrimaryGeneratedColumn()
   id: number;
 
+  @ApiProperty({ description: '商品ID', type: 'integer' })
   @Index()
   @Column({ name: 'product_id' })
   productId: number;
 
+  @ApiProperty({ description: 'sku编码' })
   @Column({ name: 'sku_code', length: 64, comment: 'sku编码' })
   skuCode: string;
 
+  @ApiProperty({ description: '价格', type: 'number' })
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   price: string;
 
+  @ApiProperty({ type: 'integer', description: '库存' })
   @Column({ default: 0 })
   stock: number;
 
+  @ApiProperty({ type: 'integer', description: '预警库存' })
   @Column({ name: 'low_stock', default: 0, comment: '预警库存' })
   lowStock: number;
 
+  @ApiPropertyOptional({ description: '展示图片' })
   @Column({ nullable: true })
   pic: string;
 
+  @ApiProperty({ type: 'integer', description: '销量' })
   @Column({ default: 0 })
   sale: number;
 
+  @ApiPropertyOptional({ description: '促销价格', type: 'number' })
   @Column({
     name: 'promotion_price',
     type: 'decimal',
@@ -48,9 +58,11 @@ export class SkuStockEntity {
   })
   promotionPrice: string | null;
 
+  @ApiProperty({ type: 'integer', description: '锁定库存' })
   @Column({ name: 'lock_stock', default: 0, comment: '锁定库存' })
   lockStock: number;
 
+  @ApiPropertyOptional({ description: '规格数据，JSON格式' })
   @Column({
     name: 'sp_data',
     type: 'text',
@@ -59,6 +71,7 @@ export class SkuStockEntity {
   })
   spData: string;
 
+  @ApiProperty({ type: 'integer', description: '乐观锁版本号' })
   @VersionColumn({ comment: '乐观锁版本号' })
   version: number;
 

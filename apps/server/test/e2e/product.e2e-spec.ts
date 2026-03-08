@@ -88,14 +88,14 @@ describe('Product API (e2e)', () => {
     });
   });
 
-  describe('GET /simpleList', () => {
+  describe('GET /options', () => {
     it('简单商品列表 → 200', async () => {
       mockProductService.findSimpleList.mockResolvedValue([
         { id: 1, name: '商品A', pic: 'a.jpg' },
       ]);
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/simpleList`)
+        .get(`${baseUrl}/options`)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -103,7 +103,7 @@ describe('Product API (e2e)', () => {
     });
   });
 
-  describe('GET /updateInfo/:id', () => {
+  describe('GET /:id', () => {
     it('获取商品详情 → 200', async () => {
       mockProductService.getUpdateInfo.mockResolvedValue({
         id: 1,
@@ -113,7 +113,7 @@ describe('Product API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/updateInfo/1`)
+        .get(`${baseUrl}/1`)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -130,18 +130,18 @@ describe('Product API (e2e)', () => {
         .post(`${baseUrl}/create`)
         .set('Authorization', bearerHeader(token))
         .send({ name: '新商品', brandId: 1, productCategoryId: 1, price: 99 })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('POST /update/:id', () => {
+  describe('PUT /update/:id', () => {
     it('更新商品 → 200', async () => {
       mockProductService.update.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/update/1`)
+        .put(`${baseUrl}/update/1`)
         .set('Authorization', bearerHeader(token))
         .send({
           name: '修改后的商品',
@@ -149,60 +149,55 @@ describe('Product API (e2e)', () => {
           productCategoryId: 1,
           price: 99,
         })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('POST /delete', () => {
-    it('缺少 ids → 400', async () => {
+  describe('DELETE /delete', () => {
+    it('缺少 ids → 422', async () => {
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/delete`)
+        .delete(`${baseUrl}/delete`)
         .set('Authorization', bearerHeader(token))
-        .expect(400);
+        .expect(422);
 
-      expect(res.body.code).toBe(400);
+      expect(res.body.code).toBe(422);
     });
 
     it('批量删除 → 200', async () => {
       mockProductService.delete.mockResolvedValue(2);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/delete`)
+        .delete(`${baseUrl}/delete`)
         .set('Authorization', bearerHeader(token))
-        .query({ ids: '1,2' })
-        .expect(201);
+        .send({ ids: [1, 2] })
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  // 注意：POST /update/publishStatus、/update/newStatus、/update/recommendStatus
-  // 会被 POST /update/:id 路由先匹配（NestJS 按声明顺序），
-  // 这是控制器路由设计的已知限制，在此跳过 E2E 测试。
-
-  describe('POST /updateVerifyStatus', () => {
-    it('批量更新审核状态 → 201', async () => {
+  describe('PUT /update/verify-status', () => {
+    it('批量更新审核状态 → 200', async () => {
       mockProductService.updateVerifyStatus.mockResolvedValue(1);
 
+      // 使用 body 传参：ids 为数组，verifyStatus 和 detail 为字段
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/updateVerifyStatus`)
+        .put(`${baseUrl}/update/verify-status`)
         .set('Authorization', bearerHeader(token))
-        .query({ ids: '1', verifyStatus: '1', detail: '审核通过' })
-        .expect(201);
+        .send({ ids: [1], verifyStatus: 1, detail: '审核通过' })
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
 
-    it('缺少 ids → 400', async () => {
-      const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/updateVerifyStatus`)
+    it('缺少 ids → 422', async () => {
+      await request(app.getHttpServer())
+        .put(`${baseUrl}/update/verify-status`)
         .set('Authorization', bearerHeader(token))
-        .query({ verifyStatus: '1', detail: '审核通过' })
-        .expect(400);
-
-      expect(res.body.code).toBe(400);
+        .send({ verifyStatus: 1, detail: '审核通过' })
+        .expect(422);
     });
   });
 });

@@ -73,6 +73,7 @@ export const baseConfig = [
       'build/**/*',
       'dist/**/*',
       'logs/**/*',
+      'coverage/**/*',
     ],
   },
 ];
