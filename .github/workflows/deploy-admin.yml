@@ -5,12 +5,13 @@
 #   1. push 到 main / master / release/**（admin 相关路径变更时）
 #   2. 手动触发                  - 可选择是否执行部署
 #
-# 配置步骤:
+# 配置步骤（GitHub Secrets）:
 #   在 GitHub 仓库 Settings -> Secrets and variables -> Actions 中添加:
-#     - DEPLOY_SERVER_HOST:      服务器 IP 或域名
-#     - DEPLOY_SERVER_USER:      SSH 用户名
-#     - DEPLOY_SERVER_PATH:      部署目标路径 (如 /opt/deploy/mall-admin)
-#     - DEPLOY_SSH_PRIVATE_KEY:  SSH 私钥 (完整内容，包括 BEGIN/END 行)
+#     - DEPLOY_HOST:        服务器 IP 或域名
+#     - DEPLOY_PORT:        SSH 端口（可选，默认 22）
+#     - DEPLOY_USER:        SSH 用户名
+#     - DEPLOY_SSH_KEY:     SSH 私钥（完整内容，包括 BEGIN/END 行）
+#     - ADMIN_DEPLOY_PATH:  部署目标路径（如 /opt/deploy/mall-admin）
 
 name: Deploy Admin
 
