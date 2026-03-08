@@ -58,18 +58,18 @@ export class ProductService {
     // 上架状态过滤
     if (query.publishStatus !== undefined && query.publishStatus !== null) {
       qb.andWhere('p.publishStatus = :publishStatus', {
-        publishStatus: Number(query.publishStatus),
+        publishStatus: query.publishStatus,
       });
     }
     // 审核状态过滤
     if (query.verifyStatus !== undefined && query.verifyStatus !== null) {
       qb.andWhere('p.verifyStatus = :verifyStatus', {
-        verifyStatus: Number(query.verifyStatus),
+        verifyStatus: query.verifyStatus,
       });
     }
     // 品牌过滤
     if (query.brandId !== undefined && query.brandId !== null) {
-      qb.andWhere('p.brandId = :brandId', { brandId: Number(query.brandId) });
+      qb.andWhere('p.brandId = :brandId', { brandId: query.brandId });
     }
     // 商品分类过滤
     if (
@@ -77,7 +77,7 @@ export class ProductService {
       query.productCategoryId !== null
     ) {
       qb.andWhere('p.productCategoryId = :productCategoryId', {
-        productCategoryId: Number(query.productCategoryId),
+        productCategoryId: query.productCategoryId,
       });
     }
 

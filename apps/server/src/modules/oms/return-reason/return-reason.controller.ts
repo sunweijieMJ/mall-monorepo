@@ -16,6 +16,7 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import { ApiPaginatedResponse } from '@/common/decorators/api-paginated-response.decorator';
@@ -49,6 +50,7 @@ export class ReturnReasonController {
 
   @Put('update/:id')
   @ApiOperation({ summary: '修改退货原因' })
+  @ApiParam({ name: 'id', description: '退货原因ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -73,6 +75,7 @@ export class ReturnReasonController {
 
   @Get(':id')
   @ApiOperation({ summary: '获取退货原因详情' })
+  @ApiParam({ name: 'id', description: '退货原因ID', type: 'integer' })
   @ApiOkResponse({ type: ReturnReasonVo })
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.service.getItem(id);

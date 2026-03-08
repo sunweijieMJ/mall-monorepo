@@ -61,11 +61,11 @@ export class CouponEntity {
   })
   minPoint: string;
 
-  @ApiPropertyOptional({ description: '开始时间' })
+  @ApiPropertyOptional({ description: '开始时间', format: 'date-time' })
   @Column({ name: 'start_time', type: 'timestamp', nullable: true })
   startTime: Date;
 
-  @ApiPropertyOptional({ description: '结束时间' })
+  @ApiPropertyOptional({ description: '结束时间', format: 'date-time' })
   @Column({ name: 'end_time', type: 'timestamp', nullable: true })
   endTime: Date;
 
@@ -97,7 +97,7 @@ export class CouponEntity {
   @Column({ name: 'receive_count', default: 0, comment: '领取数量' })
   receiveCount: number;
 
-  @ApiPropertyOptional({ description: '可以领取的日期' })
+  @ApiPropertyOptional({ description: '可以领取的日期', format: 'date-time' })
   @Column({
     name: 'enable_time',
     type: 'timestamp',

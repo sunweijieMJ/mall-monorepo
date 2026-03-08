@@ -6,6 +6,7 @@ import { CartService } from '@/modules/portal/cart/cart.service';
 import { CartItemEntity } from '@/modules/portal/cart/infrastructure/persistence/relational/entities/cart-item.entity';
 import { SkuStockEntity } from '@/modules/pms/sku-stock/infrastructure/persistence/relational/entities/sku-stock.entity';
 import { ProductEntity } from '@/modules/pms/product/infrastructure/persistence/relational/entities/product.entity';
+import { TransactionService } from '@/infrastructure/database/transaction/transaction.service';
 import { createMockRepository } from '../../../../helpers/mock.factory';
 
 const cartItemFixture = (overrides = {}) =>
@@ -46,8 +47,21 @@ describe('CartService', () => {
   const mockSkuRepo = createMockRepository();
   const mockProductRepo = createMockRepository();
 
+  // 事务 mock：直接执行回调，manager 代理到对应 repo
+  const mockManager = {
+    save: vi.fn().mockResolvedValue({}),
+    delete: vi.fn().mockResolvedValue({}),
+  };
+  const mockTransactionService = {
+    run: vi.fn().mockImplementation(async (cb: any) => cb(mockManager)),
+  };
+
   beforeEach(async () => {
     vi.clearAllMocks();
+    mockTransactionService.run.mockImplementation(async (cb: any) =>
+      cb(mockManager),
+    );
+
     const module = await Test.createTestingModule({
       providers: [
         CartService,
@@ -57,6 +71,7 @@ describe('CartService', () => {
           provide: getRepositoryToken(ProductEntity),
           useValue: mockProductRepo,
         },
+        { provide: TransactionService, useValue: mockTransactionService },
       ],
     }).compile();
     service = module.get(CartService);
@@ -173,17 +188,17 @@ describe('CartService', () => {
         .mockResolvedValueOnce(original) // 查原条目
         .mockResolvedValueOnce(existing); // 查目标 SKU 是否已在购物车
       mockSkuRepo.findOne.mockResolvedValue(skuFixture({ id: 300, stock: 50 }));
-      mockCartRepo.save.mockResolvedValue({});
-      mockCartRepo.delete.mockResolvedValue({});
-
       await service.updateAttr(1, { id: 1, productSkuId: 300 });
 
       // 合并后数量 = 3 + 2 = 5
-      expect(mockCartRepo.save).toHaveBeenCalledWith(
+      expect(mockManager.save).toHaveBeenCalledWith(
+        CartItemEntity,
         expect.objectContaining({ productQuantity: 5 }),
       );
       // 删除原条目
-      expect(mockCartRepo.delete).toHaveBeenCalledWith({ id: 1 });
+      expect(mockManager.delete).toHaveBeenCalledWith(CartItemEntity, {
+        id: 1,
+      });
     });
 
     it('目标 SKU 不在购物车 → 更新当前条目', async () => {
@@ -192,11 +207,10 @@ describe('CartService', () => {
         .mockResolvedValueOnce(original)
         .mockResolvedValueOnce(null); // 目标 SKU 不在购物车
       mockSkuRepo.findOne.mockResolvedValue(skuFixture({ id: 300 }));
-      mockCartRepo.save.mockResolvedValue({});
-
       await service.updateAttr(1, { id: 1, productSkuId: 300 });
 
-      expect(mockCartRepo.save).toHaveBeenCalledWith(
+      expect(mockManager.save).toHaveBeenCalledWith(
+        CartItemEntity,
         expect.objectContaining({ productSkuId: 300 }),
       );
     });

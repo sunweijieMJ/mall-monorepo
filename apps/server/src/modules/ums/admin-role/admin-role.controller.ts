@@ -22,6 +22,7 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
@@ -52,6 +53,7 @@ export class AdminRoleController {
 
   @Put('update/:id')
   @ApiOperation({ summary: '修改角色' })
+  @ApiParam({ name: 'id', description: '角色ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -84,6 +86,7 @@ export class AdminRoleController {
 
   @Put('update/status/:id')
   @ApiOperation({ summary: '修改角色状态' })
+  @ApiParam({ name: 'id', description: '角色ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updateStatus(
     @Param('id', ParseIntPipe) id: number,
@@ -94,6 +97,7 @@ export class AdminRoleController {
 
   @Get(':id/menus')
   @ApiOperation({ summary: '获取角色相关菜单' })
+  @ApiParam({ name: 'id', description: '角色ID', type: 'integer' })
   @ApiOkResponse({ type: [AdminMenuVo] })
   listMenu(@Param('id', ParseIntPipe) id: number) {
     return this.service.listMenu(id);
@@ -101,6 +105,7 @@ export class AdminRoleController {
 
   @Get(':id/resources')
   @ApiOperation({ summary: '获取角色相关资源' })
+  @ApiParam({ name: 'id', description: '角色ID', type: 'integer' })
   @ApiOkResponse({ type: [AdminResourceVo] })
   listResource(@Param('id', ParseIntPipe) id: number) {
     return this.service.listResource(id);
@@ -108,6 +113,7 @@ export class AdminRoleController {
 
   @Put(':id/menus')
   @ApiOperation({ summary: '给角色分配菜单' })
+  @ApiParam({ name: 'id', description: '角色ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   allocMenu(@Param('id', ParseIntPipe) id: number, @Body() dto: AllocMenuDto) {
     return this.service.allocMenu(id, dto.menuIds);
@@ -115,6 +121,7 @@ export class AdminRoleController {
 
   @Put(':id/resources')
   @ApiOperation({ summary: '给角色分配资源' })
+  @ApiParam({ name: 'id', description: '角色ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   allocResource(
     @Param('id', ParseIntPipe) id: number,

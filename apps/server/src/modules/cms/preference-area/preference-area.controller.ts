@@ -17,6 +17,7 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
@@ -55,6 +56,7 @@ export class PreferenceAreaController {
 
   @Put('update/:id')
   @ApiOperation({ summary: '更新优选专区' })
+  @ApiParam({ name: 'id', description: '优选专区ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -85,6 +87,7 @@ export class PreferenceAreaController {
 
   @Get(':id')
   @ApiOperation({ summary: '获取优选专区详情' })
+  @ApiParam({ name: 'id', description: '优选专区ID', type: 'integer' })
   @ApiWrappedResponse(PreferenceAreaVo)
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.preferenceAreaService.getItem(id);

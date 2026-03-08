@@ -16,6 +16,7 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
@@ -50,6 +51,7 @@ export class MemberLevelController {
 
   @Get(':id')
   @ApiOperation({ summary: '获取单个会员等级' })
+  @ApiParam({ name: 'id', description: '会员等级ID', type: 'integer' })
   @ApiOkResponse({ type: MemberLevelVo })
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.memberLevelService.getItem(id);
@@ -65,6 +67,7 @@ export class MemberLevelController {
 
   @Put('update/:id')
   @ApiOperation({ summary: '更新会员等级' })
+  @ApiParam({ name: 'id', description: '会员等级ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(
     @Param('id', ParseIntPipe) id: number,

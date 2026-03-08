@@ -176,7 +176,7 @@ export class ReturnApplyService {
       returnName: dto.returnName ?? '',
       returnPhone: dto.returnPhone ?? '',
       memberUsername: member?.username ?? '',
-      reason: dto.returnReason ?? '',
+      reason: dto.reason ?? '',
       description: dto.description,
       proofPics: dto.proofPics,
       productName: orderItem.productName ?? '',

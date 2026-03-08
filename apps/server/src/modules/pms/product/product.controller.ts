@@ -21,6 +21,7 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
@@ -70,6 +71,7 @@ export class ProductController {
     summary: '获取商品详情（含SKU、属性值等聚合信息）',
     description: '获取商品完整信息，包括 SKU、属性值、阶梯价、满减等',
   })
+  @ApiParam({ name: 'id', description: '商品ID', type: 'integer' })
   @ApiOkResponse({ type: ProductUpdateInfoVo })
   getUpdateInfo(@Param('id', ParseIntPipe) id: number) {
     return this.productService.getUpdateInfo(id);
@@ -131,6 +133,7 @@ export class ProductController {
     summary: '更新商品（先删后插 + SKU 增量更新）',
     description: '更新商品主表，子表先删后插，SKU 做增量三路处理',
   })
+  @ApiParam({ name: 'id', description: '商品ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProductDto) {
     return this.productService.update(id, dto);

@@ -13,6 +13,7 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
@@ -46,6 +47,7 @@ export class AdminUserController {
 
   @Get(':id')
   @ApiOperation({ summary: '获取指定用户信息' })
+  @ApiParam({ name: 'id', description: '管理员ID', type: 'integer' })
   @ApiOkResponse({ type: AdminUserVo })
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.service.getItem(id);
@@ -53,6 +55,7 @@ export class AdminUserController {
 
   @Put('update/:id')
   @ApiOperation({ summary: '修改指定用户信息' })
+  @ApiParam({ name: 'id', description: '管理员ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -63,6 +66,7 @@ export class AdminUserController {
 
   @Delete('delete/:id')
   @ApiOperation({ summary: '删除指定用户信息' })
+  @ApiParam({ name: 'id', description: '管理员ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.service.delete(id);
@@ -70,6 +74,7 @@ export class AdminUserController {
 
   @Put('update/status/:id')
   @ApiOperation({ summary: '修改帐号状态' })
+  @ApiParam({ name: 'id', description: '管理员ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updateStatus(
     @Param('id', ParseIntPipe) id: number,
@@ -87,6 +92,7 @@ export class AdminUserController {
 
   @Put(':id/roles')
   @ApiOperation({ summary: '给用户分配角色' })
+  @ApiParam({ name: 'id', description: '管理员ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updateRole(
     @Param('id', ParseIntPipe) id: number,
@@ -97,6 +103,7 @@ export class AdminUserController {
 
   @Get(':id/roles')
   @ApiOperation({ summary: '获取指定用户的角色' })
+  @ApiParam({ name: 'id', description: '管理员ID', type: 'integer' })
   @ApiOkResponse({ type: [AdminRoleVo] })
   getRoleList(@Param('id', ParseIntPipe) id: number) {
     return this.service.getRoleList(id);

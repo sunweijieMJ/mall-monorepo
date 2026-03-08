@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -7,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseArrayPipe,
   ParseIntPipe,
   Post,
   Put,
@@ -16,6 +16,7 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
@@ -87,6 +88,7 @@ export class MemberAddressController {
     summary: '获取收货地址详情',
     description: '对应前端 GET /member/address/:id',
   })
+  @ApiParam({ name: 'id', description: '收货地址ID', type: 'integer' })
   @ApiOkResponse({ type: MemberAddressVo })
   getItem(
     @Param('id', ParseIntPipe) id: number,
@@ -114,6 +116,7 @@ export class MemberAddressController {
     summary: '更新收货地址',
     description: '对应前端 PUT /member/address/update/:id',
   })
+  @ApiParam({ name: 'id', description: '收货地址ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -128,6 +131,7 @@ export class MemberAddressController {
     summary: '删除收货地址',
     description: '对应前端 DELETE /member/address/delete/:id',
   })
+  @ApiParam({ name: 'id', description: '收货地址ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   delete(
     @Param('id', ParseIntPipe) id: number,
@@ -147,6 +151,7 @@ export class MemberCouponController {
   @Post(':couponId')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '领取优惠券' })
+  @ApiParam({ name: 'couponId', description: '优惠券ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   create(
     @Param('couponId', ParseIntPipe) couponId: number,
@@ -195,6 +200,7 @@ export class MemberCouponController {
 
   @Get('product/:productId')
   @ApiOperation({ summary: '查询商品相关可用优惠券' })
+  @ApiParam({ name: 'productId', description: '商品ID', type: 'integer' })
   @ApiOkResponse({ type: [CouponVo] })
   listCouponsByProduct(
     @Param('productId', ParseIntPipe) productId: number,
@@ -210,18 +216,16 @@ export class MemberCouponController {
     name: 'cartIds',
     required: true,
     description: '购物车条目 ID，逗号分隔',
+    type: 'array',
+    items: { type: 'integer' },
   })
   listCartCoupons(
     @CurrentUser() user: JwtPayload,
-    @Query('cartIds') cartIds: string,
+    @Query('cartIds', new ParseArrayPipe({ items: Number, separator: ',' }))
+    cartIds: number[],
   ) {
-    if (!cartIds) throw new BadRequestException('cartIds 参数不能为空');
-    const ids = cartIds
-      .split(',')
-      .map((id) => Number(id.trim()))
-      .filter((id) => id > 0);
-    if (ids.length === 0) return [];
-    return this.memberService.listCartCoupons(user.sub, ids);
+    if (cartIds.length === 0) return [];
+    return this.memberService.listCartCoupons(user.sub, cartIds);
   }
 }
 

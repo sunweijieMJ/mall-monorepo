@@ -16,6 +16,7 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
@@ -45,6 +46,7 @@ export class AdminMenuController {
 
   @Put('update/:id')
   @ApiOperation({ summary: '修改后台菜单' })
+  @ApiParam({ name: 'id', description: '菜单ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -55,6 +57,7 @@ export class AdminMenuController {
 
   @Delete('delete/:id')
   @ApiOperation({ summary: '根据ID删除后台菜单' })
+  @ApiParam({ name: 'id', description: '菜单ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.service.delete(id);
@@ -62,6 +65,7 @@ export class AdminMenuController {
 
   @Get('list/:parentId')
   @ApiOperation({ summary: '根据父菜单ID分页查询子菜单' })
+  @ApiParam({ name: 'parentId', description: '父菜单ID', type: 'integer' })
   @ApiPaginatedResponse(AdminMenuVo)
   list(
     @Param('parentId', ParseIntPipe) parentId: number,
@@ -79,6 +83,7 @@ export class AdminMenuController {
 
   @Get(':id')
   @ApiOperation({ summary: '根据ID获取菜单详情' })
+  @ApiParam({ name: 'id', description: '菜单ID', type: 'integer' })
   @ApiOkResponse({ type: AdminMenuVo })
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.service.getItem(id);
@@ -86,6 +91,7 @@ export class AdminMenuController {
 
   @Put('update/hidden/:id')
   @ApiOperation({ summary: '修改菜单显示状态' })
+  @ApiParam({ name: 'id', description: '菜单ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updateHiddenStatus(
     @Param('id', ParseIntPipe) id: number,

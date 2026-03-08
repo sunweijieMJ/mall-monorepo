@@ -191,16 +191,6 @@ export class MemberService {
       throw new BadRequestException('优惠券已过期');
     }
 
-    // 事务外的快速失败检查（非安全保障，仅减少无效事务）
-    if (coupon.perLimit > 0) {
-      const receivedCount = await this.couponHistoryRepo.count({
-        where: { memberId, couponId },
-      });
-      if (receivedCount >= coupon.perLimit) {
-        throw new BadRequestException('超出领取限制');
-      }
-    }
-
     // 事务：悲观锁锁定优惠券行，串行化并发领取，确保限领数和库存均不超出
     await this.transactionService.run(async (manager) => {
       // 悲观锁锁定优惠券行，所有并发请求在此处串行化

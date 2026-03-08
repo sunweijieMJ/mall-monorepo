@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseArrayPipe,
   ParseIntPipe,
   Post,
   Put,
@@ -18,6 +19,8 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
@@ -76,7 +79,7 @@ export class CartController {
     @CurrentUser() user: JwtPayload,
     @Body() dto: UpdateCartQuantityDto,
   ) {
-    return this.service.updateQuantity(user.sub, dto.id, dto.quantity);
+    return this.service.updateQuantity(user.sub, dto.id, dto.productQuantity);
   }
 
   @Delete('delete')
@@ -102,12 +105,22 @@ export class CartController {
     description: '对应前端 GET /cart/promotion，结算页用于展示折后价和优惠信息',
   })
   @ApiOkResponse({ type: [CartPromotionItemVo] })
+  @ApiQuery({
+    name: 'cartIds',
+    required: false,
+    description: '购物车条目 ID，逗号分隔',
+    type: 'array',
+    items: { type: 'integer' },
+  })
   promotionList(
     @CurrentUser() user: JwtPayload,
-    @Query('cartIds') cartIds?: string,
+    @Query(
+      'cartIds',
+      new ParseArrayPipe({ items: Number, separator: ',', optional: true }),
+    )
+    cartIds?: number[],
   ) {
-    const ids = cartIds ? cartIds.split(',').map(Number) : undefined;
-    return this.orderService.listCartPromotion(user.sub, ids);
+    return this.orderService.listCartPromotion(user.sub, cartIds);
   }
 
   @Get('product/:productId')
@@ -115,6 +128,7 @@ export class CartController {
     summary: '获取购物车商品的规格列表',
     description: '对应前端 GET /cart/getProduct/:productId，用于重新选择规格',
   })
+  @ApiParam({ name: 'productId', description: '商品ID', type: 'integer' })
   @ApiOkResponse({ type: CartProductVo })
   cartProduct(@Param('productId', ParseIntPipe) productId: number) {
     return this.service.getCartProduct(productId);

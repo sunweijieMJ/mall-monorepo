@@ -17,6 +17,7 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
@@ -61,6 +62,7 @@ export class ProductCategoryController {
 
   @Put('update/:id')
   @ApiOperation({ summary: '更新分类' })
+  @ApiParam({ name: 'id', description: '商品分类ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -71,6 +73,7 @@ export class ProductCategoryController {
 
   @Delete('delete/:id')
   @ApiOperation({ summary: '删除分类' })
+  @ApiParam({ name: 'id', description: '商品分类ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.service.delete(id);
@@ -78,6 +81,7 @@ export class ProductCategoryController {
 
   @Get('list/:parentId')
   @ApiOperation({ summary: '按父级获取分类列表（分页）' })
+  @ApiParam({ name: 'parentId', description: '父分类ID', type: 'integer' })
   @ApiPaginatedResponse(ProductCategoryVo)
   list(
     @Param('parentId', ParseIntPipe) parentId: number,
@@ -95,6 +99,7 @@ export class ProductCategoryController {
 
   @Get(':id')
   @ApiOperation({ summary: '获取分类详情' })
+  @ApiParam({ name: 'id', description: '商品分类ID', type: 'integer' })
   @ApiOkResponse({ type: ProductCategoryVo })
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.service.getItem(id);

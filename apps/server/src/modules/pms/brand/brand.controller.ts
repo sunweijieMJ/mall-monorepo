@@ -18,6 +18,7 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
@@ -62,6 +63,7 @@ export class BrandController {
 
   @Put('update/:id')
   @ApiOperation({ summary: '更新品牌' })
+  @ApiParam({ name: 'id', description: '品牌ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateBrandDto) {
     return this.brandService.update(id, dto);
@@ -90,6 +92,7 @@ export class BrandController {
 
   @Get(':id')
   @ApiOperation({ summary: '获取品牌详情' })
+  @ApiParam({ name: 'id', description: '品牌ID', type: 'integer' })
   @ApiWrappedResponse(BrandVo)
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.brandService.getItem(id);
@@ -113,6 +116,7 @@ export class PortalBrandController {
   @Public()
   @Get(':brandId/products')
   @ApiOperation({ summary: '品牌下的商品列表（分页）' })
+  @ApiParam({ name: 'brandId', description: '品牌ID', type: 'integer' })
   @ApiPaginatedResponse(ProductVo)
   productList(
     @Param('brandId', ParseIntPipe) brandId: number,
@@ -124,6 +128,7 @@ export class PortalBrandController {
   @Public()
   @Get(':brandId')
   @ApiOperation({ summary: '品牌详情' })
+  @ApiParam({ name: 'brandId', description: '品牌ID', type: 'integer' })
   @ApiWrappedResponse(BrandVo)
   getItem(@Param('brandId', ParseIntPipe) brandId: number) {
     return this.brandService.getItem(brandId);

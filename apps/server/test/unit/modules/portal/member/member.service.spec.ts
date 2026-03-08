@@ -307,7 +307,10 @@ describe('MemberService', () => {
 
     it('超出每人限领数 → 400', async () => {
       mockCouponRepo.findOne.mockResolvedValue(couponFixture({ perLimit: 1 }));
-      mockCouponHistoryRepo.count.mockResolvedValue(1); // 已领 1 张
+      // 事务内悲观锁查询返回有库存的优惠券
+      mockManagerQb.getOne.mockResolvedValue(couponFixture({ perLimit: 1 }));
+      // 事务内 manager.count 返回已领 1 张
+      mockManager.count.mockResolvedValue(1);
 
       await expect(service.addCoupon(1, 1)).rejects.toThrow('超出领取限制');
     });

@@ -18,6 +18,7 @@ import {
   ApiBody,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
@@ -57,6 +58,7 @@ export class FlashPromotionController {
 
   @Put('update/:id')
   @ApiOperation({ summary: '编辑秒杀活动' })
+  @ApiParam({ name: 'id', description: '秒杀活动ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -67,6 +69,7 @@ export class FlashPromotionController {
 
   @Delete('delete/:id')
   @ApiOperation({ summary: '删除秒杀活动' })
+  @ApiParam({ name: 'id', description: '秒杀活动ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.service.deleteFlash(id);
@@ -74,6 +77,7 @@ export class FlashPromotionController {
 
   @Put('update/status/:id')
   @ApiOperation({ summary: '修改活动上下线状态' })
+  @ApiParam({ name: 'id', description: '秒杀活动ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updateStatus(
     @Param('id', ParseIntPipe) id: number,
@@ -92,6 +96,7 @@ export class FlashPromotionController {
 
   @Get(':id')
   @ApiOperation({ summary: '获取活动详情' })
+  @ApiParam({ name: 'id', description: '秒杀活动ID', type: 'integer' })
   @ApiOkResponse({ type: FlashPromotionVo })
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.service.getFlashItem(id);
@@ -116,6 +121,7 @@ export class FlashSessionController {
 
   @Put('update/:id')
   @ApiOperation({ summary: '修改场次' })
+  @ApiParam({ name: 'id', description: '秒杀场次ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -126,6 +132,7 @@ export class FlashSessionController {
 
   @Put('update/status/:id')
   @ApiOperation({ summary: '修改场次启用状态' })
+  @ApiParam({ name: 'id', description: '秒杀场次ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updateStatus(
     @Param('id', ParseIntPipe) id: number,
@@ -136,6 +143,7 @@ export class FlashSessionController {
 
   @Delete('delete/:id')
   @ApiOperation({ summary: '删除场次' })
+  @ApiParam({ name: 'id', description: '秒杀场次ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.service.deleteSession(id);
@@ -159,6 +167,7 @@ export class FlashSessionController {
 
   @Get(':id')
   @ApiOperation({ summary: '获取场次详情' })
+  @ApiParam({ name: 'id', description: '秒杀场次ID', type: 'integer' })
   @ApiOkResponse({ type: FlashSessionVo })
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.service.getSessionItem(id);
@@ -194,6 +203,7 @@ export class FlashProductRelationController {
 
   @Put('update/:id')
   @ApiOperation({ summary: '修改关联信息' })
+  @ApiParam({ name: 'id', description: '秒杀商品关联ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -211,6 +221,7 @@ export class FlashProductRelationController {
 
   @Delete('delete/:id')
   @ApiOperation({ summary: '删除关联' })
+  @ApiParam({ name: 'id', description: '秒杀商品关联ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.service.deleteRelation(id);
@@ -235,6 +246,7 @@ export class FlashProductRelationController {
 
   @Get(':id')
   @ApiOperation({ summary: '获取关联商品促销信息' })
+  @ApiParam({ name: 'id', description: '秒杀商品关联ID', type: 'integer' })
   @ApiOkResponse({ type: FlashProductRelationVo })
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.service.getRelationItem(id);

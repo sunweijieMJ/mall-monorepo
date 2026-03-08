@@ -52,6 +52,7 @@ class HomeFlashPromotionVo {
   @ApiPropertyOptional({
     description: '下一场开始时间',
     type: String,
+    format: 'date-time',
     nullable: true,
     example: '2025-06-01T10:00:00.000Z',
   })

@@ -17,6 +17,7 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
@@ -52,6 +53,7 @@ export class ProductAttrCategoryController {
 
   @Put('update/:id')
   @ApiOperation({ summary: '更新属性分类' })
+  @ApiParam({ name: 'id', description: '属性分类ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -62,6 +64,7 @@ export class ProductAttrCategoryController {
 
   @Delete('delete/:id')
   @ApiOperation({ summary: '删除属性分类' })
+  @ApiParam({ name: 'id', description: '属性分类ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.service.deleteAttrCategory(id);
@@ -83,6 +86,7 @@ export class ProductAttrCategoryController {
 
   @Get(':id')
   @ApiOperation({ summary: '获取属性分类详情' })
+  @ApiParam({ name: 'id', description: '属性分类ID', type: 'integer' })
   @ApiWrappedResponse(ProductAttrCategoryVo)
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.service.getAttrCategoryItem(id);
@@ -106,6 +110,7 @@ export class ProductAttrController {
 
   @Put('update/:id')
   @ApiOperation({ summary: '更新商品属性' })
+  @ApiParam({ name: 'id', description: '商品属性ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -123,6 +128,7 @@ export class ProductAttrController {
 
   @Get('list/:categoryId')
   @ApiOperation({ summary: '获取商品属性列表' })
+  @ApiParam({ name: 'categoryId', description: '属性分类ID', type: 'integer' })
   @ApiPaginatedResponse(ProductAttrVo)
   @ApiQuery({
     name: 'type',
@@ -141,6 +147,7 @@ export class ProductAttrController {
 
   @Get(':id')
   @ApiOperation({ summary: '获取属性详情' })
+  @ApiParam({ name: 'id', description: '商品属性ID', type: 'integer' })
   @ApiOkResponse({ type: ProductAttrVo })
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.service.getAttrItem(id);

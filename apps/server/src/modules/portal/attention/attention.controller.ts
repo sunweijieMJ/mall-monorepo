@@ -15,6 +15,7 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
@@ -50,6 +51,7 @@ export class AttentionController {
 
   @Delete(':brandId')
   @ApiOperation({ summary: '取消关注品牌' })
+  @ApiParam({ name: 'brandId', description: '品牌ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   delete(
     @CurrentUser() user: JwtPayload,

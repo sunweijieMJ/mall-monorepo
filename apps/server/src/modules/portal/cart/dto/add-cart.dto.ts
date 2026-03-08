@@ -14,7 +14,7 @@ export class AddCartDto {
   @ApiProperty({ type: 'integer', description: '数量' })
   @IsInt()
   @Min(1)
-  quantity: number;
+  productQuantity: number;
 
   @ApiPropertyOptional({ description: '商品名称' })
   @IsOptional()

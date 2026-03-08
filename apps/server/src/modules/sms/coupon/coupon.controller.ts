@@ -16,6 +16,7 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
@@ -55,6 +56,7 @@ export class CouponController {
 
   @Get(':id')
   @ApiOperation({ summary: '获取优惠券详情（含关联商品/分类）' })
+  @ApiParam({ name: 'id', description: '优惠券ID', type: 'integer' })
   @ApiOkResponse({ type: CouponDetailVo })
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.service.detail(id);
@@ -70,6 +72,7 @@ export class CouponController {
 
   @Put('update/:id')
   @ApiOperation({ summary: '修改优惠券' })
+  @ApiParam({ name: 'id', description: '优惠券ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateCouponDto) {
     return this.service.update(id, dto);
@@ -77,6 +80,7 @@ export class CouponController {
 
   @Delete('delete/:id')
   @ApiOperation({ summary: '删除优惠券' })
+  @ApiParam({ name: 'id', description: '优惠券ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.service.delete(id);

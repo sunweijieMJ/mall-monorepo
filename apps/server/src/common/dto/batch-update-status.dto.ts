@@ -103,5 +103,5 @@ export class UpdateCartQuantityDto {
 
   @ApiProperty({ type: 'integer', description: '数量' })
   @IsInt()
-  quantity: number;
+  productQuantity: number;
 }

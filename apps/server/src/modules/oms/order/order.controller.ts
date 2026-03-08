@@ -18,6 +18,7 @@ import {
   ApiBody,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
@@ -66,6 +67,7 @@ export class AdminOrderController {
     summary: '订单详情',
     description: '对应前端 GET /order/detail/:id',
   })
+  @ApiParam({ name: 'id', description: '订单ID', type: 'integer' })
   @ApiWrappedResponse(OrderDetailVo)
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.orderService.detail(id);
@@ -109,6 +111,7 @@ export class AdminOrderController {
     summary: '修改收货人信息',
     description: '对应前端 PUT /order/:id/receiverInfo',
   })
+  @ApiParam({ name: 'id', description: '订单ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updateReceiverInfo(
     @Param('id', ParseIntPipe) id: number,
@@ -122,6 +125,7 @@ export class AdminOrderController {
     summary: '修改费用信息',
     description: '对应前端 PUT /order/:id/moneyInfo',
   })
+  @ApiParam({ name: 'id', description: '订单ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updateMoneyInfo(
     @Param('id', ParseIntPipe) id: number,
@@ -135,6 +139,7 @@ export class AdminOrderController {
     summary: '修改订单备注',
     description: '对应前端 PUT /order/:id/note',
   })
+  @ApiParam({ name: 'id', description: '订单ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updateNote(
     @Param('id', ParseIntPipe) id: number,
@@ -204,6 +209,7 @@ export class PortalOrderController {
     summary: '订单详情',
     description: '对应前端 GET /order/detail/:orderId',
   })
+  @ApiParam({ name: 'orderId', description: '订单ID', type: 'integer' })
   @ApiWrappedResponse(OrderDetailVo)
   getItem(
     @CurrentUser() user: JwtPayload,
@@ -218,6 +224,7 @@ export class PortalOrderController {
     summary: '支付成功回调',
     description: '对应前端 POST /order/:orderId/pay',
   })
+  @ApiParam({ name: 'orderId', description: '订单ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   paySuccess(
     @CurrentUser() user: JwtPayload,
@@ -232,6 +239,7 @@ export class PortalOrderController {
     summary: '取消订单',
     description: '对应前端 PUT /order/:orderId/cancel',
   })
+  @ApiParam({ name: 'orderId', description: '订单ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   cancel(
     @CurrentUser() user: JwtPayload,
@@ -245,6 +253,7 @@ export class PortalOrderController {
     summary: '确认收货',
     description: '对应前端 PUT /order/:orderId/confirm-receive',
   })
+  @ApiParam({ name: 'orderId', description: '订单ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   confirmReceive(
     @CurrentUser() user: JwtPayload,
@@ -259,6 +268,7 @@ export class PortalOrderController {
     description:
       '仅允许删除已完成或已取消的订单，对应前端 DELETE /order/:orderId',
   })
+  @ApiParam({ name: 'orderId', description: '订单ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   delete(
     @CurrentUser() user: JwtPayload,

@@ -181,7 +181,7 @@ describe('ReturnApplyService', () => {
       orderId: 100,
       orderSn: 'OC202501010001',
       productId: 200,
-      returnReason: '质量问题',
+      reason: '质量问题',
     };
 
     it('订单不存在 → 抛出 BadRequestException', async () => {

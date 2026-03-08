@@ -11,6 +11,7 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import { OrderSettingVo } from './vo/order-setting.vo';
@@ -27,6 +28,7 @@ export class OrderSettingController {
 
   @Get(':id')
   @ApiOperation({ summary: '获取订单设置' })
+  @ApiParam({ name: 'id', description: '订单设置ID', type: 'integer' })
   @ApiOkResponse({ type: OrderSettingVo })
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.service.getItem(id);
@@ -34,6 +36,7 @@ export class OrderSettingController {
 
   @Put('update/:id')
   @ApiOperation({ summary: '更新订单设置' })
+  @ApiParam({ name: 'id', description: '订单设置ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(
     @Param('id', ParseIntPipe) id: number,

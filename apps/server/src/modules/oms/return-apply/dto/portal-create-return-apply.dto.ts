@@ -22,7 +22,7 @@ export class PortalCreateReturnApplyDto {
   @ApiPropertyOptional({ description: '退货原因' })
   @IsString()
   @IsOptional()
-  returnReason?: string;
+  reason?: string;
 
   @ApiPropertyOptional({ description: '退货说明' })
   @IsString()

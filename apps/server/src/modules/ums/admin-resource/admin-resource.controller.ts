@@ -16,6 +16,7 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
@@ -47,6 +48,7 @@ export class AdminResourceController {
 
   @Put('update/:id')
   @ApiOperation({ summary: '修改后台资源' })
+  @ApiParam({ name: 'id', description: '资源ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -57,6 +59,7 @@ export class AdminResourceController {
 
   @Delete('delete/:id')
   @ApiOperation({ summary: '根据ID删除后台资源' })
+  @ApiParam({ name: 'id', description: '资源ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.service.delete(id);
@@ -91,6 +94,7 @@ export class AdminResourceController {
 
   @Get(':id')
   @ApiOperation({ summary: '根据ID获取资源详情' })
+  @ApiParam({ name: 'id', description: '资源ID', type: 'integer' })
   @ApiOkResponse({ type: AdminResourceVo })
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.service.getItem(id);
@@ -114,6 +118,7 @@ export class AdminResourceCategoryController {
 
   @Put('update/:id')
   @ApiOperation({ summary: '修改后台资源分类' })
+  @ApiParam({ name: 'id', description: '资源分类ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -124,6 +129,7 @@ export class AdminResourceCategoryController {
 
   @Delete('delete/:id')
   @ApiOperation({ summary: '删除后台资源分类' })
+  @ApiParam({ name: 'id', description: '资源分类ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.service.deleteCategory(id);

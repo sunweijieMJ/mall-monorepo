@@ -322,6 +322,8 @@ describe('Member API (e2e)', () => {
     });
 
     it('cartIds 全部无效 → 返回空数组', async () => {
+      mockMemberService.listCartCoupons.mockResolvedValue([]);
+
       const res = await request(app.getHttpServer())
         .get('/api/v1/portal/member/coupons/list-cart')
         .set('Authorization', bearerHeader(token))

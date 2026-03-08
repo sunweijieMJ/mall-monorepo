@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { PageQueryDto } from '@/common/dto/page-result.dto';
 
 export class CreateSubjectDto {
@@ -18,12 +18,6 @@ export class CreateSubjectDto {
   @IsOptional()
   pic?: string;
 
-  @ApiPropertyOptional({ type: 'integer', description: '关联产品数量' })
-  @IsInt()
-  @Min(0)
-  @IsOptional()
-  productCount?: number;
-
   @ApiPropertyOptional({
     type: 'integer',
     description: '推荐状态：0-不推荐 1-推荐',
@@ -32,24 +26,6 @@ export class CreateSubjectDto {
   @IsInt()
   @IsOptional()
   recommendStatus?: number;
-
-  @ApiPropertyOptional({ type: 'integer', description: '收藏数' })
-  @IsInt()
-  @Min(0)
-  @IsOptional()
-  collectCount?: number;
-
-  @ApiPropertyOptional({ type: 'integer', description: '阅读数' })
-  @IsInt()
-  @Min(0)
-  @IsOptional()
-  readCount?: number;
-
-  @ApiPropertyOptional({ type: 'integer', description: '评论数' })
-  @IsInt()
-  @Min(0)
-  @IsOptional()
-  commentCount?: number;
 
   @ApiPropertyOptional({ description: '画册图片，用逗号分割' })
   @IsString()
@@ -69,12 +45,6 @@ export class CreateSubjectDto {
   @IsInt()
   @IsOptional()
   showStatus?: number;
-
-  @ApiPropertyOptional({ type: 'integer', description: '转发数' })
-  @IsInt()
-  @Min(0)
-  @IsOptional()
-  forwardCount?: number;
 
   @ApiPropertyOptional({ description: '专题分类名称' })
   @IsString()

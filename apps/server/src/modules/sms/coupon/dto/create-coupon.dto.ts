@@ -92,12 +92,12 @@ export class CreateCouponDto {
   @IsOptional()
   minPoint?: number;
 
-  @ApiPropertyOptional({ description: '开始时间' })
+  @ApiPropertyOptional({ description: '开始时间', format: 'date-time' })
   @Type(() => Date)
   @IsOptional()
   startTime?: Date;
 
-  @ApiPropertyOptional({ description: '结束时间' })
+  @ApiPropertyOptional({ description: '结束时间', format: 'date-time' })
   @Type(() => Date)
   @IsOptional()
   endTime?: Date;

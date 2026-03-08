@@ -15,6 +15,7 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
@@ -50,6 +51,7 @@ export class CollectionController {
 
   @Delete(':productId')
   @ApiOperation({ summary: '取消收藏商品' })
+  @ApiParam({ name: 'productId', description: '商品ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   delete(
     @CurrentUser() user: JwtPayload,

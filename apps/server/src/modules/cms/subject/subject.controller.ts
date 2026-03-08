@@ -17,6 +17,7 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
@@ -56,6 +57,7 @@ export class SubjectController {
 
   @Put('update/:id')
   @ApiOperation({ summary: '更新专题' })
+  @ApiParam({ name: 'id', description: '专题ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateSubjectDto) {
     return this.subjectService.update(id, dto);
@@ -80,6 +82,7 @@ export class SubjectController {
 
   @Get(':id')
   @ApiOperation({ summary: '获取专题详情' })
+  @ApiParam({ name: 'id', description: '专题ID', type: 'integer' })
   @ApiWrappedResponse(SubjectVo)
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.subjectService.getItem(id);

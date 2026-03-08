@@ -13,6 +13,7 @@ import {
   ApiBody,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
@@ -30,6 +31,7 @@ export class SkuStockController {
 
   @Get(':productId')
   @ApiOperation({ summary: '查询 SKU 库存列表' })
+  @ApiParam({ name: 'productId', description: '商品ID', type: 'integer' })
   @ApiOkResponse({ type: [SkuStockVo] })
   @ApiQuery({ name: 'keyword', required: false })
   list(
@@ -41,6 +43,7 @@ export class SkuStockController {
 
   @Put('update/:productId')
   @ApiOperation({ summary: '批量更新SKU库存' })
+  @ApiParam({ name: 'productId', description: '商品ID', type: 'integer' })
   @ApiBody({ type: [SkuStockItemDto] })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(

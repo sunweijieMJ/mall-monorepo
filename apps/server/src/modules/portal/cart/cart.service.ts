@@ -8,6 +8,7 @@ import { In, Repository } from 'typeorm';
 import { CartItemEntity } from './infrastructure/persistence/relational/entities/cart-item.entity';
 import { SkuStockEntity } from '@/modules/pms/sku-stock/infrastructure/persistence/relational/entities/sku-stock.entity';
 import { ProductEntity } from '@/modules/pms/product/infrastructure/persistence/relational/entities/product.entity';
+import { TransactionService } from '@/infrastructure/database/transaction';
 import { AddCartDto } from './dto/add-cart.dto';
 
 @Injectable()
@@ -19,6 +20,7 @@ export class CartService {
     private readonly skuStockRepo: Repository<SkuStockEntity>,
     @InjectRepository(ProductEntity)
     private readonly productRepo: Repository<ProductEntity>,
+    private readonly transactionService: TransactionService,
   ) {}
 
   /**
@@ -65,7 +67,7 @@ export class CartService {
    * @param dto 加购信息
    */
   async add(memberId: number, dto: AddCartDto): Promise<CartItemEntity> {
-    const { productId, productSkuId, quantity } = dto;
+    const { productId, productSkuId, productQuantity } = dto;
 
     // 查询是否已有相同 SKU 的购物车条目（deleteStatus=1 即有效）
     const existing = await this.cartRepo.findOne({
@@ -74,7 +76,7 @@ export class CartService {
 
     if (existing) {
       // 已存在则数量累加
-      existing.productQuantity += quantity;
+      existing.productQuantity += productQuantity;
       return this.cartRepo.save(existing);
     }
 
@@ -105,7 +107,7 @@ export class CartService {
       productPic: dto.productPic ?? product.pic,
       productAttr: dto.productAttr ?? sku.spData,
       productPrice: sku.price,
-      productQuantity: quantity,
+      productQuantity,
       productCategoryId: product.productCategoryId,
       deleteStatus: 1,
     });
@@ -217,17 +219,20 @@ export class CartService {
       },
     });
 
-    if (existingItem && existingItem.id !== cartItem.id) {
-      // 合并数量到已有条目
-      existingItem.productQuantity += cartItem.productQuantity;
-      await this.cartRepo.save(existingItem);
-      await this.cartRepo.delete({ id: cartItem.id });
-    } else {
-      // 更新当前条目的 SKU 信息
-      cartItem.productSkuId = newSku.id;
-      cartItem.productPrice = newSku.price;
-      cartItem.productAttr = newSku.spData ?? cartItem.productAttr;
-      await this.cartRepo.save(cartItem);
-    }
+    // 使用事务保证合并/删除操作的原子性
+    await this.transactionService.run(async (manager) => {
+      if (existingItem && existingItem.id !== cartItem.id) {
+        // 合并数量到已有条目
+        existingItem.productQuantity += cartItem.productQuantity;
+        await manager.save(CartItemEntity, existingItem);
+        await manager.delete(CartItemEntity, { id: cartItem.id });
+      } else {
+        // 更新当前条目的 SKU 信息
+        cartItem.productSkuId = newSku.id;
+        cartItem.productPrice = newSku.price;
+        cartItem.productAttr = newSku.spData ?? cartItem.productAttr;
+        await manager.save(CartItemEntity, cartItem);
+      }
+    });
   }
 }

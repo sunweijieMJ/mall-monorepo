@@ -245,7 +245,17 @@ function postProcessOpenApiDocument(document: OpenAPIObject): void {
       // 2b. 将 ID / 分页等整数参数的 type 从 number 修正为 integer
       fixIntegerParameters(operation);
 
-      // 2c. 为需要鉴权的接口添加 401/403 错误响应
+      // 2c. 处理 @Public() 标记：将含 __public__ 标记的 security 替换为空数组（无需认证）
+      if (
+        Array.isArray(operation.security) &&
+        operation.security.some(
+          (s: Record<string, unknown>) => '__public__' in s,
+        )
+      ) {
+        operation.security = [];
+      }
+
+      // 2d. 为需要鉴权的接口添加 401/403 错误响应
       const hasSecurity =
         (operation.security?.length ?? 0) > 0 ||
         (!operation.security && (document.security?.length ?? 0) > 0);
@@ -258,14 +268,14 @@ function postProcessOpenApiDocument(document: OpenAPIObject): void {
         };
       }
 
-      // 2d. 为包含路径参数的 GET/PUT/DELETE 接口自动添加 404 响应
+      // 2e. 为包含路径参数的 GET/PUT/DELETE 接口自动添加 404 响应
       if (/\{[^}]+\}/.test(path)) {
         operation.responses['404'] = operation.responses['404'] ?? {
           $ref: '#/components/responses/NotFoundResponse',
         };
       }
 
-      // 2e. 为有 requestBody 的接口添加 400 参数校验错误响应
+      // 2f. 为有 requestBody 的接口添加 400 参数校验错误响应
       if (operation.requestBody && !skipWrappingPaths.has(path)) {
         operation.responses['400'] = operation.responses['400'] ?? {
           $ref: '#/components/responses/BadRequestResponse',

@@ -100,7 +100,7 @@ describe('Cart API (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post(`${baseUrl}/create`)
         .set('Authorization', bearerHeader(token))
-        .send({ productId: 100, productSkuId: 1, quantity: 1 })
+        .send({ productId: 100, productSkuId: 1, productQuantity: 1 })
         .expect(200);
 
       expect(res.body.code).toBe(200);
@@ -114,7 +114,7 @@ describe('Cart API (e2e)', () => {
       const res = await request(app.getHttpServer())
         .put(`${baseUrl}/update/quantity`)
         .set('Authorization', bearerHeader(token))
-        .send({ id: 1, quantity: 3 })
+        .send({ id: 1, productQuantity: 3 })
         .expect(200);
 
       expect(res.body.code).toBe(200);

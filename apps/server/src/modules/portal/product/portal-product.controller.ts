@@ -1,5 +1,5 @@
 import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
 import { PortalProductService } from './portal-product.service';
 import { Public } from '@/core/auth/decorators/public.decorator';
@@ -50,6 +50,7 @@ export class PortalProductController {
     description:
       '聚合商品主体、品牌、SKU、属性、促销价格、可用优惠券等信息，无需登录',
   })
+  @ApiParam({ name: 'id', description: '商品ID', type: 'integer' })
   @ApiWrappedResponse(PortalProductDetailVo)
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.portalProductService.detail(id);

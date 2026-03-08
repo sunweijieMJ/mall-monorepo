@@ -17,6 +17,7 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import { ApiPaginatedResponse } from '@/common/decorators/api-paginated-response.decorator';
@@ -55,6 +56,7 @@ export class ReturnApplyController {
     summary: '退货申请详情',
     description: '对应前端 GET /returnApply/detail/:id',
   })
+  @ApiParam({ name: 'id', description: '退货申请ID', type: 'integer' })
   @ApiOkResponse({ type: ReturnApplyVo })
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.service.detail(id);
@@ -76,6 +78,7 @@ export class ReturnApplyController {
     summary: '处理退货申请',
     description: '对应前端 PUT /returnApply/update/:id',
   })
+  @ApiParam({ name: 'id', description: '退货申请ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   handle(
     @Param('id', ParseIntPipe) id: number,
@@ -90,6 +93,7 @@ export class ReturnApplyController {
     summary: '确认收货',
     description: '对应前端 POST /returnApply/receive/:id',
   })
+  @ApiParam({ name: 'id', description: '退货申请ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   confirmReceive(
     @Param('id', ParseIntPipe) id: number,
@@ -134,6 +138,7 @@ export class PortalReturnApplyController {
 
   @Get(':id')
   @ApiOperation({ summary: '退货申请详情（会员端）' })
+  @ApiParam({ name: 'id', description: '退货申请ID', type: 'integer' })
   @ApiWrappedResponse(ReturnApplyVo)
   getItem(
     @Param('id', ParseIntPipe) id: number,

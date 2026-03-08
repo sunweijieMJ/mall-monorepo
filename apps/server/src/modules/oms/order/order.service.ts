@@ -1150,10 +1150,7 @@ export class OrderService {
 
       // 扣减真实库存（stock - qty, lock_stock - qty），使用悲观锁防止并发问题
       const orderItems = await manager.findBy(OrderItemEntity, { orderId });
-      // 按 skuId 升序加锁，防止死锁
-      const sortedItems = [...orderItems].sort(
-        (a, b) => (a.productSkuId ?? 0) - (b.productSkuId ?? 0),
-      );
+      const sortedItems = this.sortBySkuId(orderItems);
       for (const item of sortedItems) {
         const qty = Number(item.productQuantity) || 0;
         if (qty <= 0) continue;
@@ -1563,10 +1560,7 @@ export class OrderService {
     manager: EntityManager,
     cartPromotionItemList: CartPromotionItem[],
   ): Promise<void> {
-    // 按 skuId 升序排列，固定加锁顺序防止死锁
-    const sorted = [...cartPromotionItemList].sort(
-      (a, b) => a.productSkuId - b.productSkuId,
-    );
+    const sorted = this.sortBySkuId(cartPromotionItemList);
 
     for (const item of sorted) {
       const qty = Number(item.quantity);
@@ -1801,5 +1795,14 @@ export class OrderService {
     } else if (useStatus === 0) {
       await manager.decrement(CouponEntity, { id: couponId }, 'useCount', 1);
     }
+  }
+
+  /** 按 skuId 升序排列，固定加锁顺序防止死锁 */
+  private sortBySkuId<T extends { productSkuId?: number | null }>(
+    items: T[],
+  ): T[] {
+    return [...items].sort(
+      (a, b) => (a.productSkuId ?? 0) - (b.productSkuId ?? 0),
+    );
   }
 }

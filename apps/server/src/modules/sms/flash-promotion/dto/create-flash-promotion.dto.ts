@@ -19,11 +19,19 @@ export class CreateFlashPromotionDto {
   @IsNotEmpty()
   title: string;
 
-  @ApiProperty({ description: '开始日期', example: '2026-06-01' })
+  @ApiProperty({
+    description: '开始日期',
+    format: 'date',
+    example: '2026-06-01',
+  })
   @Type(() => Date)
   startDate: Date;
 
-  @ApiProperty({ description: '结束日期', example: '2026-06-18' })
+  @ApiProperty({
+    description: '结束日期',
+    format: 'date',
+    example: '2026-06-18',
+  })
   @Type(() => Date)
   endDate: Date;
 

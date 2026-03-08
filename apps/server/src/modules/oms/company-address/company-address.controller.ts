@@ -15,6 +15,7 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import { CompanyAddressVo } from './vo/company-address.vo';
@@ -40,6 +41,7 @@ export class CompanyAddressController {
 
   @Put('update/:id')
   @ApiOperation({ summary: '修改公司收发货地址' })
+  @ApiParam({ name: 'id', description: '收货地址ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -50,6 +52,7 @@ export class CompanyAddressController {
 
   @Delete('delete/:id')
   @ApiOperation({ summary: '删除公司收发货地址' })
+  @ApiParam({ name: 'id', description: '收货地址ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.service.delete(id);
@@ -64,6 +67,7 @@ export class CompanyAddressController {
 
   @Get(':id')
   @ApiOperation({ summary: '获取公司收发货地址详情' })
+  @ApiParam({ name: 'id', description: '收货地址ID', type: 'integer' })
   @ApiOkResponse({ type: CompanyAddressVo })
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.service.getItem(id);

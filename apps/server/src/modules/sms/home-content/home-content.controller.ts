@@ -18,6 +18,7 @@ import {
   ApiBody,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
@@ -75,6 +76,7 @@ export class HomeAdvertiseController {
 
   @Get(':id')
   @ApiOperation({ summary: '获取广告详情' })
+  @ApiParam({ name: 'id', description: '首页广告ID', type: 'integer' })
   @ApiOkResponse({ type: HomeAdvertiseVo })
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.s.getAdvertiseItem(id);
@@ -90,6 +92,7 @@ export class HomeAdvertiseController {
 
   @Put('update/:id')
   @ApiOperation({ summary: '修改广告' })
+  @ApiParam({ name: 'id', description: '首页广告ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -107,6 +110,7 @@ export class HomeAdvertiseController {
 
   @Put('update/status/:id')
   @ApiOperation({ summary: '修改上下线状态' })
+  @ApiParam({ name: 'id', description: '首页广告ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updateStatus(
     @Param('id', ParseIntPipe) id: number,
@@ -175,6 +179,7 @@ export class HomeBrandController {
 
   @Put('update/sort/:id')
   @ApiOperation({ summary: '修改排序' })
+  @ApiParam({ name: 'id', description: '首页品牌推荐ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updateSort(
     @Param('id', ParseIntPipe) id: number,
@@ -243,6 +248,7 @@ export class HomeSubjectController {
 
   @Put('update/sort/:id')
   @ApiOperation({ summary: '修改排序' })
+  @ApiParam({ name: 'id', description: '首页专题推荐ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updateSort(
     @Param('id', ParseIntPipe) id: number,
@@ -311,6 +317,7 @@ export class HomeNewProductController {
 
   @Put('update/sort/:id')
   @ApiOperation({ summary: '修改排序' })
+  @ApiParam({ name: 'id', description: '首页新品推荐ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updateSort(
     @Param('id', ParseIntPipe) id: number,
@@ -379,6 +386,7 @@ export class HomeRecommendProductController {
 
   @Put('update/sort/:id')
   @ApiOperation({ summary: '修改排序' })
+  @ApiParam({ name: 'id', description: '首页人气推荐ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updateSort(
     @Param('id', ParseIntPipe) id: number,

@@ -237,11 +237,19 @@ export class ProductEntity {
   @Column({ name: 'detail_mobile_html', type: 'text', nullable: true })
   detailMobileHtml: string | null;
 
-  @ApiPropertyOptional({ description: '促销开始时间', type: String })
+  @ApiPropertyOptional({
+    description: '促销开始时间',
+    type: String,
+    format: 'date-time',
+  })
   @Column({ name: 'promotion_start_time', type: 'timestamp', nullable: true })
   promotionStartTime: Date | null;
 
-  @ApiPropertyOptional({ description: '促销结束时间', type: String })
+  @ApiPropertyOptional({
+    description: '促销结束时间',
+    type: String,
+    format: 'date-time',
+  })
   @Column({ name: 'promotion_end_time', type: 'timestamp', nullable: true })
   promotionEndTime: Date | null;
 

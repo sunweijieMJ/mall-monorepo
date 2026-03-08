@@ -24,21 +24,18 @@ export class SkuStockItemDto {
   @IsOptional()
   productId?: number;
 
-  @ApiPropertyOptional({ description: 'SKU 编码', example: 'SP001_001' })
+  @ApiProperty({ description: 'SKU 编码', example: 'SP001_001' })
   @IsString()
-  @IsOptional()
-  skuCode?: string;
+  skuCode: string;
 
-  @ApiPropertyOptional({ description: '价格', example: 99.99 })
+  @ApiProperty({ description: '价格', example: 99.99 })
   @IsNumber()
-  @IsOptional()
-  price?: number;
+  price: number;
 
-  @ApiPropertyOptional({ type: 'integer', description: '库存', example: 100 })
+  @ApiProperty({ type: 'integer', description: '库存', example: 100 })
   @IsInt()
   @Min(0)
-  @IsOptional()
-  stock?: number;
+  stock: number;
 
   @ApiPropertyOptional({
     type: 'integer',
