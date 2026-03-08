@@ -290,8 +290,10 @@ jobs:
           fi
 
       - name: Feishu notification
-        if: always() && secrets.FEISHU_WEBHOOK_URL != ''
+        if: always() && env.FEISHU_WEBHOOK_URL != ''
         uses: ./.github/actions/notify-feishu
+        env:
+          FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
         with:
           app_name: 'Admin'
           status: ${{ needs.build.result == 'success' && needs.package.result == 'success' && (needs.deploy.result == 'success' || needs.deploy.result == 'skipped') && 'success' || 'failure' }}
