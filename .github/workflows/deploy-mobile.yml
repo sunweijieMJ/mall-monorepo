@@ -213,7 +213,7 @@ jobs:
           echo "H5 Secrets 配置正确"
 
       - name: Download H5 artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: mobile-h5-build
           path: dist/build/h5
@@ -279,7 +279,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Download mp-weixin artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: mobile-mp-weixin-build
           path: ${{ env.APP_DIR }}/dist/build/mp-weixin
