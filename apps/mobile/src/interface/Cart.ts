@@ -1,4 +1,4 @@
-import { BaseEntity } from './Common';
+import { BaseEntity } from './common';
 
 /**
  * 购物车商品项接口
@@ -38,34 +38,4 @@ export interface CartItem extends BaseEntity {
   productSn?: string;
   /** 商品规格属性 */
   productAttr: string;
-}
-
-/**
- * 添加购物车商品参数接口
- */
-export interface AddCartItemParams {
-  /** 商品ID */
-  productId: number;
-  /** 商品SKU ID */
-  productSkuId?: number;
-  /** 购买数量 */
-  quantity: number;
-}
-
-/**
- * 更新购物车商品数量参数接口
- */
-export interface UpdateQuantityParams {
-  /** 购物车项ID */
-  id: number;
-  /** 新的购买数量 */
-  quantity: number;
-}
-
-/**
- * 删除购物车商品参数接口
- */
-export interface DeleteCartItemParams {
-  /** 要删除的购物车项ID数组 */
-  ids: number[];
 }

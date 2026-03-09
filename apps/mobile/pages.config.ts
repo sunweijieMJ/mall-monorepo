@@ -11,18 +11,43 @@ export default defineUniPages({
   easycom: {
     autoscan: true,
     custom: {
-      // 自定义组件（大写 U 前缀）
+      // uni-ui 组件
+      '^uni-(.*)': '@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue',
+      // 自定义组件 (U 前缀)
       '^U(.*)': '@/components/U$1/index.vue',
+      // 自定义组件 (kebab-case: u-xxx)
+      '^u-(.*)': '@/components/U$1/index.vue',
     },
   },
 
   pages: [],
 
   /**
-   * 分包配置（微信小程序主包限制 2MB，总包限制 20MB）
-   * 分包原则：TabBar 页面 / 启动页面必须在主包，其余按业务模块划分
+   * 分包配置
+   * 用于将小程序划分成不同的子包，减小主包体积
+   * 主包大小限制：2M，总包大小限制：20M（微信小程序）
+   *
+   * 分包原则：
+   * 1. TabBar 页面必须在主包
+   * 2. 启动页面必须在主包
+   * 3. 按业务模块划分分包
+   * 4. 分包之间不能相互引用
+   * 5. 主包可以引用分包资源
+   *
+   * 使用方法：
+   * 1. 在 src/ 下创建分包目录，如 src/pages-sub/order/
+   * 2. 在分包目录下创建页面，如 src/pages-sub/order/list/index.vue
+   * 3. 页面会被自动扫描并添加到对应分包中
    */
   subPackages: [
+    {
+      root: 'pages-sub/product',
+      pages: [],
+    },
+    {
+      root: 'pages-sub/brand',
+      pages: [],
+    },
     {
       root: 'pages-sub/order',
       pages: [],
@@ -32,47 +57,71 @@ export default defineUniPages({
       pages: [],
     },
     {
-      root: 'pages-sub/product',
+      root: 'pages-sub/address',
+      pages: [],
+    },
+    {
+      root: 'pages-sub/coupon',
+      pages: [],
+    },
+    {
+      root: 'pages-sub/notice',
       pages: [],
     },
   ],
 
   globalStyle: {
-    navigationBarTextStyle: 'black',
+    navigationBarTextStyle: '@navTxtStyle',
     navigationBarTitleText: '商城',
-    navigationBarBackgroundColor: '#F8F8F8',
-    backgroundColor: '#F8F8F8',
+    navigationBarBackgroundColor: '@navBgColor',
+    backgroundColor: '@bgColor',
+    backgroundTextStyle: '@bgTxtStyle',
+    enablePullDownRefresh: false,
+    onReachBottomDistance: 50,
   },
 
   tabBar: {
-    color: '#7A7E83',
-    selectedColor: '#3cc51f',
-    borderStyle: 'black',
-    backgroundColor: '#ffffff',
+    color: '@tabFontColor',
+    selectedColor: '@tabSelectedColor',
+    borderStyle: '@tabBorderStyle',
+    backgroundColor: '@tabBgColor',
     list: [
       {
-        pagePath: 'pages/index/index',
-        iconPath: 'static/tab-home.png',
-        selectedIconPath: 'static/tab-home-current.png',
         text: '首页',
+        pagePath: 'pages/index/index',
+        iconPath: '@iconHome',
+        selectedIconPath: '@iconHomeActive',
       },
       {
-        pagePath: 'pages/category/category',
-        iconPath: 'static/tab-cate.png',
-        selectedIconPath: 'static/tab-cate-current.png',
         text: '分类',
+        pagePath: 'pages/category/category',
+        iconPath: '@iconCategory',
+        selectedIconPath: '@iconCategoryActive',
       },
       {
-        pagePath: 'pages/cart/cart',
-        iconPath: 'static/tab-cart.png',
-        selectedIconPath: 'static/tab-cart-current.png',
         text: '购物车',
+        pagePath: 'pages/cart/cart',
+        iconPath: '@iconCart',
+        selectedIconPath: '@iconCartActive',
       },
       {
-        pagePath: 'pages/user/user',
-        iconPath: 'static/tab-my.png',
-        selectedIconPath: 'static/tab-my-current.png',
         text: '我的',
+        pagePath: 'pages/mine/mine',
+        iconPath: '@iconMine',
+        selectedIconPath: '@iconMineActive',
+      },
+    ],
+  },
+  condition: {
+    current: 0,
+    list: [
+      {
+        name: '首页',
+        path: 'pages/index/index',
+      },
+      {
+        name: '登录',
+        path: 'pages/login/index',
       },
     ],
   },

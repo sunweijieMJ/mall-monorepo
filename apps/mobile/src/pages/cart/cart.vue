@@ -2,7 +2,7 @@
   <view class="container">
     <!-- 空白页 -->
     <view v-if="!hasLogin || empty === true" class="empty">
-      <image src="/static/emptyCart.jpg" mode="aspectFit"></image>
+      <image src="/static/ui/emptyCart.jpg" mode="aspectFit"></image>
       <view v-if="hasLogin" class="empty-tips">
         空空如也
         <navigator
@@ -66,7 +66,9 @@
       <view class="action-section">
         <view class="checkbox">
           <image
-            :src="allChecked ? '/static/selected.png' : '/static/select.png'"
+            :src="
+              allChecked ? '/static/ui/selected.png' : '/static/ui/select.png'
+            "
             mode="aspectFit"
             @click="check('all')"
           ></image>
@@ -101,9 +103,8 @@ definePage({
 });
 import { onShow } from '@dcloudio/uni-app';
 import { ref, computed, watch } from 'vue';
-import { CartService } from '@/api';
-import uniNumberBox from '@/components/uni-number-box.vue';
-import { useUserStore } from '@/store/user';
+import { useCartStore } from '@/store';
+import { useUserStore } from '@/store/modules/user';
 
 /**
  * 购物车页面
@@ -146,6 +147,7 @@ interface NumberChangeEvent {
 
 /** 用户状态管理 */
 const userStore = useUserStore();
+const cartStore = useCartStore();
 
 /** 是否已登录 */
 const hasLogin = computed(() => userStore.hasLogin);
@@ -189,8 +191,7 @@ const loadData = async () => {
   }
 
   try {
-    const response = await CartService.fetchCartList();
-    const list = response.data || [];
+    const list = (await cartStore.fetchList()) || [];
     const processedList = list.map((item: CartItem) => {
       item.checked = true;
       item.loaded = 'loaded';
@@ -226,7 +227,7 @@ const onImageLoad = (index: number) => {
  */
 const onImageError = (index: number) => {
   if (cartList.value[index]) {
-    cartList.value[index].productPic = '/static/errorImage.jpg';
+    cartList.value[index].productPic = '/static/ui/errorImage.jpg';
   }
 };
 
@@ -235,7 +236,7 @@ const onImageError = (index: number) => {
  */
 const navToLogin = () => {
   uni.navigateTo({
-    url: '/pages/public/login',
+    url: '/pages/login/index',
   });
 };
 
@@ -262,10 +263,7 @@ const check = (type: 'item' | 'all', index?: number) => {
 const numberChange = async (data: NumberChangeEvent) => {
   const cartItem = cartList.value[data.index];
   try {
-    await CartService.updateQuantity({
-      id: cartItem.id,
-      quantity: data.number,
-    });
+    await cartStore.updateQuantity(cartItem.id, data.number);
     cartItem.quantity = data.number;
     calcTotal();
   } catch (error) {
@@ -282,7 +280,7 @@ const handleDeleteCartItem = async (index: number) => {
   const id = row.id;
 
   try {
-    await CartService.deleteCartItem({ ids: id });
+    await cartStore.deleteItems([id]);
     cartList.value.splice(index, 1);
     calcTotal();
     uni.hideLoading();
@@ -300,7 +298,7 @@ const clearCart = async () => {
     success: async (e) => {
       if (e.confirm) {
         try {
-          await CartService.clearCartList();
+          await cartStore.clearRemote();
           cartList.value = [];
         } catch (error) {
           console.error('清空购物车失败:', error);
@@ -355,14 +353,14 @@ const createOrder = () => {
   }
 
   uni.navigateTo({
-    url: `/pages-sub/order/createOrder?cartIds=${JSON.stringify(cartIds)}`,
+    url: `/pages-sub/order/create-order?cartIds=${JSON.stringify(cartIds)}`,
   });
 };
 </script>
 
 <style lang="scss" scoped>
 .container {
-  padding-bottom: 134upx;
+  padding-bottom: 134rpx;
 
   /* 空白页 */
   .empty {
@@ -375,23 +373,23 @@ const createOrder = () => {
     justify-content: center;
     width: 100%;
     height: 100vh;
-    padding-bottom: 100upx;
-    background: #fff;
+    padding-bottom: 100rpx;
+    background: var(--color-bg);
 
     image {
-      width: 240upx;
-      height: 160upx;
-      margin-bottom: 30upx;
+      width: 240rpx;
+      height: 160rpx;
+      margin-bottom: 30rpx;
     }
 
     .empty-tips {
       display: flex;
-      color: #999;
-      font-size: 26upx;
+      color: var(--color-text-secondary);
+      font-size: 26rpx;
 
       .navigator {
-        margin-left: 16upx;
-        color: #fa436a;
+        margin-left: 16rpx;
+        color: var(--color-primary);
       }
     }
   }
@@ -401,29 +399,29 @@ const createOrder = () => {
 .cart-item {
   display: flex;
   position: relative;
-  padding: 30upx 40upx;
+  padding: 30rpx 40rpx;
 
   .image-wrapper {
     position: relative;
     flex-shrink: 0;
-    width: 230upx;
-    height: 230upx;
+    width: 230rpx;
+    height: 230rpx;
 
     image {
-      border-radius: 8upx;
+      border-radius: 8rpx;
     }
   }
 
   .checkbox {
     position: absolute;
     z-index: 8;
-    top: -16upx;
-    left: -16upx;
-    padding: 4upx;
+    top: -16rpx;
+    left: -16rpx;
+    padding: 4rpx;
     border-radius: 50px;
-    background: #fff;
-    color: #999;
-    font-size: 44upx;
+    background: var(--color-bg);
+    color: var(--color-text-secondary);
+    font-size: 44rpx;
     line-height: 1;
   }
 
@@ -432,35 +430,35 @@ const createOrder = () => {
     position: relative;
     flex: 1;
     flex-direction: column;
-    padding-left: 30upx;
+    padding-left: 30rpx;
     overflow: hidden;
 
     .title,
     .price {
-      height: 40upx;
-      color: #333;
-      font-size: 30upx;
-      line-height: 40upx;
+      height: 40rpx;
+      color: var(--color-text);
+      font-size: 30rpx;
+      line-height: 40rpx;
     }
 
     .attr {
-      height: 50upx;
-      color: #999;
-      font-size: 26upx;
-      line-height: 50upx;
+      height: 50rpx;
+      color: var(--color-text-secondary);
+      font-size: 26rpx;
+      line-height: 50rpx;
     }
 
     .price {
-      height: 50upx;
-      line-height: 50upx;
+      height: 50rpx;
+      line-height: 50rpx;
     }
   }
 
   .del-btn {
-    height: 50upx;
-    padding: 4upx 10upx;
-    color: #999;
-    font-size: 34upx;
+    height: 50rpx;
+    padding: 4rpx 10rpx;
+    color: var(--color-text-secondary);
+    font-size: 34rpx;
   }
 }
 
@@ -469,27 +467,27 @@ const createOrder = () => {
   display: flex;
   position: fixed;
   z-index: 95;
-  bottom: 30upx;
-  left: 30upx;
+  bottom: 30rpx;
+  left: 30rpx;
   align-items: center;
-  width: 690upx;
-  height: 100upx;
+  width: 690rpx;
+  height: 100rpx;
 
   /* #ifdef H5 */
-  margin-bottom: 100upx;
-  padding: 0 30upx;
-  border-radius: 16upx;
+  margin-bottom: 100rpx;
+  padding: 0 30rpx;
+  border-radius: 16rpx;
   background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 0 20upx 0 rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 20rpx 0 rgba(0, 0, 0, 0.5);
 
   .checkbox {
     position: relative;
-    height: 52upx;
+    height: 52rpx;
 
     image {
       position: relative;
       z-index: 5;
-      width: 52upx;
+      width: 52rpx;
       height: 100%;
     }
   }
@@ -498,20 +496,20 @@ const createOrder = () => {
     position: absolute;
     z-index: 4;
     top: 0;
-    left: 26upx;
+    left: 26rpx;
     width: 0;
-    height: 52upx;
-    padding-left: 38upx;
+    height: 52rpx;
+    padding-left: 38rpx;
     transition: 0.2s;
     border-radius: 0 50px 50px 0;
     opacity: 0;
-    background: #999;
-    color: #fff;
-    font-size: 28upx;
-    line-height: 52upx;
+    background: var(--color-text-secondary);
+    color: var(--color-bg);
+    font-size: 28rpx;
+    line-height: 52rpx;
 
     &.show {
-      width: 120upx;
+      width: 120rpx;
       opacity: 1;
     }
   }
@@ -520,39 +518,39 @@ const createOrder = () => {
     display: flex;
     flex: 1;
     flex-direction: column;
-    padding-right: 40upx;
+    padding-right: 40rpx;
     text-align: right;
 
     .price {
-      color: #333;
-      font-size: 36upx;
+      color: var(--color-text);
+      font-size: 36rpx;
     }
 
     .coupon {
-      color: #999;
-      font-size: 24upx;
+      color: var(--color-text-secondary);
+      font-size: 24rpx;
 
       text {
-        color: #333;
+        color: var(--color-text);
       }
     }
   }
 
   .confirm-btn {
-    height: 76upx;
+    height: 76rpx;
     margin: 0;
-    padding: 0 38upx;
+    padding: 0 38rpx;
     border-radius: 100px;
-    background: #fa436a;
+    background: var(--color-primary);
     box-shadow: 1px 2px 5px rgba(217, 60, 93, 0.72);
-    font-size: 30upx;
-    line-height: 76upx;
+    font-size: 30rpx;
+    line-height: 76rpx;
   }
 }
 
 /* 复选框选中状态 */
 .action-section .checkbox.checked,
 .cart-item .checkbox.checked {
-  color: #fa436a;
+  color: var(--color-primary);
 }
 </style>

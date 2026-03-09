@@ -7,7 +7,6 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
-import type { MemberVoDeletedAt } from './memberVoDeletedAt';
 import type { MemberVoGender } from './memberVoGender';
 import type { MemberVoStatus } from './memberVoStatus';
 
@@ -18,8 +17,11 @@ export interface MemberVo {
   createdAt: string;
   /** 更新时间 */
   updatedAt: string;
-  /** 删除时间 */
-  deletedAt?: MemberVoDeletedAt;
+  /**
+   * 删除时间
+   * @nullable
+   */
+  deletedAt?: string | null;
   /** 会员等级ID */
   memberLevelId?: number;
   /** 用户名 */

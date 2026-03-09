@@ -13,7 +13,7 @@
       class="list-cell b-b"
       hover-class="cell-hover"
       :hover-stay-time="50"
-      @click="navTo('/pages/address/address')"
+      @click="navTo('/pages-sub/address/address')"
     >
       <text class="cell-tit">收货地址</text>
       <text class="cell-more yticon icon-you"></text>
@@ -67,7 +67,7 @@ definePage({
     navigationBarTitleText: '设置',
   },
 });
-import { useUserStore } from '@/store/user';
+import { useUserStore } from '@/store/modules/user';
 
 /**
  * 设置页面
@@ -139,7 +139,7 @@ const switchChange = (e: any) => {
 
 <style lang="scss" scoped>
 page {
-  background: #f8f8f8;
+  background: var(--color-bg-grey);
 }
 
 .list-cell {
@@ -147,16 +147,16 @@ page {
   position: relative;
   align-items: baseline;
   justify-content: center;
-  padding: 20upx 30upx;
-  background: #fff;
-  line-height: 60upx;
+  padding: 20rpx 30rpx;
+  background: var(--color-bg);
+  line-height: 60rpx;
 
   &.log-out-btn {
-    margin-top: 40upx;
+    margin-top: 40rpx;
 
     .cell-tit {
       margin-right: 0;
-      color: #fa436a;
+      color: var(--color-primary);
       text-align: center;
     }
   }
@@ -166,34 +166,34 @@ page {
   }
 
   &.b-b::after {
-    left: 30upx;
+    left: 30rpx;
   }
 
   &.m-t {
-    margin-top: 16upx;
+    margin-top: 16rpx;
   }
 
   .cell-more {
     align-self: baseline;
-    margin-left: 10upx;
+    margin-left: 10rpx;
     color: #c0c4cc;
-    font-size: 34upx;
+    font-size: 34rpx;
   }
 
   .cell-tit {
     flex: 1;
-    margin-right: 10upx;
-    color: #303133;
-    font-size: 32upx;
+    margin-right: 10rpx;
+    color: var(--color-text);
+    font-size: 32rpx;
   }
 
   .cell-tip {
     color: #c0c4cc;
-    font-size: 30upx;
+    font-size: 30rpx;
   }
 
   switch {
-    transform: translateX(16upx) scale(0.84);
+    transform: translateX(16rpx) scale(0.84);
   }
 }
 </style>

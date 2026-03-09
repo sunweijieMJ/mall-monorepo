@@ -29,7 +29,7 @@
           @scrolltolower="loadData('add')"
         >
           <!-- 空白页 -->
-          <empty v-if="orderList == null || orderList.length === 0"></empty>
+          <UEmpty v-if="orderList == null || orderList.length === 0" />
 
           <!-- 订单列表 -->
           <view
@@ -41,7 +41,7 @@
               <text class="time" @click="showOrderDetail(item.id)">
                 {{ formatDateTime(item.createTime) }}
               </text>
-              <text class="state" :style="{ color: '#fa436a' }">
+              <text class="state" :style="{ color: 'var(--color-primary)' }">
                 {{ formatStatus(item.status) }}
               </text>
               <text
@@ -95,7 +95,7 @@
             </view>
           </view>
 
-          <uni-load-more :status="loadingType"></uni-load-more>
+          <ULoadMore :status="loadingType" />
         </scroll-view>
       </swiper-item>
     </swiper>
@@ -113,10 +113,11 @@ definePage({
 });
 import { onLoad } from '@dcloudio/uni-app';
 import { ref, reactive } from 'vue';
-import { OrderService } from '@/api';
-import empty from '@/components/empty.vue';
-import uniLoadMore from '@/components/uni-load-more/uni-load-more.vue';
+import { UEmpty, ULoadMore } from '@/components';
+import { useOrderStore } from '@/store';
 import { formatDateTime } from '@/utils/formatters';
+
+const orderStore = useOrderStore();
 
 /**
  * 订单列表页面
@@ -172,7 +173,7 @@ const orderParam = reactive<OrderParam>({
 /** 订单列表 */
 const orderList = ref<Order[]>([]);
 /** 加载更多状态 */
-const loadingType = ref<'more' | 'loading' | 'nomore'>('more');
+const loadingType = ref<'loadmore' | 'loading' | 'nomore'>('loadmore');
 /** 导航列表 */
 const navList: NavItem[] = [
   { state: -1, text: '全部' },
@@ -249,16 +250,16 @@ const loadData = async (type: 'refresh' | 'add' = 'refresh') => {
   loadingType.value = 'loading';
 
   try {
-    const response = await OrderService.fetchOrderList(orderParam);
-    const list = response.data.list || [];
+    const result = await orderStore.fetchList(orderParam);
+    const list = result?.list || [];
 
     if (type === 'refresh') {
       orderList.value = list;
-      loadingType.value = 'more';
+      loadingType.value = 'loadmore';
     } else {
       if (list.length > 0) {
         orderList.value = orderList.value.concat(list);
-        loadingType.value = 'more';
+        loadingType.value = 'loadmore';
       } else {
         orderParam.pageNum--;
         loadingType.value = 'nomore';
@@ -266,7 +267,7 @@ const loadData = async (type: 'refresh' | 'add' = 'refresh') => {
     }
   } catch (error) {
     console.error('加载订单列表失败:', error);
-    loadingType.value = 'more';
+    loadingType.value = 'loadmore';
   }
 };
 
@@ -296,7 +297,7 @@ const deleteOrder = (orderId: number) => {
       if (res.confirm) {
         uni.showLoading({ title: '请稍后' });
         try {
-          await OrderService.deleteUserOrder({ orderId });
+          await orderStore.deleteOrder(orderId);
           uni.hideLoading();
           loadData();
         } catch (error) {
@@ -319,7 +320,7 @@ const cancelOrder = (orderId: number) => {
       if (res.confirm) {
         uni.showLoading({ title: '请稍后' });
         try {
-          await OrderService.cancelUserOrder({ orderId });
+          await orderStore.cancelOrder(orderId);
           uni.hideLoading();
           loadData();
         } catch (error) {
@@ -336,7 +337,7 @@ const cancelOrder = (orderId: number) => {
  */
 const payOrder = (orderId: number) => {
   uni.redirectTo({
-    url: `/pages/money/pay?orderId=${orderId}`,
+    url: `/pages-sub/order/pay?orderId=${orderId}`,
   });
 };
 
@@ -351,7 +352,7 @@ const receiveOrder = (orderId: number) => {
       if (res.confirm) {
         uni.showLoading({ title: '请稍后' });
         try {
-          await OrderService.confirmReceiveOrder({ orderId });
+          await orderStore.confirmReceive(orderId);
           uni.hideLoading();
           loadData();
         } catch (error) {
@@ -368,7 +369,7 @@ const receiveOrder = (orderId: number) => {
  */
 const showOrderDetail = (orderId: number) => {
   uni.navigateTo({
-    url: `/pages-sub/order/orderDetail?orderId=${orderId}`,
+    url: `/pages-sub/order/order-detail?orderId=${orderId}`,
   });
 };
 
@@ -390,7 +391,7 @@ const calcTotalQuantity = (order: Order): number => {
 page,
 .content {
   height: 100%;
-  background: #f8f8f8;
+  background: var(--color-bg-grey);
 }
 
 .swiper-box {
@@ -407,7 +408,7 @@ page,
   z-index: 10;
   height: 40px;
   padding: 0 5px;
-  background: #fff;
+  background: var(--color-bg);
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.06);
 
   .nav-item {
@@ -417,11 +418,11 @@ page,
     align-items: center;
     justify-content: center;
     height: 100%;
-    color: #333;
+    color: var(--color-text);
     font-size: 15px;
 
     &.current {
-      color: #fa436a;
+      color: var(--color-primary);
 
       &::after {
         content: '';
@@ -431,7 +432,7 @@ page,
         width: 44px;
         height: 0;
         transform: translateX(-50%);
-        border-bottom: 2px solid #fa436a;
+        border-bottom: 2px solid var(--color-primary);
       }
     }
   }
@@ -440,40 +441,40 @@ page,
 .order-item {
   display: flex;
   flex-direction: column;
-  margin-top: 16upx;
-  padding-left: 30upx;
-  background: #fff;
+  margin-top: 16rpx;
+  padding-left: 30rpx;
+  background: var(--color-bg);
 
   .i-top {
     display: flex;
     position: relative;
     align-items: center;
-    height: 80upx;
-    padding-right: 30upx;
-    color: #333;
-    font-size: 28upx;
+    height: 80rpx;
+    padding-right: 30rpx;
+    color: var(--color-text);
+    font-size: 28rpx;
 
     .time {
       flex: 1;
     }
 
     .state {
-      color: #fa436a;
+      color: var(--color-primary);
     }
 
     .del-btn {
       position: relative;
-      padding: 10upx 0 10upx 36upx;
-      color: #999;
-      font-size: 36upx;
+      padding: 10rpx 0 10rpx 36rpx;
+      color: var(--color-text-secondary);
+      font-size: 36rpx;
 
       &::after {
         content: '';
         position: absolute;
         top: 50%;
-        left: 20upx;
+        left: 20rpx;
         width: 0;
-        height: 30upx;
+        height: 30rpx;
         transform: translateY(-50%);
         border-left: 1px solid #ddd;
       }
@@ -483,41 +484,41 @@ page,
   /* 单条商品 */
   .goods-box-single {
     display: flex;
-    padding: 20upx 0;
+    padding: 20rpx 0;
 
     .goods-img {
       display: block;
-      width: 120upx;
-      height: 120upx;
+      width: 120rpx;
+      height: 120rpx;
     }
 
     .right {
       display: flex;
       flex: 1;
       flex-direction: column;
-      padding: 0 30upx 0 24upx;
+      padding: 0 30rpx 0 24rpx;
       overflow: hidden;
 
       .title {
-        color: #333;
-        font-size: 30upx;
+        color: var(--color-text);
+        font-size: 30rpx;
         line-height: 1;
       }
 
       .attr-box {
-        padding: 10upx 12upx;
-        color: #999;
-        font-size: 26upx;
+        padding: 10rpx 12rpx;
+        color: var(--color-text-secondary);
+        font-size: 26rpx;
       }
 
       .price {
-        color: #333;
-        font-size: 30upx;
+        color: var(--color-text);
+        font-size: 30rpx;
 
         &::before {
           content: '￥';
-          margin: 0 2upx 0 8upx;
-          font-size: 24upx;
+          margin: 0 2rpx 0 8rpx;
+          font-size: 24rpx;
         }
       }
     }
@@ -527,23 +528,23 @@ page,
     display: flex;
     align-items: baseline;
     justify-content: flex-end;
-    padding: 20upx 30upx;
-    color: #999;
-    font-size: 26upx;
+    padding: 20rpx 30rpx;
+    color: var(--color-text-secondary);
+    font-size: 26rpx;
 
     .num {
-      margin: 0 8upx;
-      color: #333;
+      margin: 0 8rpx;
+      color: var(--color-text);
     }
 
     .price {
-      color: #333;
-      font-size: 36upx;
+      color: var(--color-text);
+      font-size: 36rpx;
 
       &::before {
         content: '￥';
-        margin: 0 2upx 0 8upx;
-        font-size: 24upx;
+        margin: 0 2rpx 0 8rpx;
+        font-size: 24rpx;
       }
     }
   }
@@ -553,21 +554,21 @@ page,
     position: relative;
     align-items: center;
     justify-content: flex-end;
-    height: 100upx;
-    padding-right: 30upx;
+    height: 100rpx;
+    padding-right: 30rpx;
   }
 
   .action-btn {
-    width: 160upx;
-    height: 60upx;
+    width: 160rpx;
+    height: 60rpx;
     margin: 0;
-    margin-left: 24upx;
+    margin-left: 24rpx;
     padding: 0;
     border-radius: 100px;
-    background: #fff;
-    color: #333;
-    font-size: 26upx;
-    line-height: 60upx;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: 26rpx;
+    line-height: 60rpx;
     text-align: center;
 
     &::after {
@@ -576,7 +577,7 @@ page,
 
     &.recom {
       background: #fff9f9;
-      color: #fa436a;
+      color: var(--color-primary);
 
       &::after {
         border-color: #f7bcc8;

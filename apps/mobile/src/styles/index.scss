@@ -1,0 +1,46 @@
+/**
+ * 全局样式入口
+ * 在 App.vue 中引入
+ */
+
+// 导入尺寸系统
+@use './size';
+
+// 导入主题系统
+@use './theme';
+
+// 导入重置样式
+@use './reset' as *;
+@use './tools' as *;
+@use './font' as *;
+
+// ============================================
+// 页面基础样式 Mixin
+// ============================================
+@mixin page-base {
+  box-sizing: border-box;
+  transition:
+    background-color 0.3s,
+    color 0.3s;
+  background-color: var(--color-bg-grey);
+  color: var(--color-text);
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', STHeiti,
+    'Microsoft Yahei', Tahoma, Simsun, sans-serif;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+}
+
+/* #ifndef H5 */
+page {
+  @include page-base;
+}
+
+/* #endif */
+
+/* #ifdef H5 */
+:root {
+  @include page-base;
+}
+
+/* #endif */

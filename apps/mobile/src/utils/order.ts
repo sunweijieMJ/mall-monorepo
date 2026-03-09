@@ -2,7 +2,7 @@ import {
   ORDER_STATUS,
   ORDER_STATUS_TEXT,
   ORDER_STATUS_COLORS,
-} from '@/constants/OrderStatus';
+} from '@/constants/order';
 
 /**
  * 格式化订单状态文本

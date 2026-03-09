@@ -4,8 +4,9 @@ import UniLayouts from '@uni-helper/vite-plugin-uni-layouts';
 import UniManifest from '@uni-helper/vite-plugin-uni-manifest';
 import UniPages from '@uni-helper/vite-plugin-uni-pages';
 import legacy from '@vitejs/plugin-legacy';
-import { defineConfig, loadEnv } from 'vite';
+import { loadEnv } from 'vite';
 import type { PluginOption } from 'vite';
+import { defineConfig } from 'vitest/config';
 import { devServer } from './config';
 
 /**

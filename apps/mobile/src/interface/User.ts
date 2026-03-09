@@ -1,4 +1,4 @@
-import { BaseEntity } from './Common';
+import { BaseEntity } from './common';
 
 /**
  * 用户信息接口，包含用户的基本信息和账户数据
@@ -20,25 +20,4 @@ export interface UserInfo extends BaseEntity {
   integration?: number;
   /** 成长值 */
   growth?: number;
-}
-
-/**
- * 登录请求接口
- */
-export interface LoginRequest {
-  /** 用户名 */
-  username: string;
-  /** 密码 */
-  password: string;
-}
-
-/**
- * 登录响应接口
- * 包含用户信息和认证令牌
- */
-export interface LoginResponse extends UserInfo {
-  /** 认证令牌 */
-  token: string;
-  /** 认证令牌前缀 */
-  tokenHead: string;
 }

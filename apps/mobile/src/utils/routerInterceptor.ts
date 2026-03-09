@@ -3,15 +3,15 @@ import { useUserStore } from '@/store';
 /** 无需登录即可访问的页面白名单 */
 const WHITE_LIST = [
   '/pages/index/index',
-  '/pages/public/login',
-  '/pages/public/register',
+  '/pages/login/index',
+  '/pages/register/index',
   '/pages/category/category',
-  '/pages/product/list',
-  '/pages/product/product',
-  '/pages-sub/product/hotProductList',
-  '/pages-sub/product/newProductList',
-  '/pages/brand/list',
-  '/pages/brand/brandDetail',
+  '/pages-sub/product/list',
+  '/pages-sub/product/product',
+  '/pages-sub/product/hot-product-list',
+  '/pages-sub/product/new-product-list',
+  '/pages-sub/brand/list',
+  '/pages-sub/brand/brand-detail',
 ];
 
 function isInWhiteList(url: string): boolean {
@@ -27,7 +27,7 @@ function handleRouteIntercept(args: { url: string }): boolean | typeof args {
   if (!userStore.isLoggedIn) {
     const redirect = encodeURIComponent(args.url);
     setTimeout(() => {
-      uni.redirectTo({ url: `/pages/public/login?redirect=${redirect}` });
+      uni.redirectTo({ url: `/pages/login/index?redirect=${redirect}` });
     }, 0);
     return false;
   }
@@ -62,7 +62,7 @@ export function setupRouterInterceptor(): void {
         return args;
       if (!userStore.isLoggedIn) {
         setTimeout(() => {
-          uni.redirectTo({ url: '/pages/public/login' });
+          uni.redirectTo({ url: '/pages/login/index' });
         }, 0);
         return false;
       }

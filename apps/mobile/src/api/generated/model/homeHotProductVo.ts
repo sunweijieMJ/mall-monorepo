@@ -7,7 +7,6 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
-import type { HomeHotProductVoDeletedAt } from './homeHotProductVoDeletedAt';
 
 export interface HomeHotProductVo {
   /** 主键ID */
@@ -16,8 +15,11 @@ export interface HomeHotProductVo {
   createdAt: string;
   /** 更新时间 */
   updatedAt: string;
-  /** 删除时间 */
-  deletedAt?: HomeHotProductVoDeletedAt;
+  /**
+   * 删除时间
+   * @nullable
+   */
+  deletedAt?: string | null;
   /** 商品ID */
   productId: number;
   /** 商品名称 */

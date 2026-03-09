@@ -6,7 +6,7 @@ import {
 
 /**
  * UniApp 统一存储适配器
- * 支持 H5 / 小程序 / App 多端
+ * 用于 Pinia 持久化，支持多端（H5/小程序/App）
  */
 export const uniStorage: StorageLike = {
   getItem(key: string): string | null {
@@ -26,11 +26,18 @@ export const uniStorage: StorageLike = {
 };
 
 /**
- * 创建带持久化的 Pinia 实例
- * 全局默认使用 uniStorage，各 store 可按需覆盖
+ * 创建配置好持久化的 Pinia 实例
+ * 全局统一使用 uniStorage 作为存储适配器
  */
 export const createPersistedPinia = () => {
   const pinia = createPinia();
-  pinia.use(createPersistedState({ storage: uniStorage }));
+
+  // 配置全局默认存储
+  const piniaPersistedState = createPersistedState({
+    storage: uniStorage,
+  });
+
+  pinia.use(piniaPersistedState);
+
   return pinia;
 };

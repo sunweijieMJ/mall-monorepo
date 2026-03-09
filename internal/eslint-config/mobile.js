@@ -13,14 +13,19 @@ export const config = [
   {
     languageOptions: {
       globals: {
-        // UniApp 核心 API
+        // UniApp 全局变量
         uni: 'readonly',
-        // 微信小程序 API（UniApp 编译到微信时可用）
-        wx: 'readonly',
-        // UniApp 页面/应用相关全局方法
+        UniApp: 'readonly',
+        UniHelper: 'readonly',
+        Page: 'readonly',
         getCurrentPages: 'readonly',
         getApp: 'readonly',
-        UniApp: 'readonly',
+        plus: 'readonly',
+        wx: 'readonly',
+        my: 'readonly',
+        // 自定义全局类型 (定义在 typings/uni.d.ts)
+        UniIconsType: 'readonly',
+        UniDataPickerValueArray: 'readonly',
         // UniApp 页面配置宏（类似 Vue 的 defineProps）
         definePage: 'readonly',
       },

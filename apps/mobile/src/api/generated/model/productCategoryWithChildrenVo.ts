@@ -7,8 +7,8 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
+import type { ProductCategoryEntity } from './productCategoryEntity';
 import type { ProductCategoryVo } from './productCategoryVo';
-import type { ProductCategoryWithChildrenVoDeletedAt } from './productCategoryWithChildrenVoDeletedAt';
 import type { ProductCategoryWithChildrenVoLevel } from './productCategoryWithChildrenVoLevel';
 import type { ProductCategoryWithChildrenVoShowStatus } from './productCategoryWithChildrenVoShowStatus';
 
@@ -19,8 +19,11 @@ export interface ProductCategoryWithChildrenVo {
   createdAt: string;
   /** 更新时间 */
   updatedAt: string;
-  /** 删除时间 */
-  deletedAt?: ProductCategoryWithChildrenVoDeletedAt;
+  /**
+   * 删除时间
+   * @nullable
+   */
+  deletedAt?: string | null;
   /** 上级分类ID */
   parentId?: number;
   /** 分类名称 */
@@ -45,4 +48,5 @@ export interface ProductCategoryWithChildrenVo {
   description?: string;
   /** 子分类列表 */
   children: ProductCategoryVo[];
+  parent: ProductCategoryEntity;
 }

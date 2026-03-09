@@ -7,6 +7,7 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
+import type { ProductEntity } from './productEntity';
 
 export interface ProductLadderVo {
   /** 主键ID */
@@ -15,8 +16,15 @@ export interface ProductLadderVo {
   productId?: number;
   /** 满足的商品数量 */
   count?: number;
-  /** 折扣 */
-  discount?: number;
-  /** 折后价格 */
-  price?: number;
+  /**
+   * 折扣
+   * @nullable
+   */
+  discount?: number | null;
+  /**
+   * 折后价格
+   * @nullable
+   */
+  price?: number | null;
+  product: ProductEntity;
 }

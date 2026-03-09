@@ -5,32 +5,25 @@
 
 type _LocationUrl =
   "/pages/index/index" |
-  "/pages/address/address" |
-  "/pages/address/addressManage" |
-  "/pages/brand/brandDetail" |
-  "/pages/brand/list" |
   "/pages/cart/cart" |
   "/pages/category/category" |
-  "/pages/coupon/couponList" |
-  "/pages/money/money" |
-  "/pages/money/pay" |
-  "/pages/money/paySuccess" |
-  "/pages/notice/notice" |
-  "/pages/product/list" |
-  "/pages/product/product" |
-  "/pages/public/login" |
-  "/pages/public/register" |
-  "/pages/user/user" |
-  "/pages-sub/order/createOrder" |
+  "/pages/login/index" |
+  "/pages/mine/mine" |
+  "/pages/register/index" |
+  "/pages-sub/order/create-order" |
+  "/pages-sub/order/order-detail" |
   "/pages-sub/order/order" |
-  "/pages-sub/order/orderDetail" |
-  "/pages-sub/user/brandAttention" |
-  "/pages-sub/user/productCollection" |
-  "/pages-sub/user/readHistory" |
+  "/pages-sub/order/pay-success" |
+  "/pages-sub/order/pay" |
+  "/pages-sub/user/brand-attention" |
+  "/pages-sub/user/product-collection" |
+  "/pages-sub/user/read-history" |
   "/pages-sub/user/set" |
-  "/pages-sub/user/userinfo" |
-  "/pages-sub/product/hotProductList" |
-  "/pages-sub/product/newProductList";
+  "/pages-sub/user/user-info" |
+  "/pages-sub/product/hot-product-list" |
+  "/pages-sub/product/list" |
+  "/pages-sub/product/new-product-list" |
+  "/pages-sub/product/product";
 
 interface NavigateToOptions {
   url: _LocationUrl;
@@ -42,7 +35,7 @@ interface SwitchTabOptions {
     | '/pages/index/index'
     | '/pages/category/category'
     | '/pages/cart/cart'
-    | '/pages/user/user';
+    | '/pages/mine/mine';
 }
 
 type ReLaunchOptions = NavigateToOptions | SwitchTabOptions;

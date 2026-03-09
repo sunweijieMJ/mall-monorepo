@@ -1,12 +1,4 @@
 /**
- * 本地存储工具
- * 提供统一的存储操作方法，包括异步和同步版本
- * 支持数据过期功能
- */
-
-import { log } from './core/logger';
-
-/**
  * 存储项结构
  */
 interface StorageItem<T = any> {
@@ -112,7 +104,7 @@ export const storage = {
 
       return true;
     } catch (error) {
-      log.error(`Failed to set storage item: ${key}`, error);
+      console.error(`Failed to set storage item: ${key}`, error);
       return false;
     }
   },
@@ -142,7 +134,7 @@ export const storage = {
 
       return result.data;
     } catch (error) {
-      log.error(`Failed to get storage item: ${key}`, error);
+      console.error(`Failed to get storage item: ${key}`, error);
       return null;
     }
   },
@@ -162,7 +154,7 @@ export const storage = {
 
       return true;
     } catch (error) {
-      log.error(`Failed to remove storage item: ${key}`, error);
+      console.error(`Failed to remove storage item: ${key}`, error);
       return false;
     }
   },
@@ -175,7 +167,7 @@ export const storage = {
       uni.clearStorage();
       return true;
     } catch (error) {
-      log.error('Failed to clear storage', error);
+      console.error('Failed to clear storage', error);
       return false;
     }
   },
@@ -191,7 +183,7 @@ export const storage = {
       uni.setStorageSync(key, item);
       return true;
     } catch (error) {
-      log.error(`Failed to set storage item sync: ${key}`, error);
+      console.error(`Failed to set storage item sync: ${key}`, error);
       return false;
     }
   },
@@ -215,7 +207,7 @@ export const storage = {
 
       return result.data;
     } catch (error) {
-      log.error(`Failed to get storage item sync: ${key}`, error);
+      console.error(`Failed to get storage item sync: ${key}`, error);
       return null;
     }
   },
@@ -228,7 +220,7 @@ export const storage = {
       uni.removeStorageSync(key);
       return true;
     } catch (error) {
-      log.error(`Failed to remove storage item sync: ${key}`, error);
+      console.error(`Failed to remove storage item sync: ${key}`, error);
       return false;
     }
   },
@@ -241,7 +233,7 @@ export const storage = {
       uni.clearStorageSync();
       return true;
     } catch (error) {
-      log.error('Failed to clear storage sync', error);
+      console.error('Failed to clear storage sync', error);
       return false;
     }
   },

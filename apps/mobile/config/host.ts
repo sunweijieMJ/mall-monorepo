@@ -6,7 +6,7 @@ export const hostname = '0.0.0.0';
 /**
  * protocol
  */
-export const protocol = 'https:';
+export const protocol = 'http:';
 
 /**
  * port
@@ -17,5 +17,5 @@ export const port = 8000;
  * host配置
  */
 export const hostDict = {
-  API_SERVICE: 'portal-api.macrozheng.com',
+  API_SERVICE: 'localhost:3001',
 } as const;

@@ -43,7 +43,7 @@ definePage({
 });
 import { onLoad } from '@dcloudio/uni-app';
 import { ref } from 'vue';
-import { HomeService } from '@/api';
+import { useProductStore } from '@/store';
 
 /**
  * 分类页面
@@ -56,6 +56,8 @@ interface Category {
   name: string;
   icon?: string;
 }
+
+const productStore = useProductStore();
 
 /** 当前选中的一级分类ID */
 const currentId = ref(0);
@@ -71,19 +73,31 @@ onLoad(() => {
   loadData();
 });
 
+/** 分类树（原始数据，含 children） */
+const categoryTree = ref<any[]>([]);
+
 /**
  * 加载分类数据
  */
 const loadData = async () => {
   try {
-    const response = await HomeService.fetchProductCateList(0);
-    flist.value = response.data || [];
+    const data = await productStore.fetchCategoryTree();
+    categoryTree.value = data || [];
+    // 取一级分类列表
+    flist.value = categoryTree.value.map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      icon: item.icon,
+    }));
     if (flist.value.length > 0) {
       currentId.value = flist.value[0].id;
-      const subResponse = await HomeService.fetchProductCateList(
-        currentId.value,
-      );
-      slist.value = subResponse.data || [];
+      // 取第一个一级分类的子分类
+      const first = categoryTree.value[0];
+      slist.value = (first?.children || []).map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        icon: c.icon,
+      }));
     }
   } catch (error) {
     console.error('加载分类列表失败:', error);
@@ -93,14 +107,14 @@ const loadData = async () => {
 /**
  * 一级分类点击
  */
-const tabtap = async (item: Category) => {
+const tabtap = (item: Category) => {
   currentId.value = item.id;
-  try {
-    const response = await HomeService.fetchProductCateList(currentId.value);
-    slist.value = response.data || [];
-  } catch (error) {
-    console.error('加载子分类失败:', error);
-  }
+  const found = categoryTree.value.find((c: any) => c.id === item.id);
+  slist.value = (found?.children || []).map((c: any) => ({
+    id: c.id,
+    name: c.name,
+    icon: c.icon,
+  }));
 };
 
 /**
@@ -108,7 +122,7 @@ const tabtap = async (item: Category) => {
  */
 const navToList = (sid: number) => {
   uni.navigateTo({
-    url: `/pages/product/list?fid=${currentId.value}&sid=${sid}`,
+    url: `/pages-sub/product/list?fid=${currentId.value}&sid=${sid}`,
   });
 };
 </script>
@@ -117,7 +131,7 @@ const navToList = (sid: number) => {
 page,
 .content {
   height: 100%;
-  background-color: #f8f8f8;
+  background-color: var(--color-bg-grey);
 }
 
 .content {
@@ -126,9 +140,9 @@ page,
 
 .left-aside {
   flex-shrink: 0;
-  width: 200upx;
+  width: 200rpx;
   height: 100%;
-  background-color: #fff;
+  background-color: var(--color-bg);
 }
 
 .f-item {
@@ -137,32 +151,32 @@ page,
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 100upx;
+  height: 100rpx;
   color: #666;
-  font-size: 28upx;
+  font-size: 28rpx;
 
   &.active {
-    background: #f8f8f8;
-    color: #fa436a;
+    background: var(--color-bg-grey);
+    color: var(--color-primary);
 
     &::before {
       content: '';
       position: absolute;
       top: 50%;
       left: 0;
-      width: 8upx;
-      height: 36upx;
+      width: 8rpx;
+      height: 36rpx;
       transform: translateY(-50%);
       border-radius: 0 4px 4px 0;
       opacity: 0.8;
-      background-color: #fa436a;
+      background-color: var(--color-primary);
     }
   }
 }
 
 .right-aside {
   flex: 1;
-  padding-left: 20upx;
+  padding-left: 20rpx;
   overflow: hidden;
 }
 
@@ -170,9 +184,9 @@ page,
   display: flex;
   flex-wrap: wrap;
   width: 100%;
-  margin-top: 20upx;
-  padding-top: 12upx;
-  background: #fff;
+  margin-top: 20rpx;
+  padding-top: 12rpx;
+  background: var(--color-bg);
 
   &::after {
     content: '';
@@ -187,14 +201,14 @@ page,
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  width: 176upx;
-  padding-bottom: 20upx;
+  width: 176rpx;
+  padding-bottom: 20rpx;
   color: #666;
-  font-size: 26upx;
+  font-size: 26rpx;
 
   image {
-    width: 140upx;
-    height: 140upx;
+    width: 140rpx;
+    height: 140rpx;
   }
 }
 </style>

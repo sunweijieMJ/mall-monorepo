@@ -1,0 +1,38 @@
+{
+  "light": {
+    "navBgColor": "#ffffff",
+    "navTxtStyle": "black",
+    "bgColor": "#f7f8fa",
+    "bgTxtStyle": "dark",
+    "tabBgColor": "#ffffff",
+    "tabFontColor": "#999999",
+    "tabSelectedColor": "#07c160",
+    "tabBorderStyle": "black",
+    "iconHome": "/static/tabbar/home.png",
+    "iconHomeActive": "/static/tabbar/home-active.png",
+    "iconCategory": "/static/tabbar/category.png",
+    "iconCategoryActive": "/static/tabbar/category-active.png",
+    "iconCart": "/static/tabbar/cart.png",
+    "iconCartActive": "/static/tabbar/cart-active.png",
+    "iconMine": "/static/tabbar/mine.png",
+    "iconMineActive": "/static/tabbar/mine-active.png"
+  },
+  "dark": {
+    "navBgColor": "#1d1d1d",
+    "navTxtStyle": "white",
+    "bgColor": "#141414",
+    "bgTxtStyle": "light",
+    "tabBgColor": "#1d1d1d",
+    "tabFontColor": "#a3a6ad",
+    "tabSelectedColor": "#409eff",
+    "tabBorderStyle": "white",
+    "iconHome": "/static/tabbar/home-dark.png",
+    "iconHomeActive": "/static/tabbar/home-active-dark.png",
+    "iconCategory": "/static/tabbar/category-dark.png",
+    "iconCategoryActive": "/static/tabbar/category-active-dark.png",
+    "iconCart": "/static/tabbar/cart-dark.png",
+    "iconCartActive": "/static/tabbar/cart-active-dark.png",
+    "iconMine": "/static/tabbar/mine-dark.png",
+    "iconMineActive": "/static/tabbar/mine-active-dark.png"
+  }
+}

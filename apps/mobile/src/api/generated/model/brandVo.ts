@@ -7,7 +7,6 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
-import type { BrandVoDeletedAt } from './brandVoDeletedAt';
 import type { BrandVoFactoryStatus } from './brandVoFactoryStatus';
 
 export interface BrandVo {
@@ -17,8 +16,11 @@ export interface BrandVo {
   createdAt: string;
   /** 更新时间 */
   updatedAt: string;
-  /** 删除时间 */
-  deletedAt?: BrandVoDeletedAt;
+  /**
+   * 删除时间
+   * @nullable
+   */
+  deletedAt?: string | null;
   /** 品牌名称 */
   name: string;
   /** 首字母 */
@@ -37,6 +39,9 @@ export interface BrandVo {
   logo: string;
   /** 品牌大图 */
   bigPic: string;
-  /** 品牌故事 */
-  brandStory?: string;
+  /**
+   * 品牌故事
+   * @nullable
+   */
+  brandStory?: string | null;
 }

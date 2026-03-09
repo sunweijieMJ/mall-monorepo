@@ -15,6 +15,8 @@ export default defineManifestConfig({
   /* 微信小程序配置 */
   'mp-weixin': {
     appid: '',
+    darkmode: true,
+    themeLocation: 'theme.json',
     setting: {
       urlCheck: false,
       es6: true,
@@ -32,7 +34,9 @@ export default defineManifestConfig({
 
   /* 支付宝小程序配置 */
   'mp-alipay': {
+    appid: '',
     usingComponents: true,
+    // 启用 component2 编译模式
     component2: true,
   },
 
@@ -49,6 +53,8 @@ export default defineManifestConfig({
   /* H5 配置 */
   h5: {
     title: 'Mall商城',
+    darkmode: true,
+    themeLocation: 'theme.json',
     router: {
       mode: 'history',
       base: '/',
@@ -65,6 +71,8 @@ export default defineManifestConfig({
     usingComponents: true,
     nvueStyleCompiler: 'uni-app',
     compilerVersion: 3,
+    darkmode: true,
+    themeLocation: 'theme.json',
     splashscreen: {
       alwaysShowBeforeRender: true,
       waiting: true,
@@ -74,19 +82,7 @@ export default defineManifestConfig({
     modules: {},
     distribute: {
       android: {
-        permissions: [
-          '<uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />',
-          '<uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />',
-          '<uses-permission android:name="android.permission.VIBRATE" />',
-          '<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />',
-          '<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />',
-          '<uses-permission android:name="android.permission.CAMERA" />',
-          '<uses-permission android:name="android.permission.READ_PHONE_STATE" />',
-          '<uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />',
-          '<uses-permission android:name="android.permission.WAKE_LOCK" />',
-          '<uses-feature android:name="android.hardware.camera" />',
-          '<uses-feature android:name="android.hardware.camera.autofocus" />',
-        ],
+        permissions: [],
       },
       ios: {},
       sdkConfigs: {},

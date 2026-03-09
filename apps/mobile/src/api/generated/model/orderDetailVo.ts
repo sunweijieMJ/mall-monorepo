@@ -29,8 +29,11 @@ export interface OrderDetailVo {
   orderSn: string;
   /** 订单总金额 */
   totalAmount: number;
-  /** 应付金额 */
-  payAmount?: number;
+  /**
+   * 应付金额
+   * @nullable
+   */
+  payAmount?: number | null;
   /** 运费 */
   freightAmount: number;
   /** 促销优化金额 */

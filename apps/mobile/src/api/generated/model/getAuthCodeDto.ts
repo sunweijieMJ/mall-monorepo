@@ -9,6 +9,9 @@
  */
 
 export interface GetAuthCodeDto {
-  /** 手机号 */
+  /**
+   * 手机号
+   * @pattern /^1[3-9]\d{9}$/
+   */
   phone: string;
 }

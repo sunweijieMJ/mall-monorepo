@@ -7,14 +7,22 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
+import type { ProductEntity } from './productEntity';
 
 export interface ProductFullReductionVo {
   /** 主键ID */
   id: number;
   /** 商品ID */
   productId?: number;
-  /** 满减金额 */
-  fullPrice?: number;
-  /** 减免金额 */
-  reducePrice?: number;
+  /**
+   * 满减金额
+   * @nullable
+   */
+  fullPrice?: number | null;
+  /**
+   * 减免金额
+   * @nullable
+   */
+  reducePrice?: number | null;
+  product: ProductEntity;
 }

@@ -7,7 +7,9 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
-import type { CouponVoDeletedAt } from './couponVoDeletedAt';
+import type { CouponHistoryEntity } from './couponHistoryEntity';
+import type { CouponProductCategoryRelationEntity } from './couponProductCategoryRelationEntity';
+import type { CouponProductRelationEntity } from './couponProductRelationEntity';
 import type { CouponVoPlatform } from './couponVoPlatform';
 import type { CouponVoType } from './couponVoType';
 import type { CouponVoUseType } from './couponVoUseType';
@@ -19,8 +21,11 @@ export interface CouponVo {
   createdAt: string;
   /** 更新时间 */
   updatedAt: string;
-  /** 删除时间 */
-  deletedAt?: CouponVoDeletedAt;
+  /**
+   * 删除时间
+   * @nullable
+   */
+  deletedAt?: string | null;
   /** 优惠券类型：0->全场通用；1->指定分类；2->指定商品 */
   type: CouponVoType;
   /** 优惠券名称 */
@@ -55,4 +60,7 @@ export interface CouponVo {
   code?: string;
   /** 可领取的会员类型：0->无限制 */
   memberLevel: number;
+  couponHistories: CouponHistoryEntity[];
+  couponProductRelations: CouponProductRelationEntity[];
+  couponProductCategoryRelations: CouponProductCategoryRelationEntity[];
 }

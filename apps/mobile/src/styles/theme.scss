@@ -1,0 +1,179 @@
+/**
+ * 主题系统 CSS 变量
+ * 支持 light/dark 两种主题
+ *
+ * 使用方式：
+ * 1. 组件中使用 var(--color-primary) 等变量
+ * 2. 通过 useGlobalStore().setTheme('dark') 切换主题
+ * 3. 页面根 view 会自动添加 dark-theme 类
+ *
+ * 注意：尺寸变量请查看 size.scss
+ */
+
+// ============================================
+// 浅色主题变量 Mixin
+// ============================================
+@mixin theme-light {
+  // 主题色
+  --color-primary: #1989fa;
+  --color-primary-light: #66b1ff;
+  --color-primary-dark: #1677ff;
+  --color-primary-bg: rgb(25 137 250 / 0.1);
+  --color-success: #07c160;
+  --color-success-bg: rgb(7 193 96 / 0.1);
+  --color-warning: #ff976a;
+  --color-warning-bg: rgb(255 151 106 / 0.1);
+  --color-error: #ee0a24;
+  --color-error-bg: rgb(238 10 36 / 0.1);
+  --color-info: #909399;
+  --color-info-bg: rgb(144 147 153 / 0.1);
+
+  // 文字颜色
+  --color-text: #323233;
+  --color-text-secondary: #969799;
+  --color-text-placeholder: #c8c9cc;
+  --color-text-disabled: #d9d9d9;
+  --color-text-inverse: #fff;
+  --color-text-link: var(--color-primary);
+
+  // 背景颜色
+  --color-bg: #fff;
+  --color-bg-grey: #f7f8fa;
+  --color-bg-hover: #f2f3f5;
+  --color-bg-active: #ededed;
+  --color-bg-mask: rgb(0 0 0 / 0.7);
+  --color-bg-card: #fff;
+  --color-bg-input: #f7f8fa;
+
+  // 边框颜色
+  --color-border: #ebedf0;
+  --color-border-light: #f7f8fa;
+  --color-border-dark: #dcdee0;
+
+  // 阴影
+  --shadow-sm: 0 2rpx 8rpx rgb(0 0 0 / 0.08);
+  --shadow-base: 0 4rpx 16rpx rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 8rpx 24rpx rgb(0 0 0 / 0.12);
+  --shadow-xl: 0 16rpx 48rpx rgb(0 0 0 / 0.16);
+  --shadow-light: 0 2rpx 12rpx rgb(0 0 0 / 0.05);
+
+  // 透明度颜色 (用于渐变、遮罩等)
+  --color-overlay-light: rgb(255 255 255 / 0.15);
+  --color-overlay-medium: rgb(255 255 255 / 0.3);
+  --color-overlay-heavy: rgb(255 255 255 / 0.5);
+  --color-overlay-solid: rgb(255 255 255 / 0.8);
+
+  // 第三方品牌色
+  --color-brand-wechat: #07c160;
+
+  // 导航栏
+  --color-nav-bg: #fff;
+  --color-nav-text: #323233;
+
+  // TabBar
+  --color-tabbar-bg: #fff;
+  --color-tabbar-text: #999;
+  --color-tabbar-text-active: var(--color-primary);
+}
+
+// ============================================
+// 深色主题变量 Mixin
+// ============================================
+@mixin theme-dark {
+  // 主题色 (深色模式下稍微调亮)
+  --color-primary: #409eff;
+  --color-primary-light: #66b1ff;
+  --color-primary-dark: #337ecc;
+  --color-primary-bg: rgb(64 158 255 / 0.15);
+  --color-success: #67c23a;
+  --color-success-bg: rgb(103 194 58 / 0.15);
+  --color-warning: #e6a23c;
+  --color-warning-bg: rgb(230 162 60 / 0.15);
+  --color-error: #f56c6c;
+  --color-error-bg: rgb(245 108 108 / 0.15);
+  --color-info: #909399;
+  --color-info-bg: rgb(144 147 153 / 0.15);
+
+  // 文字颜色 (深色模式下反转)
+  --color-text: #e5eaf3;
+  --color-text-secondary: #a3a6ad;
+  --color-text-placeholder: #6c6e72;
+  --color-text-disabled: #4c4d4f;
+  --color-text-inverse: #141414;
+  --color-text-link: var(--color-primary);
+
+  // 背景颜色 (深色模式)
+  --color-bg: #141414;
+  --color-bg-grey: #1d1d1d;
+  --color-bg-hover: #262626;
+  --color-bg-active: #303030;
+  --color-bg-mask: rgb(0 0 0 / 0.8);
+  --color-bg-card: #1d1d1d;
+  --color-bg-input: #262626;
+
+  // 边框颜色
+  --color-border: #363637;
+  --color-border-light: #262626;
+  --color-border-dark: #4c4d4f;
+
+  // 阴影 (深色模式下更明显)
+  --shadow-sm: 0 2rpx 8rpx rgb(0 0 0 / 0.3);
+  --shadow-base: 0 4rpx 16rpx rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 8rpx 24rpx rgb(0 0 0 / 0.5);
+  --shadow-xl: 0 16rpx 48rpx rgb(0 0 0 / 0.6);
+  --shadow-light: 0 2rpx 12rpx rgb(0 0 0 / 0.15);
+
+  // 透明度颜色 (深色模式下调整)
+  --color-overlay-light: rgb(255 255 255 / 0.08);
+  --color-overlay-medium: rgb(255 255 255 / 0.15);
+  --color-overlay-heavy: rgb(255 255 255 / 0.25);
+  --color-overlay-solid: rgb(255 255 255 / 0.5);
+
+  // 第三方品牌色
+  --color-brand-wechat: #07c160;
+
+  // 导航栏
+  --color-nav-bg: #1d1d1d;
+  --color-nav-text: #e5eaf3;
+
+  // TabBar
+  --color-tabbar-bg: #1d1d1d;
+  --color-tabbar-text: #a3a6ad;
+  --color-tabbar-text-active: var(--color-primary);
+}
+
+// ============================================
+// 平台条件编译 - 应用主题
+// ============================================
+
+/* #ifndef H5 */
+// 小程序 & App: 使用 page 选择器
+page {
+  @include theme-light;
+}
+
+page.dark-theme {
+  @include theme-dark;
+}
+
+/* #endif */
+
+/* #ifdef H5 */
+// H5: 使用 :root 选择器
+:root {
+  @include theme-light;
+}
+
+:root.dark-theme {
+  @include theme-dark;
+}
+
+/* #endif */
+
+// ============================================
+// 通用深色主题类 (用于组件内部)
+// 支持页面根 view 添加 dark-theme 类
+// ============================================
+.dark-theme {
+  @include theme-dark;
+}

@@ -56,7 +56,7 @@
 
     <!-- 品牌制造商直供 -->
     <view class="f-header m-t" @click="navToRecommendBrandPage">
-      <image src="/static/icon_home_brand.png"></image>
+      <image src="/static/icons/icon_home_brand.png"></image>
       <view class="tit-box">
         <text class="tit">品牌制造商直供</text>
         <text class="tit2">工厂直达消费者，剔除品牌溢价</text>
@@ -81,7 +81,7 @@
 
     <!-- 秒杀专区 -->
     <view v-if="state.homeFlashPromotion !== null" class="f-header m-t">
-      <image src="/static/icon_flash_promotion.png"></image>
+      <image src="/static/icons/icon_flash_promotion.png"></image>
       <view class="tit-box">
         <text class="tit">秒杀专区</text>
         <text class="tit2">
@@ -120,7 +120,7 @@
 
     <!-- 新鲜好物 -->
     <view class="f-header m-t" @click="navToNewProductListPage">
-      <image src="/static/icon_new_product.png"></image>
+      <image src="/static/icons/icon_new_product.png"></image>
       <view class="tit-box">
         <text class="tit">新鲜好物</text>
         <text class="tit2">为你寻觅世间好物</text>
@@ -147,7 +147,7 @@
 
     <!-- 人气推荐楼层 -->
     <view class="f-header m-t" @click="navToHotProductListPage">
-      <image src="/static/icon_hot_product.png"></image>
+      <image src="/static/icons/icon_hot_product.png"></image>
       <view class="tit-box">
         <text class="tit">人气推荐</text>
         <text class="tit2">大家都赞不绝口的</text>
@@ -175,7 +175,7 @@
 
     <!-- 猜你喜欢-->
     <view class="f-header m-t">
-      <image src="/static/icon_recommend_product.png"></image>
+      <image src="/static/icons/icon_recommend_product.png"></image>
       <view class="tit-box">
         <text class="tit">猜你喜欢</text>
         <text class="tit2">你喜欢的都在这里了</text>
@@ -198,7 +198,7 @@
         <text class="price">¥{{ item.price }}</text>
       </view>
     </view>
-    <uni-load-more :status="state.loadingType"></uni-load-more>
+    <ULoadMore :status="state.loadingType" />
   </view>
 </template>
 
@@ -219,7 +219,7 @@ definePage({
         },
         buttons: [
           {
-            fontSrc: '/static/yticon.ttf',
+            fontSrc: '/static/fonts/yticon.ttf',
             text: '\ue60d',
             fontSize: '26',
             color: '#303133',
@@ -227,7 +227,7 @@ definePage({
             background: 'rgba(0,0,0,0)',
           },
           {
-            fontSrc: '/static/yticon.ttf',
+            fontSrc: '/static/fonts/yticon.ttf',
             text: '\ue744',
             fontSize: '27',
             color: '#303133',
@@ -251,9 +251,9 @@ definePage({
 
 import { onLoad, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app';
 import { reactive, computed, ref } from 'vue';
-import { HomeService } from '@/api';
-import uniLoadMore from '@/components/uni-load-more/uni-load-more.vue';
-import type { HomeAdvertise, HomeBrand, Product } from '@/interface';
+import { ULoadMore } from '@/components';
+import type { Product, HomeAdvertise, HomeBrand } from '@/interface';
+import { useHomeStore } from '@/store';
 import { formatDateTime } from '@/utils/formatters';
 
 // 类型定义
@@ -295,7 +295,7 @@ interface PageState {
   /** 推荐商品列表 */
   recommendProductList: Product[];
   /** 加载状态 */
-  loadingType: 'more' | 'loading' | 'noMore';
+  loadingType: 'loadmore' | 'loading' | 'nomore';
 }
 
 interface RecommendParams {
@@ -304,6 +304,8 @@ interface RecommendParams {
   /** 每页大小 */
   pageSize: number;
 }
+
+const homeStore = useHomeStore();
 
 // 顶部背景色列表
 const titleNViewBackgroundList = ['rgb(203, 87, 60)', 'rgb(205, 215, 218)'];
@@ -319,7 +321,7 @@ const state = reactive<PageState>({
   newProductList: [],
   hotProductList: [],
   recommendProductList: [],
-  loadingType: 'more',
+  loadingType: 'loadmore',
 });
 
 // 推荐商品分页参数
@@ -382,23 +384,22 @@ const formatTime = (time: string | null | undefined): string => {
  */
 const loadData = async (): Promise<void> => {
   try {
-    const response = await HomeService.fetchContent();
+    const content = await homeStore.fetchContent();
 
     // 设置广告列表和轮播图配置
-    state.advertiseList = response.data.advertiseList || [];
+    state.advertiseList = content?.advertiseList || [];
     state.swiperLength = state.advertiseList.length;
     state.titleNViewBackground = titleNViewBackgroundList[0];
 
     // 设置其他数据
-    state.brandList = response.data.brandList || [];
-    state.homeFlashPromotion = response.data.homeFlashPromotion || null;
-    state.newProductList = response.data.newProductList || [];
-    state.hotProductList = response.data.hotProductList || [];
+    state.brandList = content?.brandList || [];
+    state.homeFlashPromotion = content?.homeFlashPromotion || null;
+    state.newProductList = content?.newProductList || [];
+    state.hotProductList = content?.hotProductList || [];
 
     // 加载推荐商品列表
-    const recommendResponse =
-      await HomeService.fetchRecommendProductList(recommendParams);
-    state.recommendProductList = recommendResponse.data || [];
+    const recommendList = await homeStore.fetchProductList(recommendParams);
+    state.recommendProductList = recommendList || [];
 
     // 停止下拉刷新
     uni.stopPullDownRefresh();
@@ -427,7 +428,7 @@ const handleSwiperChange = (e: any): void => {
 const navToDetailPage = (item: Product): void => {
   const id = item.id;
   uni.navigateTo({
-    url: `/pages/product/product?id=${id}`,
+    url: `/pages-sub/product/product?id=${id}`,
   });
 };
 
@@ -447,7 +448,7 @@ const navToAdvertisePage = (item: HomeAdvertise): void => {
 const navToBrandDetailPage = (item: HomeBrand): void => {
   const id = item.id;
   uni.navigateTo({
-    url: `/pages/brand/brandDetail?id=${id}`,
+    url: `/pages-sub/brand/brand-detail?id=${id}`,
   });
 };
 
@@ -456,7 +457,7 @@ const navToBrandDetailPage = (item: HomeBrand): void => {
  */
 const navToRecommendBrandPage = (): void => {
   uni.navigateTo({
-    url: '/pages/brand/list',
+    url: '/pages-sub/brand/list',
   });
 };
 
@@ -465,7 +466,7 @@ const navToRecommendBrandPage = (): void => {
  */
 const navToNewProductListPage = (): void => {
   uni.navigateTo({
-    url: '/pages-sub/product/newProductList',
+    url: '/pages-sub/product/new-product-list',
   });
 };
 
@@ -474,7 +475,7 @@ const navToNewProductListPage = (): void => {
  */
 const navToHotProductListPage = (): void => {
   uni.navigateTo({
-    url: '/pages-sub/product/hotProductList',
+    url: '/pages-sub/product/hot-product-list',
   });
 };
 
@@ -502,24 +503,24 @@ onReachBottom(() => {
   recommendParams.pageNum++;
   state.loadingType = 'loading';
 
-  HomeService.fetchRecommendProductList(recommendParams)
-    .then((response) => {
-      const addProductList = response.data;
+  homeStore
+    .fetchProductList(recommendParams)
+    .then((addProductList) => {
       if (!addProductList || addProductList.length === 0) {
         // 没有更多数据了
         recommendParams.pageNum--;
-        state.loadingType = 'noMore';
+        state.loadingType = 'nomore';
       } else {
         // 追加新数据
         state.recommendProductList =
           state.recommendProductList.concat(addProductList);
-        state.loadingType = 'more';
+        state.loadingType = 'loadmore';
       }
     })
     .catch((error) => {
       console.error('加载推荐商品失败', error);
       recommendParams.pageNum--;
-      state.loadingType = 'more';
+      state.loadingType = 'loadmore';
     });
 });
 
@@ -544,7 +545,7 @@ const onNavigationBarButtonTap = (e: any): void => {
     });
     // #endif
     uni.navigateTo({
-      url: '/pages/notice/notice',
+      url: '/pages-sub/notice/notice',
     });
   }
 };
@@ -556,31 +557,31 @@ const onNavigationBarButtonTap = (e: any): void => {
 .mp-search-box {
   position: absolute;
   z-index: 9999;
-  top: 30upx;
+  top: 30rpx;
   left: 0;
   width: 100%;
-  padding: 0 80upx;
+  padding: 0 80rpx;
 
   .ser-input {
     flex: 1;
-    height: 56upx;
+    height: 56rpx;
     border-radius: 20px;
     background: rgba(255, 255, 255, 0.6);
-    color: $font-color-base;
-    font-size: 28upx;
-    line-height: 56upx;
+    color: var(--color-text);
+    font-size: 28rpx;
+    line-height: 56rpx;
     text-align: center;
   }
 }
 
 page {
-  background: #f5f5f5;
+  background: var(--color-bg-grey);
 
   .cate-section {
     position: relative;
     z-index: 5;
-    margin-top: -20upx;
-    border-radius: 16upx 16upx 0 0;
+    margin-top: -20rpx;
+    border-radius: 16rpx 16rpx 0 0;
   }
 
   .carousel-section {
@@ -598,8 +599,8 @@ page {
     }
 
     .swiper-dots {
-      bottom: 40upx;
-      left: 45upx;
+      bottom: 40rpx;
+      left: 45rpx;
     }
   }
 }
@@ -607,7 +608,7 @@ page {
 /* #endif */
 
 .m-t {
-  margin-top: 16upx;
+  margin-top: 16rpx;
 }
 
 /* 头部 轮播图 */
@@ -626,46 +627,46 @@ page {
     top: 0;
     left: 0;
     width: 100%;
-    height: 426upx;
+    height: 426rpx;
     transition: 0.4s;
   }
 }
 
 .carousel {
   width: 100%;
-  height: 350upx;
+  height: 350rpx;
 
   .carousel-item {
     width: 100%;
     height: 100%;
-    padding: 0 28upx;
+    padding: 0 28rpx;
     overflow: hidden;
   }
 
   image {
     width: 100%;
     height: 100%;
-    border-radius: 10upx;
+    border-radius: 10rpx;
   }
 }
 
 .swiper-dots {
   display: flex;
   position: absolute;
-  bottom: 15upx;
-  left: 60upx;
-  width: 72upx;
-  height: 36upx;
+  bottom: 15rpx;
+  left: 60rpx;
+  width: 72rpx;
+  height: 36rpx;
   background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAABkCAYAAADDhn8LAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTMyIDc5LjE1OTI4NCwgMjAxNi8wNC8xOS0xMzoxMzo0MCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6OTk4MzlBNjE0NjU1MTFFOUExNjRFQ0I3RTQ0NEExQjMiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6OTk4MzlBNjA0NjU1MTFFOUExNjRFQ0I3RTQ0NEExQjMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTcgKFdpbmRvd3MpIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6Q0E3RUNERkE0NjExMTFFOTg5NzI4MTM2Rjg0OUQwOEUiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6Q0E3RUNERkI0NjExMTFFOTg5NzI4MTM2Rjg0OUQwOEUiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz4Gh5BPAAACTUlEQVR42uzcQW7jQAwFUdN306l1uWwNww5kqdsmm6/2MwtVCp8CosQtP9vg/2+/gY+DRAMBgqnjIp2PaCxCLLldpPARRIiFj1yBbMV+cHZh9PURRLQNhY8kgWyL/WDtwujjI8hoE8rKLqb5CDJaRMJHokC6yKgSCR9JAukmokIknCQJpLOIrJFwMsBJELFcKHwM9BFkLBMKFxNcBCHlQ+FhoocgpVwwnv0Xn30QBJGMC0QcaBVJiAMiec/dcwKuL4j1QMsVCXFAJE4s4NQA3K/8Y6DzO4g40P7UcmIBJxbEesCKWBDg8wWxHrAiFgT4fEGsB/CwIhYE+AeBAAdPLOcV8HRmWRDAiQVcO7GcV8CLM8uCAE4sQCDAlHcQ7x+ABQEEAggEEAggEEAggEAAgQACASAQQCCAQACBAAIBBAIIBBAIIBBAIABe4e9iAe/xd7EAJxYgEGDeO4j3EODp/cOCAE4sYMyJ5cwCHs4rCwI4sYBxJ5YzC84rCwKcXxArAuthQYDzC2JF0H49LAhwYUGsCFqvx5EF2T07dMaJBetx4cRyaqFtHJ8EIhK0i8OJBQxcECuCVutxJhCRoE0cZwMRyRcFefa/ffZBVPogePihhyCnbBhcfMFFEFM+DD4m+ghSlgmDkwlOgpAl4+BkkJMgZdk4+EgaSCcpVX7bmY9kgXQQU+1TgE0c+QJZUUz1b2T4SBbIKmJW+3iMj2SBVBWz+leVfCQLpIqYbp8b85EskIxyfIOfK5Sf+wiCRJEsllQ+oqEkQfBxmD8BBgA5hVjXyrBNUQAAAABJRU5ErkJggg==');
   background-size: 100% 100%;
 
   .num {
-    width: 36upx;
-    height: 36upx;
+    width: 36rpx;
+    height: 36rpx;
     border-radius: 50px;
-    color: #fff;
-    font-size: 24upx;
-    line-height: 36upx;
+    color: var(--color-bg);
+    font-size: 24rpx;
+    line-height: 36rpx;
     text-align: center;
   }
 
@@ -674,9 +675,9 @@ page {
     top: 0;
     left: 50%;
     transform: translateX(-50%);
-    color: #fff;
-    font-size: 12upx;
-    line-height: 36upx;
+    color: var(--color-bg);
+    font-size: 12rpx;
+    line-height: 36rpx;
   }
 }
 
@@ -686,33 +687,33 @@ page {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-around;
-  padding: 30upx 22upx;
-  background: #fff;
+  padding: 30rpx 22rpx;
+  background: var(--color-bg);
 
   .cate-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    color: $font-color-dark;
-    font-size: $font-sm + 2upx;
+    color: var(--color-text);
+    font-size: 26rpx;
   }
 
   /* 原图标颜色太深,不想改图了,所以加了透明度 */
   image {
-    width: 88upx;
-    height: 88upx;
-    margin-bottom: 14upx;
+    width: 88rpx;
+    height: 88rpx;
+    margin-bottom: 14rpx;
     border-radius: 50%;
     opacity: 0.7;
-    box-shadow: 4upx 4upx 20upx rgba(250, 67, 106, 0.3);
+    box-shadow: 4rpx 4rpx 20rpx rgba(250, 67, 106, 0.3);
   }
 }
 
 .ad-1 {
   width: 100%;
-  height: 210upx;
-  padding: 10upx 0;
-  background: #fff;
+  height: 210rpx;
+  padding: 10rpx 0;
+  background: var(--color-bg);
 
   image {
     width: 100%;
@@ -722,43 +723,43 @@ page {
 
 /* 秒杀专区 */
 .seckill-section {
-  padding: 4upx 30upx 24upx;
-  background: #fff;
+  padding: 4rpx 30rpx 24rpx;
+  background: var(--color-bg);
 
   .s-header {
     display: flex;
     align-items: center;
-    height: 92upx;
+    height: 92rpx;
     line-height: 1;
 
     .s-img {
-      width: 140upx;
-      height: 30upx;
+      width: 140rpx;
+      height: 30rpx;
     }
 
     .tip {
-      margin: 0 20upx 0 40upx;
-      color: $font-color-light;
-      font-size: $font-base;
+      margin: 0 20rpx 0 40rpx;
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-base);
     }
 
     .timer {
       display: inline-block;
-      width: 40upx;
-      height: 36upx;
-      margin-right: 14upx;
+      width: 40rpx;
+      height: 36rpx;
+      margin-right: 14rpx;
       border-radius: 2px;
       background: rgba(0, 0, 0, 0.8);
-      color: #fff;
-      font-size: $font-sm + 2upx;
-      line-height: 36upx;
+      color: var(--color-bg);
+      font-size: 26rpx;
+      line-height: 36rpx;
       text-align: center;
     }
 
     .icon-you {
       flex: 1;
-      color: $font-color-light;
-      font-size: $font-lg;
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-lg);
       text-align: right;
     }
   }
@@ -773,42 +774,42 @@ page {
   }
 
   .floor-item {
-    width: 300upx;
-    margin-right: 20upx;
-    color: $font-color-dark;
-    font-size: $font-sm + 2upx;
+    width: 300rpx;
+    margin-right: 20rpx;
+    color: var(--color-text);
+    font-size: 26rpx;
     line-height: 1.8;
 
     image {
-      width: 300upx;
-      height: 300upx;
-      border-radius: 6upx;
+      width: 300rpx;
+      height: 300rpx;
+      border-radius: 6rpx;
     }
 
     .price {
-      color: $uni-color-primary;
+      color: var(--color-primary);
     }
   }
 
   .title2 {
-    color: $font-color-light;
-    font-size: $font-sm;
-    line-height: 40upx;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: 40rpx;
   }
 }
 
 .f-header {
   display: flex;
   align-items: center;
-  height: 140upx;
-  padding: 6upx 30upx 8upx;
-  background: #fff;
+  height: 140rpx;
+  padding: 6rpx 30rpx 8rpx;
+  background: var(--color-bg);
 
   image {
     flex-shrink: 0;
-    width: 80upx;
-    height: 80upx;
-    margin-right: 20upx;
+    width: 80rpx;
+    height: 80rpx;
+    margin-right: 20rpx;
   }
 
   .tit-box {
@@ -818,31 +819,31 @@ page {
   }
 
   .tit {
-    color: $font-color-dark;
-    font-size: $font-lg + 2upx;
+    color: var(--color-text);
+    font-size: 34rpx;
     line-height: 1.3;
   }
 
   .tit2 {
-    color: $font-color-light;
-    font-size: $font-sm;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
   }
 
   .icon-you {
-    color: $font-color-light;
-    font-size: $font-lg + 2upx;
+    color: var(--color-text-secondary);
+    font-size: 34rpx;
   }
 
   .timer {
     display: inline-block;
-    width: 40upx;
-    height: 36upx;
-    margin-right: 14upx;
+    width: 40rpx;
+    height: 36rpx;
+    margin-right: 14rpx;
     border-radius: 2px;
     background: rgba(0, 0, 0, 0.8);
-    color: #fff;
-    font-size: $font-sm + 2upx;
-    line-height: 36upx;
+    color: var(--color-bg);
+    font-size: 26rpx;
+    line-height: 36rpx;
     text-align: center;
   }
 }
@@ -850,13 +851,13 @@ page {
 /* 分类推荐楼层 */
 .hot-floor {
   width: 100%;
-  margin-bottom: 20upx;
+  margin-bottom: 20rpx;
   overflow: hidden;
 
   .floor-img-box {
     position: relative;
     width: 100%;
-    height: 320upx;
+    height: 320rpx;
 
     &::after {
       content: '';
@@ -865,7 +866,10 @@ page {
       left: 0;
       width: 100%;
       height: 100%;
-      background: linear-gradient(rgba(255, 255, 255, 0.06) 30%, #f8f8f8);
+      background: linear-gradient(
+        rgba(255, 255, 255, 0.06) 30%,
+        var(--color-bg-grey)
+      );
     }
   }
 
@@ -877,12 +881,12 @@ page {
   .floor-list {
     position: relative;
     z-index: 1;
-    margin-top: -140upx;
-    margin-left: 30upx;
-    padding: 20upx;
-    padding-right: 50upx;
-    border-radius: 6upx;
-    background: #fff;
+    margin-top: -140rpx;
+    margin-left: 30rpx;
+    padding: 20rpx;
+    padding-right: 50rpx;
+    border-radius: 6rpx;
+    background: var(--color-bg);
     box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.2);
     white-space: nowrap;
   }
@@ -893,20 +897,20 @@ page {
   }
 
   .floor-item {
-    width: 180upx;
-    margin-right: 20upx;
-    color: $font-color-dark;
-    font-size: $font-sm + 2upx;
+    width: 180rpx;
+    margin-right: 20rpx;
+    color: var(--color-text);
+    font-size: 26rpx;
     line-height: 1.8;
 
     image {
-      width: 180upx;
-      height: 180upx;
-      border-radius: 6upx;
+      width: 180rpx;
+      height: 180rpx;
+      border-radius: 6rpx;
     }
 
     .price {
-      color: $uni-color-primary;
+      color: var(--color-primary);
     }
   }
 
@@ -916,15 +920,15 @@ page {
     flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    width: 180upx;
-    height: 180upx;
-    border-radius: 6upx;
-    background: #f3f3f3;
-    color: $font-color-light;
-    font-size: $font-base;
+    width: 180rpx;
+    height: 180rpx;
+    border-radius: 6rpx;
+    background: var(--color-bg-grey);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-base);
 
     text:first-child {
-      margin-bottom: 4upx;
+      margin-bottom: 4rpx;
     }
   }
 }
@@ -933,14 +937,14 @@ page {
 .guess-section {
   display: flex;
   flex-wrap: wrap;
-  padding: 0 30upx;
-  background: #fff;
+  padding: 0 30rpx;
+  background: var(--color-bg);
 
   .guess-item {
     display: flex;
     flex-direction: column;
     width: 48%;
-    padding-bottom: 40upx;
+    padding-bottom: 40rpx;
 
     &:nth-child(2n + 1) {
       margin-right: 4%;
@@ -949,7 +953,7 @@ page {
 
   .image-wrapper {
     width: 100%;
-    height: 330upx;
+    height: 330rpx;
     overflow: hidden;
     border-radius: 3px;
 
@@ -962,7 +966,7 @@ page {
 
   .image-wrapper-brand {
     width: 100%;
-    height: 150upx;
+    height: 150rpx;
     overflow: hidden;
     border-radius: 3px;
 
@@ -974,20 +978,20 @@ page {
   }
 
   .title {
-    color: $font-color-dark;
-    font-size: $font-lg;
-    line-height: 80upx;
+    color: var(--color-text);
+    font-size: var(--font-size-lg);
+    line-height: 80rpx;
   }
 
   .title2 {
-    color: $font-color-light;
-    font-size: $font-sm;
-    line-height: 40upx;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: 40rpx;
   }
 
   .price {
-    color: $uni-color-primary;
-    font-size: $font-lg;
+    color: var(--color-primary);
+    font-size: var(--font-size-lg);
     line-height: 1;
   }
 }
@@ -995,19 +999,19 @@ page {
 .hot-section {
   display: flex;
   flex-wrap: wrap;
-  padding: 0 30upx;
-  background: #fff;
+  padding: 0 30rpx;
+  background: var(--color-bg);
 
   .guess-item {
     display: flex;
     flex-direction: row;
     width: 100%;
-    padding-bottom: 40upx;
+    padding-bottom: 40rpx;
   }
 
   .image-wrapper {
     width: 30%;
-    height: 250upx;
+    height: 250rpx;
     overflow: hidden;
     border-radius: 3px;
 
@@ -1019,32 +1023,32 @@ page {
   }
 
   .title {
-    color: $font-color-dark;
-    font-size: $font-lg;
-    line-height: 80upx;
+    color: var(--color-text);
+    font-size: var(--font-size-lg);
+    line-height: 80rpx;
   }
 
   .title2 {
     display: block;
-    height: 80upx;
+    height: 80rpx;
     overflow: hidden;
-    color: $font-color-light;
-    font-size: $font-sm;
-    line-height: 40upx;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: 40rpx;
     text-overflow: ellipsis;
   }
 
   .price {
-    color: $uni-color-primary;
-    font-size: $font-lg;
-    line-height: 80upx;
+    color: var(--color-primary);
+    font-size: var(--font-size-lg);
+    line-height: 80rpx;
   }
 
   .txt {
     display: flex;
     flex-direction: column;
     width: 70%;
-    padding-left: 40upx;
+    padding-left: 40rpx;
   }
 }
 </style>

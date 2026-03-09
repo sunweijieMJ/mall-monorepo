@@ -1,4 +1,4 @@
-import { COUPON_USE_TYPE_TEXT } from '@/constants/CouponType';
+import { COUPON_USE_TYPE_TEXT } from '@/constants/coupon';
 
 /**
  * 格式化优惠券使用类型

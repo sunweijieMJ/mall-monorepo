@@ -13,6 +13,9 @@ export interface AddCartDto {
   productId: number;
   /** SKU ID */
   productSkuId: number;
-  /** 数量 */
+  /**
+   * 数量
+   * @minimum 1
+   */
   productQuantity: number;
 }
