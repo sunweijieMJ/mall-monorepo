@@ -14,6 +14,7 @@ import { AdminUserEntity } from './infrastructure/persistence/relational/entitie
 import { AdminRoleRelationEntity } from './infrastructure/persistence/relational/entities/admin-role-relation.entity';
 import { AdminRoleEntity } from '@/modules/ums/admin-role/infrastructure/persistence/relational/entities/admin-role.entity';
 import { PageQueryDto, PageResult } from '@/common/dto/page-result.dto';
+import { paginate } from '@/common/utils/paginate.util';
 
 import { CACHE_KEYS } from '@/common/constants';
 
@@ -43,10 +44,7 @@ export class AdminUserService {
       });
     }
 
-    qb.skip((query.page - 1) * query.limit).take(query.limit);
-
-    const [list, total] = await qb.getManyAndCount();
-    return PageResult.of(list, total, query);
+    return paginate(qb, query);
   }
 
   /** 根据 ID 获取管理员 */
@@ -61,31 +59,29 @@ export class AdminUserService {
     return this.adminRepo.findOneBy({ username });
   }
 
-  /** 更新管理员 */
+  /** 更新管理员基本信息（不含密码） */
   async update(id: number, dto: Partial<AdminUserEntity>): Promise<number> {
-    // addSelect 显式加载 password，用于 bcrypt 比对（password 字段设置了 select:false）
-    const rawAdmin = await this.adminRepo
-      .createQueryBuilder('admin')
-      .addSelect('admin.password')
-      .where('admin.id = :id', { id })
-      .getOne();
-    if (!rawAdmin) throw new NotFoundException('管理员不存在');
+    const admin = await this.adminRepo.findOneBy({ id });
+    if (!admin) throw new NotFoundException('管理员不存在');
 
-    // 密码处理逻辑：有新密码且与原密码不同则重新加密，否则跳过
-    if (dto.password) {
-      const isSame = await bcrypt.compare(dto.password, rawAdmin.password);
-      if (isSame) {
-        delete dto.password;
-      } else {
-        dto.password = await bcrypt.hash(dto.password, 10);
-      }
-    } else {
-      delete dto.password;
-    }
+    // 安全防护：确保通用更新接口不会意外修改密码
+    delete dto.password;
 
     await this.adminRepo.update(id, dto);
     // 清除缓存
-    await this.cacheManager.del(CACHE_KEYS.admin(rawAdmin.username));
+    await this.cacheManager.del(CACHE_KEYS.admin(admin.username));
+    return 1;
+  }
+
+  /** 超管重置管理员密码（无需旧密码） */
+  async resetPassword(id: number, newPassword: string): Promise<number> {
+    const admin = await this.adminRepo.findOneBy({ id });
+    if (!admin) throw new NotFoundException('管理员不存在');
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await this.adminRepo.update(id, { password: hashed });
+    // 清除缓存，确保重置密码后旧 token 失效
+    await this.cacheManager.del(CACHE_KEYS.admin(admin.username));
     return 1;
   }
 
@@ -93,8 +89,13 @@ export class AdminUserService {
   async delete(id: number): Promise<number> {
     const admin = await this.adminRepo.findOneBy({ id });
     if (!admin) return 0;
-    await this.adminRepo.delete(id);
-    // 清除缓存
+    await this.transactionService.run(async (manager) => {
+      // 清理关联的角色关系（硬删除，因为 AdminRoleRelationEntity 不需要软删除）
+      await manager.delete(AdminRoleRelationEntity, { adminId: id });
+      // 软删除管理员（BaseEntity 提供的 deletedAt 字段）
+      await manager.softDelete(AdminUserEntity, id);
+    });
+    // 清除缓存（事务提交后执行）
     await this.cacheManager.del(CACHE_KEYS.admin(admin.username));
     await this.cacheManager.del(CACHE_KEYS.resourceList(id));
     return 1;

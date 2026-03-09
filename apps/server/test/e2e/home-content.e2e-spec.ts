@@ -85,8 +85,8 @@ describe('HomeContent API (e2e)', () => {
   // ---- 首页广告 ----
   const advertiseBase = '/api/v1/admin/sms/home-ads';
 
-  describe('GET /api/v1/admin/sms/home-ads/list', () => {
-    const url = `${advertiseBase}/list`;
+  describe('GET /api/v1/admin/sms/home-ads', () => {
+    const url = advertiseBase;
 
     it('无 token → 401', async () => {
       const res = await request(app.getHttpServer()).get(url).expect(401);
@@ -113,7 +113,7 @@ describe('HomeContent API (e2e)', () => {
     });
   });
 
-  describe('POST /api/v1/admin/sms/home-ads/create', () => {
+  describe('POST /api/v1/admin/sms/home-ads', () => {
     it('添加广告 → 201', async () => {
       const dto = {
         name: '新广告',
@@ -123,7 +123,7 @@ describe('HomeContent API (e2e)', () => {
       mockService.createAdvertise.mockResolvedValue({ id: 1, ...dto });
 
       const res = await request(app.getHttpServer())
-        .post(`${advertiseBase}/create`)
+        .post(advertiseBase)
         .set('Authorization', bearerHeader(token))
         .send(dto)
         .expect(200);
@@ -133,12 +133,12 @@ describe('HomeContent API (e2e)', () => {
     });
   });
 
-  describe('PUT /api/v1/admin/sms/home-ads/update/:id', () => {
+  describe('PUT /api/v1/admin/sms/home-ads/:id', () => {
     it('修改广告 → 200', async () => {
       mockService.updateAdvertise.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${advertiseBase}/update/1`)
+        .put(`${advertiseBase}/1`)
         .set('Authorization', bearerHeader(token))
         .send({ name: '修改后的广告' })
         .expect(200);
@@ -151,12 +151,12 @@ describe('HomeContent API (e2e)', () => {
     });
   });
 
-  describe('DELETE /api/v1/admin/sms/home-ads/delete', () => {
+  describe('POST /api/v1/admin/sms/home-ads/batch-delete', () => {
     it('批量删除广告 → 200', async () => {
       mockService.deleteAdvertise.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .delete(`${advertiseBase}/delete`)
+        .post(`${advertiseBase}/batch-delete`)
         .set('Authorization', bearerHeader(token))
         .send({ ids: [1, 2] })
         .expect(200);
@@ -166,7 +166,7 @@ describe('HomeContent API (e2e)', () => {
     });
   });
 
-  describe('GET /api/v1/admin/sms/home-ads/list (带过滤)', () => {
+  describe('GET /api/v1/admin/sms/home-ads (带过滤)', () => {
     it('带 name/type/endTime 过滤 → 200', async () => {
       mockService.listAdvertise.mockResolvedValue({
         list: [],
@@ -177,7 +177,7 @@ describe('HomeContent API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(`${advertiseBase}/list`)
+        .get(advertiseBase)
         .set('Authorization', bearerHeader(token))
         .query({
           pageNum: 1,
@@ -200,12 +200,12 @@ describe('HomeContent API (e2e)', () => {
     });
   });
 
-  describe('PUT /api/v1/admin/sms/home-ads/update/status/:id', () => {
+  describe('PUT /api/v1/admin/sms/home-ads/:id/status', () => {
     it('修改上下线状态 → 200', async () => {
       mockService.updateAdvertiseStatus.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${advertiseBase}/update/status/1`)
+        .put(`${advertiseBase}/1/status`)
         .set('Authorization', bearerHeader(token))
         .send({ status: 1 })
         .expect(200);
@@ -217,7 +217,7 @@ describe('HomeContent API (e2e)', () => {
   // ---- 首页品牌推荐 ----
   const brandBase = '/api/v1/admin/sms/home-brands';
 
-  describe('GET /api/v1/admin/sms/home-brands/list', () => {
+  describe('GET /api/v1/admin/sms/home-brands', () => {
     it('分页查询推荐品牌 → 200', async () => {
       mockService.listHomeBrand.mockResolvedValue({
         list: [{ id: 1, brandName: 'Nike' }],
@@ -228,7 +228,7 @@ describe('HomeContent API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(`${brandBase}/list`)
+        .get(brandBase)
         .set('Authorization', bearerHeader(token))
         .query({ pageNum: 1, pageSize: 5 })
         .expect(200);
@@ -238,13 +238,13 @@ describe('HomeContent API (e2e)', () => {
     });
   });
 
-  describe('POST /api/v1/admin/sms/home-brands/create', () => {
+  describe('POST /api/v1/admin/sms/home-brands', () => {
     it('批量添加推荐品牌 → 201', async () => {
       const dto = [{ brandId: 1, brandName: 'Nike' }];
       mockService.createHomeBrand.mockResolvedValue([{ id: 1, ...dto[0] }]);
 
       const res = await request(app.getHttpServer())
-        .post(`${brandBase}/create`)
+        .post(brandBase)
         .set('Authorization', bearerHeader(token))
         .send(dto)
         .expect(200);
@@ -254,7 +254,7 @@ describe('HomeContent API (e2e)', () => {
     });
   });
 
-  describe('GET /api/v1/admin/sms/home-brands/list (带过滤)', () => {
+  describe('GET /api/v1/admin/sms/home-brands (带过滤)', () => {
     it('带 recommendStatus 过滤 → 200', async () => {
       mockService.listHomeBrand.mockResolvedValue({
         list: [],
@@ -265,7 +265,7 @@ describe('HomeContent API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(`${brandBase}/list`)
+        .get(brandBase)
         .set('Authorization', bearerHeader(token))
         .query({ pageNum: 1, pageSize: 5, recommendStatus: '1' })
         .expect(200);
@@ -277,12 +277,12 @@ describe('HomeContent API (e2e)', () => {
     });
   });
 
-  describe('PUT /api/v1/admin/sms/home-brands/update/recommend-status', () => {
+  describe('PUT /api/v1/admin/sms/home-brands/batch-status', () => {
     it('批量修改推荐状态 → 200', async () => {
       mockService.updateHomeBrandStatus.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${brandBase}/update/recommend-status`)
+        .put(`${brandBase}/batch-status`)
         .set('Authorization', bearerHeader(token))
         .send({ ids: [1, 2], status: 1 })
         .expect(200);
@@ -291,12 +291,12 @@ describe('HomeContent API (e2e)', () => {
     });
   });
 
-  describe('PUT /api/v1/admin/sms/home-brands/update/sort/:id', () => {
+  describe('PUT /api/v1/admin/sms/home-brands/:id/sort', () => {
     it('修改排序 → 200', async () => {
       mockService.updateHomeBrandSort.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${brandBase}/update/sort/1`)
+        .put(`${brandBase}/1/sort`)
         .set('Authorization', bearerHeader(token))
         .send({ sort: 10 })
         .expect(200);
@@ -308,7 +308,7 @@ describe('HomeContent API (e2e)', () => {
   // ---- 首页专题推荐 ----
   const subjectBase = '/api/v1/admin/sms/home-subjects';
 
-  describe('GET /api/v1/admin/sms/home-subjects/list', () => {
+  describe('GET /api/v1/admin/sms/home-subjects', () => {
     it('分页查询推荐专题 → 200', async () => {
       mockService.listSubject.mockResolvedValue({
         list: [{ id: 1, subjectName: '数码专题' }],
@@ -319,7 +319,7 @@ describe('HomeContent API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(`${subjectBase}/list`)
+        .get(subjectBase)
         .set('Authorization', bearerHeader(token))
         .query({ pageNum: 1, pageSize: 5 })
         .expect(200);
@@ -329,13 +329,13 @@ describe('HomeContent API (e2e)', () => {
     });
   });
 
-  describe('POST /api/v1/admin/sms/home-subjects/create', () => {
+  describe('POST /api/v1/admin/sms/home-subjects', () => {
     it('批量添加推荐专题 → 201', async () => {
       const dto = [{ subjectId: 10, subjectName: '数码专题' }];
       mockService.createSubject.mockResolvedValue([{ id: 1, ...dto[0] }]);
 
       const res = await request(app.getHttpServer())
-        .post(`${subjectBase}/create`)
+        .post(subjectBase)
         .set('Authorization', bearerHeader(token))
         .send(dto)
         .expect(200);
@@ -345,7 +345,7 @@ describe('HomeContent API (e2e)', () => {
     });
   });
 
-  describe('GET /api/v1/admin/sms/home-subjects/list (带过滤)', () => {
+  describe('GET /api/v1/admin/sms/home-subjects (带过滤)', () => {
     it('带 recommendStatus 过滤 → 200', async () => {
       mockService.listSubject.mockResolvedValue({
         list: [],
@@ -356,7 +356,7 @@ describe('HomeContent API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(`${subjectBase}/list`)
+        .get(subjectBase)
         .set('Authorization', bearerHeader(token))
         .query({ pageNum: 1, pageSize: 5, recommendStatus: '0' })
         .expect(200);
@@ -368,12 +368,12 @@ describe('HomeContent API (e2e)', () => {
     });
   });
 
-  describe('PUT /api/v1/admin/sms/home-subjects/update/recommend-status', () => {
+  describe('PUT /api/v1/admin/sms/home-subjects/batch-status', () => {
     it('批量修改推荐状态 → 200', async () => {
       mockService.updateSubjectStatus.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${subjectBase}/update/recommend-status`)
+        .put(`${subjectBase}/batch-status`)
         .set('Authorization', bearerHeader(token))
         .send({ ids: [1], status: 1 })
         .expect(200);
@@ -385,7 +385,7 @@ describe('HomeContent API (e2e)', () => {
   // ---- 新品推荐 ----
   const newProductBase = '/api/v1/admin/sms/home-new-products';
 
-  describe('GET /api/v1/admin/sms/home-new-products/list', () => {
+  describe('GET /api/v1/admin/sms/home-new-products', () => {
     it('分页查询新品推荐 → 200', async () => {
       mockService.listNewProduct.mockResolvedValue({
         list: [{ id: 1, productName: '新品手机' }],
@@ -396,7 +396,7 @@ describe('HomeContent API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(`${newProductBase}/list`)
+        .get(newProductBase)
         .set('Authorization', bearerHeader(token))
         .query({ pageNum: 1, pageSize: 5 })
         .expect(200);
@@ -406,7 +406,7 @@ describe('HomeContent API (e2e)', () => {
     });
   });
 
-  describe('GET /api/v1/admin/sms/home-new-products/list (带过滤)', () => {
+  describe('GET /api/v1/admin/sms/home-new-products (带过滤)', () => {
     it('带 recommendStatus 过滤 → 200', async () => {
       mockService.listNewProduct.mockResolvedValue({
         list: [],
@@ -417,7 +417,7 @@ describe('HomeContent API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(`${newProductBase}/list`)
+        .get(newProductBase)
         .set('Authorization', bearerHeader(token))
         .query({ pageNum: 1, pageSize: 5, recommendStatus: '1' })
         .expect(200);
@@ -429,12 +429,12 @@ describe('HomeContent API (e2e)', () => {
     });
   });
 
-  describe('PUT /api/v1/admin/sms/home-new-products/update/recommend-status', () => {
+  describe('PUT /api/v1/admin/sms/home-new-products/batch-status', () => {
     it('批量修改推荐状态 → 200', async () => {
       mockService.updateNewProductStatus.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${newProductBase}/update/recommend-status`)
+        .put(`${newProductBase}/batch-status`)
         .set('Authorization', bearerHeader(token))
         .send({ ids: [1, 2], status: 0 })
         .expect(200);
@@ -446,7 +446,7 @@ describe('HomeContent API (e2e)', () => {
   // ---- 人气推荐 ----
   const hotProductBase = '/api/v1/admin/sms/home-recommend-products';
 
-  describe('GET /api/v1/admin/sms/home-recommend-products/list', () => {
+  describe('GET /api/v1/admin/sms/home-recommend-products', () => {
     it('分页查询人气推荐 → 200', async () => {
       mockService.listHotProduct.mockResolvedValue({
         list: [{ id: 1, productName: '爆款手机' }],
@@ -457,7 +457,7 @@ describe('HomeContent API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(`${hotProductBase}/list`)
+        .get(hotProductBase)
         .set('Authorization', bearerHeader(token))
         .query({ pageNum: 1, pageSize: 5 })
         .expect(200);
@@ -467,7 +467,7 @@ describe('HomeContent API (e2e)', () => {
     });
   });
 
-  describe('GET /api/v1/admin/sms/home-recommend-products/list (带过滤)', () => {
+  describe('GET /api/v1/admin/sms/home-recommend-products (带过滤)', () => {
     it('带 recommendStatus 过滤 → 200', async () => {
       mockService.listHotProduct.mockResolvedValue({
         list: [],
@@ -478,7 +478,7 @@ describe('HomeContent API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(`${hotProductBase}/list`)
+        .get(hotProductBase)
         .set('Authorization', bearerHeader(token))
         .query({ pageNum: 1, pageSize: 5, recommendStatus: '1' })
         .expect(200);
@@ -490,12 +490,12 @@ describe('HomeContent API (e2e)', () => {
     });
   });
 
-  describe('PUT /api/v1/admin/sms/home-recommend-products/update/recommend-status', () => {
+  describe('PUT /api/v1/admin/sms/home-recommend-products/batch-status', () => {
     it('批量修改推荐状态 → 200', async () => {
       mockService.updateHotProductStatus.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${hotProductBase}/update/recommend-status`)
+        .put(`${hotProductBase}/batch-status`)
         .set('Authorization', bearerHeader(token))
         .send({ ids: [1], status: 1 })
         .expect(200);

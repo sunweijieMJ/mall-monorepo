@@ -48,7 +48,7 @@ describe('ReadHistory API (e2e)', () => {
       mockService.save.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/create`)
+        .post(baseUrl)
         .set('Authorization', bearerHeader(token))
         .send({ productId: 1, productName: '测试商品' })
         .expect(200);
@@ -58,7 +58,7 @@ describe('ReadHistory API (e2e)', () => {
     });
   });
 
-  describe('GET /list', () => {
+  describe('GET /', () => {
     it('分页查询浏览历史 → 200', async () => {
       mockService.list.mockResolvedValue({
         list: [{ id: 1, productName: '测试商品' }],
@@ -66,7 +66,7 @@ describe('ReadHistory API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/list`)
+        .get(baseUrl)
         .set('Authorization', bearerHeader(token))
         .query({ pageNum: 1, pageSize: 10 })
         .expect(200);
@@ -89,10 +89,8 @@ describe('ReadHistory API (e2e)', () => {
   });
 
   describe('无 token', () => {
-    it('GET /list → 401', async () => {
-      const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/list`)
-        .expect(401);
+    it('GET / → 401', async () => {
+      const res = await request(app.getHttpServer()).get(baseUrl).expect(401);
 
       expect(res.body.code).toBe(401);
     });

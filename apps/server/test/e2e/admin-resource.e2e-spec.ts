@@ -54,12 +54,12 @@ describe('AdminResource API (e2e)', () => {
   const resourceUrl = '/api/v1/admin/ums/resources';
   const categoryUrl = '/api/v1/admin/ums/resource-categories';
 
-  describe('POST /resource/create', () => {
-    it('创建资源 → 201', async () => {
+  describe('POST /resource', () => {
+    it('创建资源 → 200', async () => {
       mockResourceService.create.mockResolvedValue({ id: 1 });
 
       const res = await request(app.getHttpServer())
-        .post(`${resourceUrl}/create`)
+        .post(resourceUrl)
         .set('Authorization', bearerHeader(token))
         .send({ name: '新资源', url: '/test/**', categoryId: 1 })
         .expect(200);
@@ -86,12 +86,12 @@ describe('AdminResource API (e2e)', () => {
     });
   });
 
-  describe('DELETE /resource/delete/:id', () => {
+  describe('DELETE /resource/:id', () => {
     it('删除资源 → 200', async () => {
       mockResourceService.delete.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .delete(`${resourceUrl}/delete/1`)
+        .delete(`${resourceUrl}/1`)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -99,14 +99,14 @@ describe('AdminResource API (e2e)', () => {
     });
   });
 
-  describe('GET /resourceCategory/all', () => {
+  describe('GET /resourceCategory', () => {
     it('获取所有资源分类 → 200', async () => {
       mockResourceService.listCategory.mockResolvedValue([
         { id: 1, name: '商品模块' },
       ]);
 
       const res = await request(app.getHttpServer())
-        .get(`${categoryUrl}/all`)
+        .get(categoryUrl)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -115,12 +115,12 @@ describe('AdminResource API (e2e)', () => {
     });
   });
 
-  describe('POST /resourceCategory/create', () => {
-    it('创建资源分类 → 201', async () => {
+  describe('POST /resourceCategory', () => {
+    it('创建资源分类 → 200', async () => {
       mockResourceService.createCategory.mockResolvedValue({ id: 1 });
 
       const res = await request(app.getHttpServer())
-        .post(`${categoryUrl}/create`)
+        .post(categoryUrl)
         .set('Authorization', bearerHeader(token))
         .send({ name: '商品模块', sort: 0 })
         .expect(200);
@@ -129,12 +129,12 @@ describe('AdminResource API (e2e)', () => {
     });
   });
 
-  describe('PUT /resourceCategory/update/:id', () => {
+  describe('PUT /resourceCategory/:id', () => {
     it('修改资源分类 → 200', async () => {
       mockResourceService.updateCategory.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${categoryUrl}/update/1`)
+        .put(`${categoryUrl}/1`)
         .set('Authorization', bearerHeader(token))
         .send({ name: '订单模块' })
         .expect(200);
@@ -143,12 +143,12 @@ describe('AdminResource API (e2e)', () => {
     });
   });
 
-  describe('DELETE /resourceCategory/delete/:id', () => {
+  describe('DELETE /resourceCategory/:id', () => {
     it('删除资源分类 → 200', async () => {
       mockResourceService.deleteCategory.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .delete(`${categoryUrl}/delete/1`)
+        .delete(`${categoryUrl}/1`)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -156,12 +156,12 @@ describe('AdminResource API (e2e)', () => {
     });
   });
 
-  describe('PUT /resource/update/:id', () => {
+  describe('PUT /resource/:id', () => {
     it('修改资源 → 200', async () => {
       mockResourceService.update.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${resourceUrl}/update/1`)
+        .put(`${resourceUrl}/1`)
         .set('Authorization', bearerHeader(token))
         .send({ name: '修改后的资源', url: '/updated/**' })
         .expect(200);
@@ -171,9 +171,9 @@ describe('AdminResource API (e2e)', () => {
   });
 
   describe('无 token', () => {
-    it('POST /resource/create → 401', async () => {
+    it('POST /resource → 401', async () => {
       const res = await request(app.getHttpServer())
-        .post(`${resourceUrl}/create`)
+        .post(resourceUrl)
         .send({ name: '资源' })
         .expect(401);
 

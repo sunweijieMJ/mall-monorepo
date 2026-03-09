@@ -18,6 +18,7 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
 import { AuthGuard } from '@nestjs/passport';
 import { AttentionService } from './attention.service';
 import { AddAttentionDto } from './dto/add-attention.dto';
@@ -34,10 +35,10 @@ import { ApiPaginatedResponse } from '@/common/decorators/api-paginated-response
 export class AttentionController {
   constructor(private readonly attentionService: AttentionService) {}
 
-  @Post('create')
+  @Post()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '关注品牌' })
-  @ApiOkResponse({ type: MemberBrandAttentionVo })
+  @ApiWrappedResponse(MemberBrandAttentionVo)
   create(@CurrentUser() user: JwtPayload, @Body() dto: AddAttentionDto) {
     return this.attentionService.add(user.sub, dto);
   }
@@ -60,7 +61,7 @@ export class AttentionController {
     return this.attentionService.delete(user.sub, brandId);
   }
 
-  @Get('list')
+  @Get()
   @ApiOperation({ summary: '分页查询已关注品牌列表' })
   @ApiPaginatedResponse(MemberBrandAttentionVo)
   list(@CurrentUser() user: JwtPayload, @Query() query: PageQueryDto) {

@@ -106,7 +106,7 @@ async function bootstrap() {
       .addTag('admin-brand', '管理端 - 品牌管理')
       .addTag('admin-product', '管理端 - 商品管理')
       .addTag('admin-product-attr', '管理端 - 商品属性')
-      .addTag('admin-product-attr-category', '管理端 - 属性分类')
+      .addTag('admin-product-attr-category', '管理端 - 商品属性分类')
       .addTag('admin-product-category', '管理端 - 商品分类')
       .addTag('admin-sku-stock', '管理端 - SKU库存')
       .addTag('admin-order', '管理端 - 订单管理')
@@ -152,8 +152,18 @@ async function bootstrap() {
       extraModels: [ApiErrorResponse, ApiResponseDto],
     });
 
-    // 后置处理：补全响应包装 + 全局错误响应
+    // 后置处理：补全响应包装 + 全局错误响应 + 类型修正
     postProcessOpenApiDocument(document);
+
+    // 修正 Schema 中 enum 值全为整数的 number 类型为 integer
+    fixEnumIntegerSchemas(document);
+
+    // 补全 /api/metrics 的 Swagger 信息（由 @willsoto/nestjs-prometheus 自动注册，无法直接加装饰器）
+    const metricsOp = (document.paths?.['/api/metrics'] as any)?.get;
+    if (metricsOp) {
+      metricsOp.summary = metricsOp.summary || 'Prometheus 指标数据';
+      metricsOp.tags = metricsOp.tags?.length ? metricsOp.tags : ['health'];
+    }
 
     SwaggerModule.setup('docs', app, document, {
       jsonDocumentUrl: '/openapi.json',
@@ -245,6 +255,9 @@ function postProcessOpenApiDocument(document: OpenAPIObject): void {
       // 2b. 将 ID / 分页等整数参数的 type 从 number 修正为 integer
       fixIntegerParameters(operation);
 
+      // 2c. 将 query 参数中 enum 值全为整数的 number 类型修正为 integer
+      fixEnumIntegerQueryParams(operation);
+
       // 2c. 处理 @Public() 标记：将含 __public__ 标记的 security 替换为空数组（无需认证）
       if (
         Array.isArray(operation.security) &&
@@ -294,6 +307,40 @@ function fixIntegerParameters(operation: Record<string, any>): void {
       (param.name === 'id' ||
         /Id$/.test(param.name) ||
         ['pageNum', 'pageSize'].includes(param.name))
+    ) {
+      param.schema.type = 'integer';
+    }
+  }
+}
+
+/** 将 Schema 定义中 enum 值全为整数的 number 类型修正为 integer（修复 Swagger CLI 插件推断行为） */
+function fixEnumIntegerSchemas(document: OpenAPIObject): void {
+  for (const schema of Object.values(document.components?.schemas ?? {})) {
+    if (typeof schema !== 'object' || !schema) continue;
+    for (const prop of Object.values(
+      (schema as Record<string, any>).properties ?? {},
+    )) {
+      if (
+        typeof prop === 'object' &&
+        prop !== null &&
+        (prop as any).type === 'number' &&
+        Array.isArray((prop as any).enum) &&
+        (prop as any).enum.every((v: unknown) => Number.isInteger(v))
+      ) {
+        (prop as any).type = 'integer';
+      }
+    }
+  }
+}
+
+/** 将查询参数中 enum 值全为整数的 number 类型修正为 integer */
+function fixEnumIntegerQueryParams(operation: Record<string, any>): void {
+  if (!operation.parameters) return;
+  for (const param of operation.parameters) {
+    if (
+      param.schema?.type === 'number' &&
+      Array.isArray(param.schema.enum) &&
+      param.schema.enum.every((v: unknown) => Number.isInteger(v))
     ) {
       param.schema.type = 'integer';
     }

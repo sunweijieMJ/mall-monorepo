@@ -7,7 +7,7 @@ import { PageQueryDto } from '@/common/dto/page-result.dto';
 export class ReturnApplyQueryDto extends PageQueryDto {
   @ApiPropertyOptional({
     type: 'integer',
-    description: '状态',
+    description: '申请状态：0->待处理；1->退货中；2->已完成；3->已拒绝',
     enum: [0, 1, 2, 3],
   })
   @IsOptional()

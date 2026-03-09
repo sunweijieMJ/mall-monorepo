@@ -38,6 +38,7 @@ export class CreateFlashPromotionDto {
   @ApiPropertyOptional({
     type: 'integer',
     description: '上下线状态：0-下线 1-上线',
+    enum: [0, 1],
     example: 0,
   })
   @IsInt()
@@ -57,12 +58,20 @@ export class CreateFlashSessionDto {
   @IsNotEmpty()
   name: string;
 
-  @ApiProperty({ description: '开始时间（HH:mm:ss）', example: '08:00:00' })
+  @ApiProperty({
+    description: '开始时间（HH:mm:ss）',
+    format: 'time',
+    example: '08:00:00',
+  })
   @IsString()
   @IsNotEmpty()
   startTime: string;
 
-  @ApiProperty({ description: '结束时间（HH:mm:ss）', example: '10:00:00' })
+  @ApiProperty({
+    description: '结束时间（HH:mm:ss）',
+    format: 'time',
+    example: '10:00:00',
+  })
   @IsString()
   @IsNotEmpty()
   endTime: string;
@@ -70,6 +79,7 @@ export class CreateFlashSessionDto {
   @ApiPropertyOptional({
     type: 'integer',
     description: '启用状态：0-不启用 1-启用',
+    enum: [0, 1],
     example: 1,
   })
   @IsInt()

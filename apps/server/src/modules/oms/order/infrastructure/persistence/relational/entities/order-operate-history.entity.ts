@@ -30,7 +30,7 @@ export class OrderOperateHistoryEntity {
   })
   operateMan: string;
 
-  @ApiPropertyOptional({ description: '操作时间' })
+  @ApiPropertyOptional({ description: '操作时间', format: 'date-time' })
   @Column({
     name: 'create_time',
     type: 'timestamp',

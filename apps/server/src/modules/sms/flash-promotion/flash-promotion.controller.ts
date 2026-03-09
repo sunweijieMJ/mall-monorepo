@@ -19,13 +19,14 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
-  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
 import { AuthGuard } from '@nestjs/passport';
 import { FlashPromotionService } from './flash-promotion.service';
 import { UpdateSingleStatusDto } from '@/common/dto/batch-update-status.dto';
 import { PageQueryDto } from '@/common/dto/page-result.dto';
+import { QueryFlashPromotionDto } from './dto/query-flash-promotion.dto';
 import {
   CreateFlashPromotionDto,
   UpdateFlashPromotionDto,
@@ -48,34 +49,22 @@ import { FlashSessionWithCountVo } from './vo/flash-session-with-count.vo';
 export class FlashPromotionController {
   constructor(private readonly service: FlashPromotionService) {}
 
-  @Post('create')
+  @Post()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '添加秒杀活动' })
-  @ApiOkResponse({ type: FlashPromotionVo })
+  @ApiWrappedResponse(FlashPromotionVo)
   create(@Body() dto: CreateFlashPromotionDto) {
     return this.service.createFlash(dto);
   }
 
-  @Put('update/:id')
-  @ApiOperation({ summary: '编辑秒杀活动' })
-  @ApiParam({ name: 'id', description: '秒杀活动ID', type: 'integer' })
-  @ApiOkResponse({ type: Number, description: '受影响的行数' })
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateFlashPromotionDto,
-  ) {
-    return this.service.updateFlash(id, dto);
+  @Get()
+  @ApiOperation({ summary: '根据活动名称分页查询' })
+  @ApiPaginatedResponse(FlashPromotionVo)
+  list(@Query() q: QueryFlashPromotionDto) {
+    return this.service.listFlash(q.keyword, q.page, q.limit);
   }
 
-  @Delete('delete/:id')
-  @ApiOperation({ summary: '删除秒杀活动' })
-  @ApiParam({ name: 'id', description: '秒杀活动ID', type: 'integer' })
-  @ApiOkResponse({ type: Number, description: '受影响的行数' })
-  delete(@Param('id', ParseIntPipe) id: number) {
-    return this.service.deleteFlash(id);
-  }
-
-  @Put('update/status/:id')
+  @Put(':id/status')
   @ApiOperation({ summary: '修改活动上下线状态' })
   @ApiParam({ name: 'id', description: '秒杀活动ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
@@ -86,18 +75,29 @@ export class FlashPromotionController {
     return this.service.updateFlashStatus(id, dto.status);
   }
 
-  @Get('list')
-  @ApiOperation({ summary: '根据活动名称分页查询' })
-  @ApiPaginatedResponse(FlashPromotionVo)
-  @ApiQuery({ name: 'keyword', required: false })
-  list(@Query() q: PageQueryDto, @Query('keyword') keyword?: string) {
-    return this.service.listFlash(keyword, q.page, q.limit);
+  @Put(':id')
+  @ApiOperation({ summary: '编辑秒杀活动' })
+  @ApiParam({ name: 'id', description: '秒杀活动ID', type: 'integer' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateFlashPromotionDto,
+  ) {
+    return this.service.updateFlash(id, dto);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: '删除秒杀活动' })
+  @ApiParam({ name: 'id', description: '秒杀活动ID', type: 'integer' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  delete(@Param('id', ParseIntPipe) id: number) {
+    return this.service.deleteFlash(id);
   }
 
   @Get(':id')
   @ApiOperation({ summary: '获取活动详情' })
   @ApiParam({ name: 'id', description: '秒杀活动ID', type: 'integer' })
-  @ApiOkResponse({ type: FlashPromotionVo })
+  @ApiWrappedResponse(FlashPromotionVo)
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.service.getFlashItem(id);
   }
@@ -111,26 +111,31 @@ export class FlashPromotionController {
 export class FlashSessionController {
   constructor(private readonly service: FlashPromotionService) {}
 
-  @Post('create')
+  @Post()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '添加场次' })
-  @ApiOkResponse({ type: FlashSessionVo })
+  @ApiWrappedResponse(FlashSessionVo)
   create(@Body() dto: CreateFlashSessionDto) {
     return this.service.createSession(dto);
   }
 
-  @Put('update/:id')
-  @ApiOperation({ summary: '修改场次' })
-  @ApiParam({ name: 'id', description: '秒杀场次ID', type: 'integer' })
-  @ApiOkResponse({ type: Number, description: '受影响的行数' })
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateFlashSessionDto,
+  @Get('options')
+  @ApiOperation({ summary: '获取全部可选场次及其数量' })
+  @ApiWrappedResponse(FlashSessionWithCountVo, { isArray: true })
+  listSelectable(
+    @Query('flashPromotionId', ParseIntPipe) flashPromotionId: number,
   ) {
-    return this.service.updateSession(id, dto);
+    return this.service.selectList(flashPromotionId);
   }
 
-  @Put('update/status/:id')
+  @Get()
+  @ApiOperation({ summary: '获取全部场次' })
+  @ApiWrappedResponse(FlashSessionVo, { isArray: true })
+  list() {
+    return this.service.listSession();
+  }
+
+  @Put(':id/status')
   @ApiOperation({ summary: '修改场次启用状态' })
   @ApiParam({ name: 'id', description: '秒杀场次ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
@@ -141,7 +146,18 @@ export class FlashSessionController {
     return this.service.updateSessionStatus(id, dto.status);
   }
 
-  @Delete('delete/:id')
+  @Put(':id')
+  @ApiOperation({ summary: '修改场次' })
+  @ApiParam({ name: 'id', description: '秒杀场次ID', type: 'integer' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateFlashSessionDto,
+  ) {
+    return this.service.updateSession(id, dto);
+  }
+
+  @Delete(':id')
   @ApiOperation({ summary: '删除场次' })
   @ApiParam({ name: 'id', description: '秒杀场次ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
@@ -149,26 +165,10 @@ export class FlashSessionController {
     return this.service.deleteSession(id);
   }
 
-  @Get('options')
-  @ApiOperation({ summary: '获取全部可选场次及其数量' })
-  @ApiOkResponse({ type: [FlashSessionWithCountVo] })
-  listSelectable(
-    @Query('flashPromotionId', ParseIntPipe) flashPromotionId: number,
-  ) {
-    return this.service.selectList(flashPromotionId);
-  }
-
-  @Get('list')
-  @ApiOperation({ summary: '获取全部场次' })
-  @ApiOkResponse({ type: [FlashSessionVo] })
-  list() {
-    return this.service.listSession();
-  }
-
   @Get(':id')
   @ApiOperation({ summary: '获取场次详情' })
   @ApiParam({ name: 'id', description: '秒杀场次ID', type: 'integer' })
-  @ApiOkResponse({ type: FlashSessionVo })
+  @ApiWrappedResponse(FlashSessionVo)
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.service.getSessionItem(id);
   }
@@ -182,11 +182,11 @@ export class FlashSessionController {
 export class FlashProductRelationController {
   constructor(private readonly service: FlashPromotionService) {}
 
-  @Post('create')
+  @Post()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '批量选择商品添加关联' })
   @ApiBody({ type: [CreateFlashProductRelationDto] })
-  @ApiOkResponse({ type: [FlashProductRelationVo] })
+  @ApiWrappedResponse(FlashProductRelationVo, { isArray: true })
   batchCreate(
     @Body(new ParseArrayPipe({ items: CreateFlashProductRelationDto }))
     relationList: CreateFlashProductRelationDto[],
@@ -201,7 +201,24 @@ export class FlashProductRelationController {
     return this.service.createRelation(converted);
   }
 
-  @Put('update/:id')
+  @Get()
+  @ApiOperation({ summary: '分页查询不同场次关联及商品信息' })
+  @ApiPaginatedResponse(FlashProductRelationVo)
+  list(
+    @Query('flashPromotionId', ParseIntPipe) flashPromotionId: number,
+    @Query('flashPromotionSessionId', ParseIntPipe)
+    flashPromotionSessionId: number,
+    @Query() q: PageQueryDto,
+  ) {
+    return this.service.listRelation(
+      flashPromotionId,
+      flashPromotionSessionId,
+      q.page,
+      q.limit,
+    );
+  }
+
+  @Put(':id')
   @ApiOperation({ summary: '修改关联信息' })
   @ApiParam({ name: 'id', description: '秒杀商品关联ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
@@ -219,7 +236,7 @@ export class FlashProductRelationController {
     return this.service.updateRelation(id, converted);
   }
 
-  @Delete('delete/:id')
+  @Delete(':id')
   @ApiOperation({ summary: '删除关联' })
   @ApiParam({ name: 'id', description: '秒杀商品关联ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
@@ -227,27 +244,10 @@ export class FlashProductRelationController {
     return this.service.deleteRelation(id);
   }
 
-  @Get('list')
-  @ApiOperation({ summary: '分页查询不同场次关联及商品信息' })
-  @ApiPaginatedResponse(FlashProductRelationVo)
-  list(
-    @Query('flashPromotionId', ParseIntPipe) flashPromotionId: number,
-    @Query('flashPromotionSessionId', ParseIntPipe)
-    flashPromotionSessionId: number,
-    @Query() q: PageQueryDto,
-  ) {
-    return this.service.listRelation(
-      flashPromotionId,
-      flashPromotionSessionId,
-      q.page,
-      q.limit,
-    );
-  }
-
   @Get(':id')
   @ApiOperation({ summary: '获取关联商品促销信息' })
   @ApiParam({ name: 'id', description: '秒杀商品关联ID', type: 'integer' })
-  @ApiOkResponse({ type: FlashProductRelationVo })
+  @ApiWrappedResponse(FlashProductRelationVo)
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.service.getRelationItem(id);
   }

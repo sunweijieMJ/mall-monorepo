@@ -139,12 +139,12 @@ describe('ProductCategoryService', () => {
   });
 
   describe('delete', () => {
-    it('删除分类 -> 调用 delete', async () => {
-      mockCategoryRepo.delete.mockResolvedValue({ affected: 1 });
+    it('删除分类 -> 调用 softDelete', async () => {
+      mockCategoryRepo.softDelete.mockResolvedValue({ affected: 1 });
 
       await service.delete(1);
 
-      expect(mockCategoryRepo.delete).toHaveBeenCalledWith(1);
+      expect(mockCategoryRepo.softDelete).toHaveBeenCalledWith(1);
     });
   });
 

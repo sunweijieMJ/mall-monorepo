@@ -71,22 +71,24 @@ describe('SkuStock API (e2e)', () => {
     });
   });
 
-  describe('PUT /update/:productId', () => {
+  describe('PUT /:productId', () => {
     it('批量更新 SKU 库存 → 200', async () => {
       mockService.update.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${baseUrl}/update/1`)
+        .put(`${baseUrl}/1`)
         .set('Authorization', bearerHeader(token))
-        .send([
-          {
-            id: 1,
-            skuCode: 'SP001',
-            stock: 200,
-            price: 99.9,
-            promotionPrice: 79.9,
-          },
-        ])
+        .send({
+          stocks: [
+            {
+              id: 1,
+              skuCode: 'SP001',
+              stock: 200,
+              price: 99.9,
+              promotionPrice: 79.9,
+            },
+          ],
+        })
         .expect(200);
 
       expect(res.body.code).toBe(200);
@@ -96,16 +98,22 @@ describe('SkuStock API (e2e)', () => {
       ]);
     });
 
-    it('price 为 null 时不传 → 200', async () => {
+    it('price 存在但 promotionPrice 不传 → 200', async () => {
       mockService.update.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${baseUrl}/update/1`)
+        .put(`${baseUrl}/1`)
         .set('Authorization', bearerHeader(token))
-        .send([{ id: 1, skuCode: 'SP001', stock: 200 }])
+        .send({
+          stocks: [{ id: 1, skuCode: 'SP001', stock: 200, price: 99.9 }],
+        })
         .expect(200);
 
       expect(res.body.code).toBe(200);
+      // 验证 promotionPrice 不存在时不传给 service
+      expect(mockService.update).toHaveBeenCalledWith(1, [
+        expect.objectContaining({ price: '99.9' }),
+      ]);
     });
   });
 

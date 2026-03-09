@@ -27,7 +27,7 @@ export class SubjectEntity {
   @Column({ name: 'recommend_status', default: 0 })
   recommendStatus: number;
 
-  @ApiPropertyOptional({ description: '创建时间' })
+  @ApiPropertyOptional({ description: '创建时间', format: 'date-time' })
   @Column({ name: 'create_time', type: 'timestamp', nullable: true })
   createdAt: Date;
 

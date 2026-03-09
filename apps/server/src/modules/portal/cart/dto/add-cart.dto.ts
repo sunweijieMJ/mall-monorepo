@@ -1,5 +1,5 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsInt, Min } from 'class-validator';
 
 /** 添加购物车 DTO */
 export class AddCartDto {
@@ -15,34 +15,4 @@ export class AddCartDto {
   @IsInt()
   @Min(1)
   productQuantity: number;
-
-  @ApiPropertyOptional({ description: '商品名称' })
-  @IsOptional()
-  @IsString()
-  productName?: string;
-
-  @ApiPropertyOptional({ description: '商品图片' })
-  @IsOptional()
-  @IsString()
-  productPic?: string;
-
-  @ApiPropertyOptional({ description: '商品属性' })
-  @IsOptional()
-  @IsString()
-  productAttr?: string;
-
-  @ApiPropertyOptional({ description: '品牌名称' })
-  @IsOptional()
-  @IsString()
-  productBrand?: string;
-
-  @ApiPropertyOptional({ description: '商品货号' })
-  @IsOptional()
-  @IsString()
-  productSn?: string;
-
-  @ApiPropertyOptional({ description: 'SKU 编码' })
-  @IsOptional()
-  @IsString()
-  productSkuCode?: string;
 }

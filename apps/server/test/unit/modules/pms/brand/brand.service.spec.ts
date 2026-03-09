@@ -113,11 +113,11 @@ describe('BrandService', () => {
 
   describe('remove', () => {
     it('批量删除', async () => {
-      mockBrandRepo.delete.mockResolvedValue({ affected: 2 });
+      mockBrandRepo.softDelete.mockResolvedValue({ affected: 2 });
 
       await service.remove([1, 2]);
 
-      expect(mockBrandRepo.delete).toHaveBeenCalledWith([1, 2]);
+      expect(mockBrandRepo.softDelete).toHaveBeenCalledWith([1, 2]);
     });
   });
 

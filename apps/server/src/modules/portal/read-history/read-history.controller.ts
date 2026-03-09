@@ -16,6 +16,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
 import { AuthGuard } from '@nestjs/passport';
 import { ReadHistoryService } from './read-history.service';
 import { SaveReadHistoryDto } from './dto/save-read-history.dto';
@@ -32,22 +33,23 @@ import { ApiPaginatedResponse } from '@/common/decorators/api-paginated-response
 export class ReadHistoryController {
   constructor(private readonly readHistoryService: ReadHistoryService) {}
 
-  @Post('create')
+  @Post()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '保存商品浏览历史' })
-  @ApiOkResponse({ type: MemberReadHistoryVo })
+  @ApiWrappedResponse(MemberReadHistoryVo)
   create(@CurrentUser() user: JwtPayload, @Body() dto: SaveReadHistoryDto) {
     return this.readHistoryService.save(user.sub, dto);
   }
 
-  @Get('list')
+  @Get()
   @ApiOperation({ summary: '分页查询浏览历史（按时间倒序）' })
   @ApiPaginatedResponse(MemberReadHistoryVo)
   list(@CurrentUser() user: JwtPayload, @Query() query: PageQueryDto) {
     return this.readHistoryService.list(user.sub, query);
   }
 
-  @Delete('delete')
+  @Post('batch-delete')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '批量删除浏览历史' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   batchDelete(@CurrentUser() user: JwtPayload, @Body() dto: BatchDeleteDto) {

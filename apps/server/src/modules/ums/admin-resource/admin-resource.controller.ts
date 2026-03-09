@@ -17,12 +17,12 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
-  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminResourceService } from './admin-resource.service';
-import { PageQueryDto } from '@/common/dto/page-result.dto';
+import { QueryAdminResourceDto } from './dto/query-admin-resource.dto';
 import { ApiPaginatedResponse } from '@/common/decorators/api-paginated-response.decorator';
 import { CreateAdminResourceDto } from './dto/create-admin-resource.dto';
 import { UpdateAdminResourceDto } from './dto/update-admin-resource.dto';
@@ -38,15 +38,34 @@ import { AdminResourceCategoryVo } from './vo/admin-resource-category.vo';
 export class AdminResourceController {
   constructor(private readonly service: AdminResourceService) {}
 
-  @Post('create')
+  @Post()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '添加后台资源' })
-  @ApiOkResponse({ type: AdminResourceVo })
+  @ApiWrappedResponse(AdminResourceVo)
   create(@Body() dto: CreateAdminResourceDto) {
     return this.service.create(dto);
   }
 
-  @Put('update/:id')
+  @Get()
+  @ApiOperation({ summary: '分页模糊查询后台资源' })
+  @ApiPaginatedResponse(AdminResourceVo)
+  list(@Query() query: QueryAdminResourceDto) {
+    return this.service.list(
+      query.categoryId,
+      query.nameKeyword || undefined,
+      query.urlKeyword || undefined,
+      query,
+    );
+  }
+
+  @Get('all')
+  @ApiOperation({ summary: '查询所有后台资源' })
+  @ApiWrappedResponse(AdminResourceVo, { isArray: true })
+  listAll() {
+    return this.service.listAll();
+  }
+
+  @Put(':id')
   @ApiOperation({ summary: '修改后台资源' })
   @ApiParam({ name: 'id', description: '资源ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
@@ -57,7 +76,7 @@ export class AdminResourceController {
     return this.service.update(id, dto);
   }
 
-  @Delete('delete/:id')
+  @Delete(':id')
   @ApiOperation({ summary: '根据ID删除后台资源' })
   @ApiParam({ name: 'id', description: '资源ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
@@ -65,37 +84,10 @@ export class AdminResourceController {
     return this.service.delete(id);
   }
 
-  @Get('list')
-  @ApiOperation({ summary: '分页模糊查询后台资源' })
-  @ApiPaginatedResponse(AdminResourceVo)
-  @ApiQuery({ name: 'categoryId', required: false, type: Number })
-  @ApiQuery({ name: 'nameKeyword', required: false })
-  @ApiQuery({ name: 'urlKeyword', required: false })
-  list(
-    @Query('categoryId') categoryId: string,
-    @Query('nameKeyword') nameKeyword: string,
-    @Query('urlKeyword') urlKeyword: string,
-    @Query() q: PageQueryDto,
-  ) {
-    return this.service.list(
-      categoryId ? Number(categoryId) : undefined,
-      nameKeyword || undefined,
-      urlKeyword || undefined,
-      q,
-    );
-  }
-
-  @Get('all')
-  @ApiOperation({ summary: '查询所有后台资源' })
-  @ApiOkResponse({ type: [AdminResourceVo] })
-  listAll() {
-    return this.service.listAll();
-  }
-
   @Get(':id')
   @ApiOperation({ summary: '根据ID获取资源详情' })
   @ApiParam({ name: 'id', description: '资源ID', type: 'integer' })
-  @ApiOkResponse({ type: AdminResourceVo })
+  @ApiWrappedResponse(AdminResourceVo)
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.service.getItem(id);
   }
@@ -108,15 +100,22 @@ export class AdminResourceController {
 export class AdminResourceCategoryController {
   constructor(private readonly service: AdminResourceService) {}
 
-  @Post('create')
+  @Post()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '添加后台资源分类' })
-  @ApiOkResponse({ type: AdminResourceCategoryVo })
+  @ApiWrappedResponse(AdminResourceCategoryVo)
   create(@Body() dto: CreateResourceCategoryDto) {
     return this.service.createCategory(dto);
   }
 
-  @Put('update/:id')
+  @Get()
+  @ApiOperation({ summary: '查询所有后台资源分类' })
+  @ApiWrappedResponse(AdminResourceCategoryVo, { isArray: true })
+  listAll() {
+    return this.service.listCategory();
+  }
+
+  @Put(':id')
   @ApiOperation({ summary: '修改后台资源分类' })
   @ApiParam({ name: 'id', description: '资源分类ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
@@ -127,18 +126,11 @@ export class AdminResourceCategoryController {
     return this.service.updateCategory(id, dto);
   }
 
-  @Delete('delete/:id')
+  @Delete(':id')
   @ApiOperation({ summary: '删除后台资源分类' })
   @ApiParam({ name: 'id', description: '资源分类ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.service.deleteCategory(id);
-  }
-
-  @Get('all')
-  @ApiOperation({ summary: '查询所有后台资源分类' })
-  @ApiOkResponse({ type: [AdminResourceCategoryVo] })
-  listAll() {
-    return this.service.listCategory();
   }
 }

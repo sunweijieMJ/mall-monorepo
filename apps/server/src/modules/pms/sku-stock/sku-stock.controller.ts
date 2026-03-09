@@ -10,16 +10,16 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
-  ApiBody,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
 import { AuthGuard } from '@nestjs/passport';
 import { SkuStockService } from './sku-stock.service';
-import { SkuStockItemDto } from './dto/update-sku-stock.dto';
+import { BatchUpdateSkuStockDto } from './dto/update-sku-stock.dto';
 import { SkuStockVo } from './vo/sku-stock.vo';
 
 @ApiTags('admin-sku-stock')
@@ -32,7 +32,7 @@ export class SkuStockController {
   @Get(':productId')
   @ApiOperation({ summary: '查询 SKU 库存列表' })
   @ApiParam({ name: 'productId', description: '商品ID', type: 'integer' })
-  @ApiOkResponse({ type: [SkuStockVo] })
+  @ApiWrappedResponse(SkuStockVo, { isArray: true })
   @ApiQuery({ name: 'keyword', required: false })
   list(
     @Param('productId', ParseIntPipe) productId: number,
@@ -41,17 +41,16 @@ export class SkuStockController {
     return this.service.getList(productId, keyword);
   }
 
-  @Put('update/:productId')
+  @Put(':productId')
   @ApiOperation({ summary: '批量更新SKU库存' })
   @ApiParam({ name: 'productId', description: '商品ID', type: 'integer' })
-  @ApiBody({ type: [SkuStockItemDto] })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   update(
     @Param('productId', ParseIntPipe) productId: number,
-    @Body() stocks: SkuStockItemDto[],
+    @Body() dto: BatchUpdateSkuStockDto,
   ) {
     // 将 DTO 中的 decimal 字段从 number 转为 string，以匹配 Entity 类型
-    const converted = stocks.map(({ price, promotionPrice, ...rest }) => ({
+    const converted = dto.stocks.map(({ price, promotionPrice, ...rest }) => ({
       ...rest,
       ...(price != null ? { price: String(price) } : {}),
       ...(promotionPrice != null

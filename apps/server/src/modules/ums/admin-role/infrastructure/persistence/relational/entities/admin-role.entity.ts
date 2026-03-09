@@ -1,17 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity } from 'typeorm';
+import { BaseEntity } from '@/common/entities/base.entity';
 
 @Entity('ums_role')
-export class AdminRoleEntity {
-  @ApiProperty({ description: '主键ID', type: 'integer' })
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class AdminRoleEntity extends BaseEntity {
   @ApiProperty({ description: '名称' })
   @Column({ length: 100, comment: '名称' })
   name: string;
@@ -35,8 +27,4 @@ export class AdminRoleEntity {
   @ApiProperty({ type: 'integer', description: '排序' })
   @Column({ default: 0 })
   sort: number;
-
-  @ApiProperty({ description: '创建时间' })
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
 }

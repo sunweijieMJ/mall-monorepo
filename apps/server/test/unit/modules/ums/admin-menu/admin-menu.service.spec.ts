@@ -120,13 +120,13 @@ describe('AdminMenuService', () => {
         { id: 1, parentId: 0 },
         { id: 2, parentId: 0 },
       ]);
-      mockMenuRepo.delete.mockResolvedValue({ affected: 1 });
+      mockMenuRepo.softDelete.mockResolvedValue({ affected: 1 });
 
       const count = await service.delete(1);
 
       // 只删除自身（无后代）
       expect(count).toBe(1);
-      expect(mockMenuRepo.delete).toHaveBeenCalledWith([1]);
+      expect(mockMenuRepo.softDelete).toHaveBeenCalledWith([1]);
     });
 
     it('有子菜单 → 级联删除所有后代（BFS）', async () => {
@@ -137,13 +137,13 @@ describe('AdminMenuService', () => {
         { id: 3, parentId: 1 },
         { id: 4, parentId: 2 },
       ]);
-      mockMenuRepo.delete.mockResolvedValue({ affected: 4 });
+      mockMenuRepo.softDelete.mockResolvedValue({ affected: 4 });
 
       const count = await service.delete(1);
 
       // 删除 2, 3, 4（后代）+ 1（自身）= 4
       expect(count).toBe(4);
-      expect(mockMenuRepo.delete).toHaveBeenCalledWith(
+      expect(mockMenuRepo.softDelete).toHaveBeenCalledWith(
         expect.arrayContaining([1, 2, 3, 4]),
       );
     });

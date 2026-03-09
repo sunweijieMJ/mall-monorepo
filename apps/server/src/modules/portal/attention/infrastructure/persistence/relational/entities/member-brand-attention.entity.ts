@@ -32,7 +32,7 @@ export class MemberBrandAttentionNewEntity {
   @Column({ name: 'brand_logo', type: 'text', nullable: true })
   brandLogo: string;
 
-  @ApiPropertyOptional({ description: '关注时间' })
+  @ApiPropertyOptional({ description: '关注时间', format: 'date-time' })
   @Column({ name: 'create_time', type: 'timestamp', nullable: true })
   createdAt: Date;
 }

@@ -89,14 +89,12 @@ describe('AdminRoleService', () => {
 
   describe('delete', () => {
     it('批量删除 → 清除关联 admin 缓存', async () => {
-      const qb = mockRoleRepo.createQueryBuilder();
-      qb.delete = vi.fn().mockReturnValue(qb);
-      mockRoleRepo.createQueryBuilder.mockReturnValue(qb);
-      qb.execute.mockResolvedValue({ affected: 2 });
+      mockRoleRepo.softDelete.mockResolvedValue({ affected: 2 });
       mockAdminRoleRelRepo.find.mockResolvedValue([{ adminId: 1, roleId: 10 }]);
 
       await service.delete([10]);
 
+      expect(mockRoleRepo.softDelete).toHaveBeenCalledWith([10]);
       expect(mockCache.del).toHaveBeenCalled();
     });
   });

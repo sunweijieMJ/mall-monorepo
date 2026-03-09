@@ -57,7 +57,7 @@ export class OrderItemEntity {
   })
   productPrice: string | null;
 
-  @ApiPropertyOptional({ description: '购买数量' })
+  @ApiPropertyOptional({ description: '购买数量', type: 'integer' })
   @Column({
     name: 'product_quantity',
     nullable: true,
@@ -146,7 +146,7 @@ export class OrderItemEntity {
   })
   realAmount: string | null;
 
-  @ApiPropertyOptional({ description: '赠送积分' })
+  @ApiPropertyOptional({ description: '赠送积分', type: 'integer' })
   @Column({ name: 'gift_integration', nullable: true })
   giftIntegration: number;
 

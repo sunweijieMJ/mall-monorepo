@@ -1,20 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  Column,
-  Entity,
-  PrimaryGeneratedColumn,
-  Tree,
-  TreeChildren,
-  TreeParent,
-} from 'typeorm';
+import { Column, Entity, Tree, TreeChildren, TreeParent } from 'typeorm';
+import { BaseEntity } from '@/common/entities/base.entity';
 
 @Entity('pms_product_category')
 @Tree('closure-table')
-export class ProductCategoryEntity {
-  @ApiProperty({ description: '分类ID', type: 'integer' })
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class ProductCategoryEntity extends BaseEntity {
   @ApiPropertyOptional({ description: '上级分类ID', type: 'integer' })
   @Column({ name: 'parent_id', nullable: true })
   parentId: number;
@@ -23,7 +13,11 @@ export class ProductCategoryEntity {
   @Column({ length: 64 })
   name: string;
 
-  @ApiProperty({ type: 'integer', description: '分类级别：0-1级；1-2级' })
+  @ApiProperty({
+    type: 'integer',
+    description: '分类级别：0-1级；1-2级',
+    enum: [0, 1],
+  })
   @Column({ default: 0, comment: '分类级别：0-1级；1-2级' })
   level: number;
 
@@ -39,7 +33,11 @@ export class ProductCategoryEntity {
   @Column({ name: 'nav_status', default: 0, comment: '是否显示在导航栏' })
   navStatus: number;
 
-  @ApiProperty({ description: '显示状态：0-不显示；1-显示' })
+  @ApiProperty({
+    description: '显示状态：0-不显示；1-显示',
+    type: 'integer',
+    enum: [0, 1],
+  })
   @Column({
     name: 'show_status',
     default: 1,

@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -20,6 +19,7 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
 import { MemberLevelService } from './member-level.service';
 import {
   CreateMemberLevelDto,
@@ -33,9 +33,25 @@ import { MemberLevelVo } from './vo/member-level.vo';
 export class MemberLevelController {
   constructor(private readonly memberLevelService: MemberLevelService) {}
 
-  @Get('list')
+  @Post()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '创建会员等级' })
+  @ApiWrappedResponse(MemberLevelVo)
+  create(@Body() dto: CreateMemberLevelDto) {
+    return this.memberLevelService.create(dto);
+  }
+
+  @Post('batch-delete')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '批量删除会员等级' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  batchDelete(@Body() dto: BatchDeleteDto) {
+    return this.memberLevelService.delete(dto.ids);
+  }
+
+  @Get()
   @ApiOperation({ summary: '获取会员等级列表' })
-  @ApiOkResponse({ type: [MemberLevelVo] })
+  @ApiWrappedResponse(MemberLevelVo, { isArray: true })
   @ApiQuery({
     name: 'defaultStatus',
     required: false,
@@ -49,23 +65,7 @@ export class MemberLevelController {
     return this.memberLevelService.list(defaultStatus);
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: '获取单个会员等级' })
-  @ApiParam({ name: 'id', description: '会员等级ID', type: 'integer' })
-  @ApiOkResponse({ type: MemberLevelVo })
-  getItem(@Param('id', ParseIntPipe) id: number) {
-    return this.memberLevelService.getItem(id);
-  }
-
-  @Post('create')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: '创建会员等级' })
-  @ApiOkResponse({ type: MemberLevelVo })
-  create(@Body() dto: CreateMemberLevelDto) {
-    return this.memberLevelService.create(dto);
-  }
-
-  @Put('update/:id')
+  @Put(':id')
   @ApiOperation({ summary: '更新会员等级' })
   @ApiParam({ name: 'id', description: '会员等级ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
@@ -76,10 +76,11 @@ export class MemberLevelController {
     return this.memberLevelService.update(id, dto);
   }
 
-  @Delete('delete')
-  @ApiOperation({ summary: '批量删除会员等级' })
-  @ApiOkResponse({ type: Number, description: '受影响的行数' })
-  batchDelete(@Body() dto: BatchDeleteDto) {
-    return this.memberLevelService.delete(dto.ids);
+  @Get(':id')
+  @ApiOperation({ summary: '获取单个会员等级' })
+  @ApiParam({ name: 'id', description: '会员等级ID', type: 'integer' })
+  @ApiWrappedResponse(MemberLevelVo)
+  getItem(@Param('id', ParseIntPipe) id: number) {
+    return this.memberLevelService.getItem(id);
   }
 }

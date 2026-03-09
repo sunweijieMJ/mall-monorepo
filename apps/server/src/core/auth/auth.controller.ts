@@ -8,7 +8,6 @@ import {
   NotImplementedException,
   Post,
   Put,
-  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -35,7 +34,7 @@ import { Public } from './decorators/public.decorator';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { JwtPayload } from './types/jwt-payload.type';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
-import { LoginResponseDto } from './dto/login-response.dto';
+import { LoginResponseVo } from './vo/login-response.vo';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { AdminInfoVo } from './vo/admin-info.vo';
 import { AdminUserVo } from '@/modules/ums/admin-user/vo/admin-user.vo';
@@ -70,7 +69,7 @@ export class AdminAuthController {
     summary: '管理员登录',
     description: '对应前端 POST /admin/login',
   })
-  @ApiWrappedResponse(LoginResponseDto)
+  @ApiWrappedResponse(LoginResponseVo)
   login(@Body() dto: AdminLoginDto, @Req() req: Request) {
     const ip =
       (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() ||
@@ -109,7 +108,7 @@ export class AdminAuthController {
       '使用 Refresh Token 获取新的 Access Token + Refresh Token 对（Rotation 机制，旧 Refresh Token 立即失效）',
   })
   @ApiBody({ type: RefreshTokenDto })
-  @ApiWrappedResponse(LoginResponseDto)
+  @ApiWrappedResponse(LoginResponseVo)
   refresh(@CurrentUser() user: JwtPayload) {
     return this.authService.refreshToken(user);
   }
@@ -129,7 +128,7 @@ export class PortalAuthController {
     summary: '手机号+密码登录',
     description: '对应前端 POST /sso/login',
   })
-  @ApiWrappedResponse(LoginResponseDto)
+  @ApiWrappedResponse(LoginResponseVo)
   login(@Body() dto: PortalLoginDto) {
     return this.authService.portalLogin(dto);
   }
@@ -159,7 +158,7 @@ export class PortalAuthController {
   @Post('sms-login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '短信验证码登录（暂未开放）' })
-  @ApiWrappedResponse(LoginResponseDto)
+  @ApiWrappedResponse(LoginResponseVo)
   smsLogin(@Body() _dto: PortalSmsLoginDto) {
     throw new NotImplementedException('短信验证码登录功能暂未开放');
   }
@@ -174,7 +173,7 @@ export class PortalAuthController {
       '使用 Refresh Token 获取新的 Access Token + Refresh Token 对（Rotation 机制，旧 Refresh Token 立即失效）',
   })
   @ApiBody({ type: RefreshTokenDto })
-  @ApiWrappedResponse(LoginResponseDto)
+  @ApiWrappedResponse(LoginResponseVo)
   refresh(@CurrentUser() user: JwtPayload) {
     return this.authService.refreshToken(user);
   }

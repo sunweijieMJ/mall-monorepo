@@ -18,6 +18,7 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
 import { CompanyAddressVo } from './vo/company-address.vo';
 import { AuthGuard } from '@nestjs/passport';
 import { CompanyAddressService } from './company-address.service';
@@ -31,15 +32,22 @@ import { UpdateCompanyAddressDto } from './dto/update-company-address.dto';
 export class CompanyAddressController {
   constructor(private readonly service: CompanyAddressService) {}
 
-  @Post('create')
+  @Post()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '添加公司收发货地址' })
-  @ApiOkResponse({ type: CompanyAddressVo })
+  @ApiWrappedResponse(CompanyAddressVo)
   create(@Body() dto: CreateCompanyAddressDto) {
     return this.service.create(dto);
   }
 
-  @Put('update/:id')
+  @Get()
+  @ApiOperation({ summary: '获取公司收发货地址列表' })
+  @ApiWrappedResponse(CompanyAddressVo, { isArray: true })
+  list() {
+    return this.service.list();
+  }
+
+  @Put(':id')
   @ApiOperation({ summary: '修改公司收发货地址' })
   @ApiParam({ name: 'id', description: '收货地址ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
@@ -50,7 +58,7 @@ export class CompanyAddressController {
     return this.service.update(id, dto);
   }
 
-  @Delete('delete/:id')
+  @Delete(':id')
   @ApiOperation({ summary: '删除公司收发货地址' })
   @ApiParam({ name: 'id', description: '收货地址ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
@@ -58,17 +66,10 @@ export class CompanyAddressController {
     return this.service.delete(id);
   }
 
-  @Get('list')
-  @ApiOperation({ summary: '获取公司收发货地址列表' })
-  @ApiOkResponse({ type: [CompanyAddressVo] })
-  list() {
-    return this.service.list();
-  }
-
   @Get(':id')
   @ApiOperation({ summary: '获取公司收发货地址详情' })
   @ApiParam({ name: 'id', description: '收货地址ID', type: 'integer' })
-  @ApiOkResponse({ type: CompanyAddressVo })
+  @ApiWrappedResponse(CompanyAddressVo)
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.service.getItem(id);
   }

@@ -56,11 +56,9 @@ describe('Cart API (e2e)', () => {
 
   const baseUrl = '/api/v1/portal/carts';
 
-  describe('GET /list', () => {
-    const url = `${baseUrl}/list`;
-
+  describe('GET /', () => {
     it('无 token → 401', async () => {
-      const res = await request(app.getHttpServer()).get(url).expect(401);
+      const res = await request(app.getHttpServer()).get(baseUrl).expect(401);
       expect(res.body.code).toBe(401);
     });
 
@@ -70,7 +68,7 @@ describe('Cart API (e2e)', () => {
       ]);
 
       const res = await request(app.getHttpServer())
-        .get(url)
+        .get(baseUrl)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -93,12 +91,12 @@ describe('Cart API (e2e)', () => {
     });
   });
 
-  describe('POST /create', () => {
+  describe('POST /', () => {
     it('加入购物车 → 200', async () => {
       mockCartService.add.mockResolvedValue({ id: 1 });
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/create`)
+        .post(baseUrl)
         .set('Authorization', bearerHeader(token))
         .send({ productId: 100, productSkuId: 1, productQuantity: 1 })
         .expect(200);
@@ -107,24 +105,24 @@ describe('Cart API (e2e)', () => {
     });
   });
 
-  describe('PUT /update/quantity', () => {
+  describe('PUT /:id/quantity', () => {
     it('修改数量 → 200', async () => {
       mockCartService.updateQuantity.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .put(`${baseUrl}/update/quantity`)
+        .put(`${baseUrl}/1/quantity`)
         .set('Authorization', bearerHeader(token))
-        .send({ id: 1, productQuantity: 3 })
+        .send({ productQuantity: 3 })
         .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('DELETE /delete', () => {
+  describe('POST /batch-delete', () => {
     it('缺少 ids → 422', async () => {
       const res = await request(app.getHttpServer())
-        .delete(`${baseUrl}/delete`)
+        .post(`${baseUrl}/batch-delete`)
         .set('Authorization', bearerHeader(token))
         .expect(422);
 
@@ -135,7 +133,7 @@ describe('Cart API (e2e)', () => {
       mockCartService.delete.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .delete(`${baseUrl}/delete`)
+        .post(`${baseUrl}/batch-delete`)
         .set('Authorization', bearerHeader(token))
         .send({ ids: [1, 2] })
         .expect(200);
@@ -162,7 +160,7 @@ describe('Cart API (e2e)', () => {
       mockOrderService.listCartPromotion.mockResolvedValue([]);
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/promotion`)
+        .get(`${baseUrl}/promotion?cartIds=1,2`)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -179,7 +177,7 @@ describe('Cart API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/product/100`)
+        .get(`${baseUrl}/products/100`)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 

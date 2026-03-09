@@ -14,6 +14,7 @@ import { CouponEntity } from '@/modules/sms/coupon/infrastructure/persistence/re
 import { CouponProductRelationEntity } from '@/modules/sms/coupon/infrastructure/persistence/relational/entities/coupon-product-relation.entity';
 import { CouponProductCategoryRelationEntity } from '@/modules/sms/coupon/infrastructure/persistence/relational/entities/coupon-product-category-relation.entity';
 import { PageQueryDto, PageResult } from '@/common/dto/page-result.dto';
+import { paginate } from '@/common/utils/paginate.util';
 
 /** 商品详情聚合对象 */
 export interface PmsPortalProductDetail {
@@ -121,11 +122,7 @@ export class PortalProductService {
         qb.orderBy('p.id', 'DESC');
     }
 
-    const offset = (query.page - 1) * query.limit;
-    qb.skip(offset).take(query.limit);
-
-    const [list, total] = await qb.getManyAndCount();
-    return PageResult.of(list, total, query);
+    return paginate(qb, query);
   }
 
   /**

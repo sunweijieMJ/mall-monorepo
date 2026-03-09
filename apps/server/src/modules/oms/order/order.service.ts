@@ -39,6 +39,7 @@ import { IntegrationConsumeSettingEntity } from '../../ums/member-level/infrastr
 import { CouponHistoryDetailVo } from './vo/coupon-history-detail.vo';
 
 import { PageQueryDto, PageResult } from '@/common/dto/page-result.dto';
+import { paginate } from '@/common/utils/paginate.util';
 
 // ======================== DTO 定义 ========================
 
@@ -213,12 +214,9 @@ export class OrderService {
       });
     }
 
-    qb.orderBy('order.id', 'DESC')
-      .skip((query.page - 1) * query.limit)
-      .take(query.limit);
+    qb.orderBy('order.id', 'DESC');
 
-    const [list, total] = await qb.getManyAndCount();
-    return PageResult.of(list, total, query);
+    return paginate(qb, query);
   }
 
   /**
@@ -259,9 +257,9 @@ export class OrderService {
    * 批量发货
    * 迁移自 OmsOrderServiceImpl.delivery()
    */
-  async delivery(deliveryList: DeliveryItemDto[]): Promise<void> {
+  async delivery(deliveryList: DeliveryItemDto[]): Promise<number> {
     // 用事务保证订单状态更新与操作历史写入的原子性
-    await this.transactionService.run(async (manager) => {
+    return this.transactionService.run(async (manager) => {
       // 逐条 UPDATE（每条订单的物流单号不同，无法合并为单条 SQL），收集实际更新成功的订单
       const results = await Promise.all(
         deliveryList.map(async (item) => {
@@ -297,36 +295,106 @@ export class OrderService {
         );
         await manager.save(OrderOperateHistoryEntity, histories);
       }
+
+      return successItems.length;
     });
   }
 
   /**
    * 关闭订单
    * 迁移自 OmsOrderServiceImpl.close()
+   * 关闭前释放锁定库存（仅待付款状态）、恢复优惠券、返还积分
    */
-  async close(ids: number[], note: string): Promise<void> {
-    await this.transactionService.run(async (manager) => {
-      // 只允许关闭待付款、已付款、已发货状态的订单
-      await manager
-        .createQueryBuilder()
-        .update(OrderEntity)
-        .set({ status: OrderStatus.CLOSED })
-        .where(
-          'id IN (:...ids) AND deleteStatus = 0 AND status NOT IN (:...excludedStatuses)',
-          {
-            ids,
-            excludedStatuses: [
-              OrderStatus.CANCELLED,
-              OrderStatus.CLOSED,
-              OrderStatus.COMPLETED,
-            ],
-          },
-        )
-        .execute();
+  async close(ids: number[], note: string): Promise<number> {
+    // 先查询受影响订单（关闭前需要用到订单信息做清理）
+    const closableStatuses = [
+      OrderStatus.PENDING_PAYMENT,
+      OrderStatus.PAID,
+      OrderStatus.SHIPPING,
+    ];
+    const orders = await this.orderRepo
+      .createQueryBuilder('o')
+      .where(
+        'o.id IN (:...ids) AND o.deleteStatus = 0 AND o.status IN (:...closableStatuses)',
+        { ids, closableStatuses },
+      )
+      .getMany();
 
-      const histories = ids.map((orderId) =>
+    if (orders.length === 0) return 0;
+
+    return this.transactionService.run(async (manager) => {
+      // 逐条更新，收集实际修改成功的订单
+      const results = await Promise.all(
+        orders.map(async (order) => {
+          const result = await manager
+            .createQueryBuilder()
+            .update(OrderEntity)
+            .set({ status: OrderStatus.CLOSED })
+            .where('id = :id AND status = :status', {
+              id: order.id,
+              status: order.status,
+            })
+            .execute();
+          return { order, affected: result.affected ?? 0 };
+        }),
+      );
+
+      const successItems = results.filter((r) => r.affected > 0);
+      if (successItems.length === 0) return 0;
+
+      // 对实际关闭的订单执行清理
+      for (const { order } of successItems) {
+        // 释放锁定库存（仅待付款状态的订单有 lockStock 未扣减）
+        if (order.status === OrderStatus.PENDING_PAYMENT) {
+          const orderItems = await manager.findBy(OrderItemEntity, {
+            orderId: order.id,
+          });
+          await Promise.all(
+            orderItems
+              .filter((item) => (Number(item.productQuantity) || 0) > 0)
+              .map((item) => {
+                const releaseQty = Number(item.productQuantity) || 0;
+                return manager
+                  .createQueryBuilder()
+                  .update(SkuStockEntity)
+                  .set({ lockStock: () => `lock_stock - :releaseQty` })
+                  .setParameter('releaseQty', releaseQty)
+                  .where('id = :skuId AND lock_stock >= :releaseQty', {
+                    skuId: item.productSkuId,
+                  })
+                  .execute();
+              }),
+          );
+        }
+
+        // 恢复优惠券状态
+        if (order.couponId) {
+          await this.updateCouponStatus(
+            manager,
+            order.couponId,
+            order.memberId,
+            0,
+          );
+        }
+
+        // 返还积分
+        if (order.useIntegration && order.useIntegration > 0) {
+          await manager
+            .createQueryBuilder()
+            .update(MemberEntity)
+            .set({
+              integration: () => `integration + :restoreIntegration`,
+            })
+            .setParameter('restoreIntegration', order.useIntegration)
+            .where('id = :id', { id: order.memberId })
+            .execute();
+        }
+      }
+
+      // 只为实际关闭的订单写操作历史
+      const histories = successItems.map(({ order }) =>
         manager.create(OrderOperateHistoryEntity, {
-          orderId,
+          orderId: order.id,
           operateMan: '后台管理员',
           orderStatus: OrderStatus.CLOSED,
           note: `订单关闭:${note}`,
@@ -334,6 +402,8 @@ export class OrderService {
         }),
       );
       await manager.save(OrderOperateHistoryEntity, histories);
+
+      return successItems.length;
     });
   }
 
@@ -341,10 +411,10 @@ export class OrderService {
    * 修改收货人信息
    * 迁移自 OmsOrderServiceImpl.updateReceiverInfo()
    */
-  async updateReceiverInfo(dto: UpdateReceiverInfoDto): Promise<void> {
+  async updateReceiverInfo(dto: UpdateReceiverInfoDto): Promise<number> {
     const { orderId, status, ...receiverFields } = dto;
 
-    await this.transactionService.run(async (manager) => {
+    return this.transactionService.run(async (manager) => {
       await manager
         .createQueryBuilder()
         .update(OrderEntity)
@@ -368,6 +438,8 @@ export class OrderService {
         note: '修改收货人信息',
         createdAt: new Date(),
       });
+
+      return 1;
     });
   }
 
@@ -375,7 +447,7 @@ export class OrderService {
    * 修改费用信息
    * 迁移自 OmsOrderServiceImpl.updateMoneyInfo()
    */
-  async updateMoneyInfo(dto: UpdateMoneyInfoDto): Promise<void> {
+  async updateMoneyInfo(dto: UpdateMoneyInfoDto): Promise<number> {
     const { orderId, status, freightAmount, discountAmount } = dto;
 
     const updateFields: Partial<OrderEntity> = {
@@ -385,7 +457,7 @@ export class OrderService {
       updateFields.promotionAmount = String(discountAmount);
     }
 
-    await this.transactionService.run(async (manager) => {
+    return this.transactionService.run(async (manager) => {
       await manager
         .createQueryBuilder()
         .update(OrderEntity)
@@ -400,6 +472,8 @@ export class OrderService {
         note: '修改费用信息',
         createdAt: new Date(),
       });
+
+      return 1;
     });
   }
 
@@ -407,8 +481,8 @@ export class OrderService {
    * 修改订单备注
    * 迁移自 OmsOrderServiceImpl.updateNote()
    */
-  async updateNote(id: number, note: string, status: number): Promise<void> {
-    await this.transactionService.run(async (manager) => {
+  async updateNote(id: number, note: string, status: number): Promise<number> {
+    return this.transactionService.run(async (manager) => {
       await manager
         .createQueryBuilder()
         .update(OrderEntity)
@@ -423,6 +497,8 @@ export class OrderService {
         note: `修改备注信息：${note}`,
         createdAt: new Date(),
       });
+
+      return 1;
     });
   }
 
@@ -430,13 +506,14 @@ export class OrderService {
    * 删除订单（管理端逻辑删除）
    * 迁移自 OmsOrderServiceImpl.delete()
    */
-  async adminDelete(ids: number[]): Promise<void> {
-    await this.orderRepo
+  async adminDelete(ids: number[]): Promise<number> {
+    const result = await this.orderRepo
       .createQueryBuilder()
       .update()
       .set({ deleteStatus: 1 })
       .where('id IN (:...ids) AND deleteStatus = 0', { ids })
       .execute();
+    return result.affected ?? 0;
   }
 
   // ============ 移动端接口 ============
@@ -1120,9 +1197,9 @@ export class OrderService {
     orderId: number,
     payType: number,
     memberId: number,
-  ): Promise<void> {
+  ): Promise<number> {
     // 订单状态更新 + 库存扣减必须在同一事务中，避免部分失败导致数据不一致
-    await this.transactionService.run(async (manager) => {
+    return this.transactionService.run(async (manager) => {
       // 更新订单状态（WHERE 条件同时校验 memberId 归属权，防止越权操作）
       const updateResult = await manager
         .createQueryBuilder()
@@ -1176,9 +1253,10 @@ export class OrderService {
             lockStock: () => `lock_stock - :deductQty`,
           })
           .setParameter('deductQty', qty)
-          .where('id = :skuId AND stock >= :deductQty', {
-            skuId: item.productSkuId,
-          })
+          .where(
+            'id = :skuId AND stock >= :deductQty AND lock_stock >= :deductQty',
+            { skuId: item.productSkuId },
+          )
           .execute();
 
         if (deductResult.affected === 0) {
@@ -1196,6 +1274,8 @@ export class OrderService {
         note: `支付成功（支付方式: ${payType}）`,
         createdAt: new Date(),
       });
+
+      return 1;
     });
   }
 
@@ -1203,7 +1283,7 @@ export class OrderService {
    * 用户取消订单
    * 迁移自 OmsPortalOrderServiceImpl.cancelOrder()
    */
-  async cancelOrder(memberId: number, orderId: number): Promise<void> {
+  async cancelOrder(memberId: number, orderId: number): Promise<number> {
     // 查询待付款订单
     const order = await this.orderRepo.findOne({
       where: {
@@ -1212,15 +1292,15 @@ export class OrderService {
         deleteStatus: 0,
       },
     });
-    if (!order) return;
+    if (!order) return 0;
 
     // 验证归属权（memberId=0 表示系统调用，跳过验证）
-    if (memberId !== 0 && order.memberId !== memberId) return;
+    if (memberId !== 0 && order.memberId !== memberId) return 0;
 
     const operateMan = memberId === 0 ? '系统' : '用户';
 
     // 事务：订单状态 + 释放库存 + 恢复优惠券 + 返还积分 + 操作历史，全部原子操作
-    await this.transactionService.run(async (manager) => {
+    return this.transactionService.run(async (manager) => {
       // 更新订单状态为已取消（WHERE 加状态条件防止并发支付时误取消已付款订单）
       const cancelResult = await manager
         .createQueryBuilder()
@@ -1233,7 +1313,7 @@ export class OrderService {
         .execute();
 
       // affected = 0 说明订单已被支付或被其他操作修改，直接返回
-      if (cancelResult.affected === 0) return;
+      if (cancelResult.affected === 0) return 0;
 
       // 释放 SKU 锁定库存（并行化，释放操作无需悲观锁）
       const orderItems = await manager.findBy(OrderItemEntity, { orderId });
@@ -1285,6 +1365,8 @@ export class OrderService {
         note: memberId === 0 ? '超时未支付，系统自动取消' : '用户取消订单',
         createdAt: new Date(),
       });
+
+      return 1;
     });
   }
 
@@ -1292,7 +1374,7 @@ export class OrderService {
    * 确认收货
    * 迁移自 OmsPortalOrderServiceImpl.confirmReceiveOrder()
    */
-  async confirmReceive(memberId: number, orderId: number): Promise<void> {
+  async confirmReceive(memberId: number, orderId: number): Promise<number> {
     const order = await this.orderRepo.findOneBy({ id: orderId });
     if (!order) {
       throw new BadRequestException('订单不存在');
@@ -1304,7 +1386,7 @@ export class OrderService {
       throw new BadRequestException('该订单还未发货！');
     }
 
-    await this.transactionService.run(async (manager) => {
+    return this.transactionService.run(async (manager) => {
       // CAS 保护：WHERE 带 status 条件，防止并发请求重复发放积分
       const updateResult = await manager
         .createQueryBuilder()
@@ -1322,7 +1404,7 @@ export class OrderService {
 
       if (updateResult.affected === 0) {
         // 已被其他请求处理，跳过积分发放
-        return;
+        return 0;
       }
 
       // 发放积分和成长值到会员账户
@@ -1350,6 +1432,8 @@ export class OrderService {
         note: '确认收货',
         createdAt: new Date(),
       });
+
+      return 1;
     });
   }
 
@@ -1435,7 +1519,7 @@ export class OrderService {
    * 用户删除订单（软删除，仅允许删除已完成或已取消的订单）
    * 迁移自 OmsPortalOrderServiceImpl.deleteOrder()
    */
-  async deleteOrder(memberId: number, orderId: number): Promise<void> {
+  async deleteOrder(memberId: number, orderId: number): Promise<number> {
     const order = await this.orderRepo.findOne({
       where: { id: orderId, memberId },
     });
@@ -1446,7 +1530,11 @@ export class OrderService {
     ) {
       throw new BadRequestException('只能删除已完成或已取消的订单');
     }
-    await this.orderRepo.update({ id: orderId }, { deleteStatus: 1 });
+    const result = await this.orderRepo.update(
+      { id: orderId },
+      { deleteStatus: 1 },
+    );
+    return result.affected ?? 0;
   }
 
   // ============ 私有辅助方法 ============

@@ -45,12 +45,12 @@ describe('PreferenceArea API (e2e)', () => {
 
   const baseUrl = '/api/v1/admin/cms/preference-areas';
 
-  describe('GET /list', () => {
+  describe('GET /', () => {
     it('查询优选专区列表 → 200', async () => {
       mockService.list.mockResolvedValue([{ id: 1, name: '精选推荐' }]);
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/list`)
+        .get(baseUrl)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -58,20 +58,18 @@ describe('PreferenceArea API (e2e)', () => {
     });
 
     it('无 token → 401', async () => {
-      const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/list`)
-        .expect(401);
+      const res = await request(app.getHttpServer()).get(baseUrl).expect(401);
 
       expect(res.body.code).toBe(401);
     });
   });
 
-  describe('POST /create', () => {
-    it('创建优选专区 → 201', async () => {
+  describe('POST /', () => {
+    it('创建优选专区 → 200', async () => {
       mockService.create.mockResolvedValue({ id: 1, name: '新品专区' });
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/create`)
+        .post(baseUrl)
         .set('Authorization', bearerHeader(token))
         .send({ name: '新品专区' })
         .expect(200);
@@ -80,12 +78,12 @@ describe('PreferenceArea API (e2e)', () => {
     });
   });
 
-  describe('PUT /update/:id', () => {
+  describe('PUT /:id', () => {
     it('更新优选专区 → 200', async () => {
       mockService.update.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${baseUrl}/update/1`)
+        .put(`${baseUrl}/1`)
         .set('Authorization', bearerHeader(token))
         .send({ name: '修改后的专区' })
         .expect(200);
@@ -94,12 +92,12 @@ describe('PreferenceArea API (e2e)', () => {
     });
   });
 
-  describe('DELETE /delete', () => {
+  describe('POST /batch-delete', () => {
     it('批量删除优选专区 → 200', async () => {
       mockService.delete.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .delete(`${baseUrl}/delete`)
+        .post(`${baseUrl}/batch-delete`)
         .set('Authorization', bearerHeader(token))
         .send({ ids: [1, 2] })
         .expect(200);
@@ -109,7 +107,7 @@ describe('PreferenceArea API (e2e)', () => {
     });
   });
 
-  describe('GET /product-list', () => {
+  describe('GET /:id/products', () => {
     it('查询优选专区关联商品列表 → 200', async () => {
       mockService.getProductList.mockResolvedValue({
         list: [{ id: 1, name: '商品B' }],
@@ -117,9 +115,9 @@ describe('PreferenceArea API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/product-list`)
+        .get(`${baseUrl}/1/products`)
         .set('Authorization', bearerHeader(token))
-        .query({ preferenceAreaId: 1, pageNum: 1, pageSize: 10 })
+        .query({ pageNum: 1, pageSize: 10 })
         .expect(200);
 
       expect(res.body.code).toBe(200);

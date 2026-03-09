@@ -189,12 +189,12 @@ describe('HomeContentService', () => {
   });
 
   describe('deleteAdvertise', () => {
-    it('批量删除广告 -> 调用 delete', async () => {
-      mockAdvertiseRepo.delete.mockResolvedValue({ affected: 2 });
+    it('批量删除广告 -> 调用 softDelete', async () => {
+      mockAdvertiseRepo.softDelete.mockResolvedValue({ affected: 2 });
 
       await service.deleteAdvertise([1, 2]);
 
-      expect(mockAdvertiseRepo.delete).toHaveBeenCalledWith([1, 2]);
+      expect(mockAdvertiseRepo.softDelete).toHaveBeenCalledWith([1, 2]);
     });
   });
 
@@ -287,12 +287,12 @@ describe('HomeContentService', () => {
   });
 
   describe('deleteHomeBrand', () => {
-    it('批量删除品牌推荐 -> 调用 delete', async () => {
-      mockHomeBrandRepo.delete.mockResolvedValue({ affected: 2 });
+    it('批量删除品牌推荐 -> 调用 softDelete', async () => {
+      mockHomeBrandRepo.softDelete.mockResolvedValue({ affected: 2 });
 
       await service.deleteHomeBrand([1, 2]);
 
-      expect(mockHomeBrandRepo.delete).toHaveBeenCalledWith([1, 2]);
+      expect(mockHomeBrandRepo.softDelete).toHaveBeenCalledWith([1, 2]);
     });
   });
 
@@ -341,12 +341,12 @@ describe('HomeContentService', () => {
   });
 
   describe('deleteSubject', () => {
-    it('批量删除专题推荐 -> 调用 delete', async () => {
-      mockSubjectRepo.delete.mockResolvedValue({ affected: 1 });
+    it('批量删除专题推荐 -> 调用 softDelete', async () => {
+      mockSubjectRepo.softDelete.mockResolvedValue({ affected: 1 });
 
       await service.deleteSubject([1]);
 
-      expect(mockSubjectRepo.delete).toHaveBeenCalledWith([1]);
+      expect(mockSubjectRepo.softDelete).toHaveBeenCalledWith([1]);
     });
   });
 
@@ -433,12 +433,12 @@ describe('HomeContentService', () => {
   });
 
   describe('deleteNewProduct', () => {
-    it('批量删除新品推荐 -> 调用 delete', async () => {
-      mockNewProductRepo.delete.mockResolvedValue({ affected: 2 });
+    it('批量删除新品推荐 -> 调用 softDelete', async () => {
+      mockNewProductRepo.softDelete.mockResolvedValue({ affected: 2 });
 
       await service.deleteNewProduct([1, 2]);
 
-      expect(mockNewProductRepo.delete).toHaveBeenCalledWith([1, 2]);
+      expect(mockNewProductRepo.softDelete).toHaveBeenCalledWith([1, 2]);
     });
   });
 
@@ -525,12 +525,12 @@ describe('HomeContentService', () => {
   });
 
   describe('deleteHotProduct', () => {
-    it('批量删除人气推荐 -> 调用 delete', async () => {
-      mockHotProductRepo.delete.mockResolvedValue({ affected: 2 });
+    it('批量删除人气推荐 -> 调用 softDelete', async () => {
+      mockHotProductRepo.softDelete.mockResolvedValue({ affected: 2 });
 
       await service.deleteHotProduct([1, 2]);
 
-      expect(mockHotProductRepo.delete).toHaveBeenCalledWith([1, 2]);
+      expect(mockHotProductRepo.softDelete).toHaveBeenCalledWith([1, 2]);
     });
   });
 

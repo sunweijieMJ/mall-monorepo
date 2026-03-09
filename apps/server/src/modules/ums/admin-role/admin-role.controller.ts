@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -26,6 +25,7 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminRoleService } from './admin-role.service';
 import { PageQueryDto } from '@/common/dto/page-result.dto';
@@ -43,15 +43,38 @@ import { AdminResourceVo } from '@/modules/ums/admin-resource/vo/admin-resource.
 export class AdminRoleController {
   constructor(private readonly service: AdminRoleService) {}
 
-  @Post('create')
+  @Post()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '添加角色' })
-  @ApiOkResponse({ type: AdminRoleVo })
+  @ApiWrappedResponse(AdminRoleVo)
   create(@Body() dto: CreateAdminRoleDto) {
     return this.service.create(dto);
   }
 
-  @Put('update/:id')
+  @Post('batch-delete')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '批量删除角色' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  batchDelete(@Body() dto: BatchDeleteDto) {
+    return this.service.delete(dto.ids);
+  }
+
+  @Get()
+  @ApiOperation({ summary: '根据角色名称分页获取角色列表' })
+  @ApiPaginatedResponse(AdminRoleVo)
+  @ApiQuery({ name: 'keyword', required: false })
+  list(@Query('keyword') keyword: string, @Query() q: PageQueryDto) {
+    return this.service.list(keyword, q);
+  }
+
+  @Get('all')
+  @ApiOperation({ summary: '获取所有角色' })
+  @ApiWrappedResponse(AdminRoleVo, { isArray: true })
+  listAll() {
+    return this.service.listAll();
+  }
+
+  @Put(':id')
   @ApiOperation({ summary: '修改角色' })
   @ApiParam({ name: 'id', description: '角色ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
@@ -62,29 +85,7 @@ export class AdminRoleController {
     return this.service.update(id, dto);
   }
 
-  @Delete('delete')
-  @ApiOperation({ summary: '批量删除角色' })
-  @ApiOkResponse({ type: Number, description: '受影响的行数' })
-  batchDelete(@Body() dto: BatchDeleteDto) {
-    return this.service.delete(dto.ids);
-  }
-
-  @Get('all')
-  @ApiOperation({ summary: '获取所有角色' })
-  @ApiOkResponse({ type: [AdminRoleVo] })
-  listAll() {
-    return this.service.listAll();
-  }
-
-  @Get('list')
-  @ApiOperation({ summary: '根据角色名称分页获取角色列表' })
-  @ApiPaginatedResponse(AdminRoleVo)
-  @ApiQuery({ name: 'keyword', required: false })
-  list(@Query('keyword') keyword: string, @Query() q: PageQueryDto) {
-    return this.service.list(keyword, q);
-  }
-
-  @Put('update/status/:id')
+  @Put(':id/status')
   @ApiOperation({ summary: '修改角色状态' })
   @ApiParam({ name: 'id', description: '角色ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
@@ -95,10 +96,18 @@ export class AdminRoleController {
     return this.service.updateStatus(id, dto.status);
   }
 
+  @Get(':id')
+  @ApiOperation({ summary: '获取角色详情' })
+  @ApiParam({ name: 'id', description: '角色ID', type: 'integer' })
+  @ApiWrappedResponse(AdminRoleVo)
+  getItem(@Param('id', ParseIntPipe) id: number) {
+    return this.service.getItem(id);
+  }
+
   @Get(':id/menus')
   @ApiOperation({ summary: '获取角色相关菜单' })
   @ApiParam({ name: 'id', description: '角色ID', type: 'integer' })
-  @ApiOkResponse({ type: [AdminMenuVo] })
+  @ApiWrappedResponse(AdminMenuVo, { isArray: true })
   listMenu(@Param('id', ParseIntPipe) id: number) {
     return this.service.listMenu(id);
   }
@@ -106,7 +115,7 @@ export class AdminRoleController {
   @Get(':id/resources')
   @ApiOperation({ summary: '获取角色相关资源' })
   @ApiParam({ name: 'id', description: '角色ID', type: 'integer' })
-  @ApiOkResponse({ type: [AdminResourceVo] })
+  @ApiWrappedResponse(AdminResourceVo, { isArray: true })
   listResource(@Param('id', ParseIntPipe) id: number) {
     return this.service.listResource(id);
   }

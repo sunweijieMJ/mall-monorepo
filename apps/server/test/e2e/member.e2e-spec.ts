@@ -63,8 +63,8 @@ describe('Member API (e2e)', () => {
 
   // ======================== 会员信息 ========================
 
-  describe('GET /api/v1/portal/member/info', () => {
-    const url = '/api/v1/portal/member/info';
+  describe('GET /api/v1/portal/member', () => {
+    const url = '/api/v1/portal/member';
 
     it('无 token → 401', async () => {
       const res = await request(app.getHttpServer()).get(url).expect(401);
@@ -88,12 +88,12 @@ describe('Member API (e2e)', () => {
     });
   });
 
-  describe('PUT /api/v1/portal/member/update', () => {
+  describe('PUT /api/v1/portal/member', () => {
     it('更新会员信息 → 200', async () => {
       mockMemberService.updateInfo.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .put('/api/v1/portal/member/update')
+        .put('/api/v1/portal/member')
         .set('Authorization', bearerHeader(token))
         .send({ nickname: '新昵称' })
         .expect(200);
@@ -104,14 +104,14 @@ describe('Member API (e2e)', () => {
 
   // ======================== 收货地址 ========================
 
-  describe('GET /api/v1/portal/member/address/list', () => {
+  describe('GET /api/v1/portal/member/addresses', () => {
     it('获取地址列表 → 200', async () => {
       mockMemberService.listAddress.mockResolvedValue([
         { id: 1, name: '张三', phoneNumber: '13800138000' },
       ]);
 
       const res = await request(app.getHttpServer())
-        .get('/api/v1/portal/member/address/list')
+        .get('/api/v1/portal/member/addresses')
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -120,12 +120,12 @@ describe('Member API (e2e)', () => {
     });
   });
 
-  describe('POST /api/v1/portal/member/address/create', () => {
+  describe('POST /api/v1/portal/member/addresses', () => {
     it('添加地址 → 201', async () => {
       mockMemberService.addAddress.mockResolvedValue({ id: 1 });
 
       const res = await request(app.getHttpServer())
-        .post('/api/v1/portal/member/address/create')
+        .post('/api/v1/portal/member/addresses')
         .set('Authorization', bearerHeader(token))
         .send({
           name: '李四',
@@ -141,12 +141,12 @@ describe('Member API (e2e)', () => {
     });
   });
 
-  describe('DELETE /api/v1/portal/member/address/delete/:id', () => {
+  describe('DELETE /api/v1/portal/member/addresses/:id', () => {
     it('删除地址 → 200', async () => {
       mockMemberService.deleteAddress.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .delete('/api/v1/portal/member/address/delete/1')
+        .delete('/api/v1/portal/member/addresses/1')
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -154,7 +154,7 @@ describe('Member API (e2e)', () => {
     });
   });
 
-  describe('GET /api/v1/portal/member/address/:id', () => {
+  describe('GET /api/v1/portal/member/addresses/:id', () => {
     it('获取地址详情 → 200', async () => {
       mockMemberService.getAddress.mockResolvedValue({
         id: 1,
@@ -163,7 +163,7 @@ describe('Member API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get('/api/v1/portal/member/address/1')
+        .get('/api/v1/portal/member/addresses/1')
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -172,12 +172,12 @@ describe('Member API (e2e)', () => {
     });
   });
 
-  describe('PUT /api/v1/portal/member/address/update/:id', () => {
+  describe('PUT /api/v1/portal/member/addresses/:id', () => {
     it('更新地址 → 200', async () => {
       mockMemberService.updateAddress.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .put('/api/v1/portal/member/address/update/1')
+        .put('/api/v1/portal/member/addresses/1')
         .set('Authorization', bearerHeader(token))
         .send({ name: '李四', phoneNumber: '13900139000' })
         .expect(200);
@@ -201,7 +201,7 @@ describe('Member API (e2e)', () => {
     });
   });
 
-  describe('GET /api/v1/portal/member/coupons/list', () => {
+  describe('GET /api/v1/portal/member/coupons', () => {
     it('查询我的优惠券（不传 useStatus）→ 200', async () => {
       mockMemberService.listCouponObjects.mockResolvedValue({
         list: [{ id: 1, name: '满100减10' }],
@@ -212,7 +212,7 @@ describe('Member API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get('/api/v1/portal/member/coupons/list')
+        .get('/api/v1/portal/member/coupons')
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -234,7 +234,7 @@ describe('Member API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get('/api/v1/portal/member/coupons/list')
+        .get('/api/v1/portal/member/coupons')
         .set('Authorization', bearerHeader(token))
         .query({ useStatus: '0' })
         .expect(200);

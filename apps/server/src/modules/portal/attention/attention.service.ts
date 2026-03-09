@@ -65,8 +65,9 @@ export class AttentionService {
   /**
    * 取消关注品牌
    */
-  async delete(memberId: number, brandId: number): Promise<void> {
-    await this.attentionRepo.delete({ memberId, brandId });
+  async delete(memberId: number, brandId: number): Promise<number> {
+    const result = await this.attentionRepo.delete({ memberId, brandId });
+    return result.affected ?? 0;
   }
 
   /**
@@ -89,7 +90,8 @@ export class AttentionService {
   /**
    * 清空该会员所有关注记录
    */
-  async clear(memberId: number): Promise<void> {
-    await this.attentionRepo.delete({ memberId });
+  async clear(memberId: number): Promise<number> {
+    const result = await this.attentionRepo.delete({ memberId });
+    return result.affected ?? 0;
   }
 }

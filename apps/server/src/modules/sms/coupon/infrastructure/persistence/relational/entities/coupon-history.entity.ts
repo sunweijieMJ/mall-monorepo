@@ -51,7 +51,7 @@ export class CouponHistoryEntity {
   })
   getType: number;
 
-  @ApiPropertyOptional({ description: '创建时间' })
+  @ApiPropertyOptional({ description: '创建时间', format: 'date-time' })
   @Column({
     name: 'create_time',
     type: 'timestamp',
@@ -71,7 +71,7 @@ export class CouponHistoryEntity {
   })
   useStatus: number;
 
-  @ApiPropertyOptional({ description: '使用时间' })
+  @ApiPropertyOptional({ description: '使用时间', format: 'date-time' })
   @Column({
     name: 'use_time',
     type: 'timestamp',

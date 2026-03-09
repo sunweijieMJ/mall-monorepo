@@ -18,6 +18,7 @@ import { CouponProductCategoryRelationEntity } from '@/modules/sms/coupon/infras
 import { ProductEntity } from '@/modules/pms/product/infrastructure/persistence/relational/entities/product.entity';
 import { CartItemEntity } from '@/modules/portal/cart/infrastructure/persistence/relational/entities/cart-item.entity';
 import { PageQueryDto, PageResult } from '@/common/dto/page-result.dto';
+import { paginate } from '@/common/utils/paginate.util';
 import { UpdateMemberInfoDto } from './dto/update-member-info.dto';
 import {
   CreateMemberAddressDto,
@@ -70,7 +71,10 @@ export class MemberService {
   /**
    * 更新会员基本信息
    */
-  async updateInfo(memberId: number, data: UpdateMemberInfoDto): Promise<void> {
+  async updateInfo(
+    memberId: number,
+    data: UpdateMemberInfoDto,
+  ): Promise<number> {
     // 白名单：只允许客户端修改以下安全字段
     const allowedFields = [
       'nickname',
@@ -88,8 +92,9 @@ export class MemberService {
         (safeData as any)[field] = data[field];
       }
     }
-    if (Object.keys(safeData).length === 0) return;
-    await this.memberRepo.update({ id: memberId }, safeData);
+    if (Object.keys(safeData).length === 0) return 0;
+    const result = await this.memberRepo.update({ id: memberId }, safeData);
+    return result.affected ?? 0;
   }
 
   // ========== 收货地址 ==========
@@ -119,7 +124,7 @@ export class MemberService {
   async addAddress(
     memberId: number,
     data: CreateMemberAddressDto,
-  ): Promise<void> {
+  ): Promise<number> {
     if (data.defaultStatus === 1) {
       // 清除该会员所有地址的默认状态
       await this.addressRepo.update({ memberId }, { defaultStatus: 0 });
@@ -129,6 +134,7 @@ export class MemberService {
       memberId,
     });
     await this.addressRepo.save(address);
+    return 1;
   }
 
   /**
@@ -139,7 +145,7 @@ export class MemberService {
     id: number,
     memberId: number,
     data: UpdateMemberAddressDto,
-  ): Promise<void> {
+  ): Promise<number> {
     // 验证归属权
     await this.getAddress(id, memberId);
     if (data.defaultStatus === 1) {
@@ -151,17 +157,19 @@ export class MemberService {
         .where('member_id = :memberId AND id != :id', { memberId, id })
         .execute();
     }
-    await this.addressRepo.update(
+    const result = await this.addressRepo.update(
       { id, memberId },
       data as Partial<MemberAddressEntity>,
     );
+    return result.affected ?? 0;
   }
 
   /**
    * 删除收货地址
    */
-  async deleteAddress(id: number, memberId: number): Promise<void> {
-    await this.addressRepo.delete({ id, memberId });
+  async deleteAddress(id: number, memberId: number): Promise<number> {
+    const result = await this.addressRepo.softDelete({ id, memberId });
+    return result.affected ?? 0;
   }
 
   // ========== 会员优惠券 ==========
@@ -256,12 +264,9 @@ export class MemberService {
       });
     }
 
-    qb.orderBy('ch.id', 'DESC')
-      .skip((pageQuery.page - 1) * pageQuery.limit)
-      .take(pageQuery.limit);
+    qb.orderBy('ch.id', 'DESC');
 
-    const [list, total] = await qb.getManyAndCount();
-    return PageResult.of(list, total, pageQuery);
+    return paginate(qb, pageQuery);
   }
 
   /**

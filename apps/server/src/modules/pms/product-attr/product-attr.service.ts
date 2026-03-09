@@ -42,12 +42,14 @@ export class ProductAttrService {
   async updateAttrCategory(
     id: number,
     dto: Partial<ProductAttrCategoryEntity>,
-  ): Promise<void> {
-    await this.cateRepo.update(id, dto);
+  ): Promise<number> {
+    const result = await this.cateRepo.update(id, dto);
+    return result.affected ?? 0;
   }
 
-  async deleteAttrCategory(id: number): Promise<void> {
-    await this.cateRepo.delete(id);
+  async deleteAttrCategory(id: number): Promise<number> {
+    const result = await this.cateRepo.softDelete(id);
+    return result.affected ?? 0;
   }
 
   async getAttrCategoryItem(id: number): Promise<ProductAttrCategoryEntity> {
@@ -113,20 +115,24 @@ export class ProductAttrService {
     });
   }
 
-  async updateAttr(id: number, dto: Partial<ProductAttrEntity>): Promise<void> {
-    await this.attrRepo.update(id, dto);
+  async updateAttr(
+    id: number,
+    dto: Partial<ProductAttrEntity>,
+  ): Promise<number> {
+    const result = await this.attrRepo.update(id, dto);
+    return result.affected ?? 0;
   }
 
-  async deleteAttr(ids: number[]): Promise<void> {
-    if (ids.length === 0) return;
-    await this.transactionService.run(async (manager) => {
+  async deleteAttr(ids: number[]): Promise<number> {
+    if (ids.length === 0) return 0;
+    return this.transactionService.run(async (manager) => {
       // 查询所有待删除的属性，按分类和类型分组后分别更新计数
       const attrs = await manager.find(ProductAttrEntity, {
         where: { id: In(ids) },
       });
-      if (attrs.length === 0) return;
+      if (attrs.length === 0) return 0;
 
-      await manager.delete(ProductAttrEntity, ids);
+      const deleteResult = await manager.softDelete(ProductAttrEntity, ids);
 
       // 按 (productAttributeCategoryId, type) 分组统计删除数量
       const groupMap = new Map<
@@ -164,6 +170,8 @@ export class ProductAttrService {
         }
         await manager.save(ProductAttrCategoryEntity, category);
       }
+
+      return deleteResult.affected ?? 0;
     });
   }
 }

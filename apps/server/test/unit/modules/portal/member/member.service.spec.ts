@@ -214,11 +214,11 @@ describe('MemberService', () => {
 
   describe('deleteAddress', () => {
     it('删除地址', async () => {
-      mockAddressRepo.delete.mockResolvedValue({});
+      mockAddressRepo.softDelete.mockResolvedValue({ affected: 1 });
 
       await service.deleteAddress(1, 1);
 
-      expect(mockAddressRepo.delete).toHaveBeenCalledWith({
+      expect(mockAddressRepo.softDelete).toHaveBeenCalledWith({
         id: 1,
         memberId: 1,
       });

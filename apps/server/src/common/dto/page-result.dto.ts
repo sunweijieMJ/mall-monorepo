@@ -8,6 +8,7 @@ export class PageQueryDto {
     description: '页码，从 1 开始',
     type: 'integer',
     default: 1,
+    minimum: 1,
   })
   @IsInt()
   @Min(1)
@@ -19,6 +20,7 @@ export class PageQueryDto {
     description: '每页数量',
     type: 'integer',
     default: 10,
+    minimum: 1,
   })
   @IsInt()
   @Min(1)
@@ -38,7 +40,7 @@ export class PageQueryDto {
 
 /** 分页响应结构（对应前端 PageResult<T>） */
 export class PageResult<T> {
-  /** 数据列表（具体类型由 @ApiPaginatedResponse 装饰器覆盖） */
+  @ApiProperty({ description: '数据列表' })
   list: T[];
 
   @ApiProperty({ description: '总条数', type: 'integer' })

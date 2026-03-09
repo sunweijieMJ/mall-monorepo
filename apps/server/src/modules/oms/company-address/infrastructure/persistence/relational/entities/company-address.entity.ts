@@ -1,12 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity } from 'typeorm';
+import { BaseEntity } from '@/common/entities/base.entity';
 
 @Entity('oms_company_address')
-export class CompanyAddressEntity {
-  @ApiProperty({ description: '主键 ID', type: 'integer' })
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class CompanyAddressEntity extends BaseEntity {
   @ApiProperty({ description: '地址名称' })
   @Column({ name: 'address_name', length: 200, comment: '地址名称' })
   addressName: string;

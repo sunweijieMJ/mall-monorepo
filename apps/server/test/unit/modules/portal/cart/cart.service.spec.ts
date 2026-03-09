@@ -188,7 +188,7 @@ describe('CartService', () => {
         .mockResolvedValueOnce(original) // 查原条目
         .mockResolvedValueOnce(existing); // 查目标 SKU 是否已在购物车
       mockSkuRepo.findOne.mockResolvedValue(skuFixture({ id: 300, stock: 50 }));
-      await service.updateAttr(1, { id: 1, productSkuId: 300 });
+      await service.updateAttr(1, 1, { productSkuId: 300 });
 
       // 合并后数量 = 3 + 2 = 5
       expect(mockManager.save).toHaveBeenCalledWith(
@@ -207,7 +207,7 @@ describe('CartService', () => {
         .mockResolvedValueOnce(original)
         .mockResolvedValueOnce(null); // 目标 SKU 不在购物车
       mockSkuRepo.findOne.mockResolvedValue(skuFixture({ id: 300 }));
-      await service.updateAttr(1, { id: 1, productSkuId: 300 });
+      await service.updateAttr(1, 1, { productSkuId: 300 });
 
       expect(mockManager.save).toHaveBeenCalledWith(
         CartItemEntity,
@@ -223,7 +223,7 @@ describe('CartService', () => {
       );
 
       await expect(
-        service.updateAttr(1, { id: 1, productSkuId: 300 }),
+        service.updateAttr(1, 1, { productSkuId: 300 }),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -231,7 +231,7 @@ describe('CartService', () => {
       mockCartRepo.findOne.mockResolvedValueOnce(null);
 
       await expect(
-        service.updateAttr(1, { id: 999, productSkuId: 300 }),
+        service.updateAttr(1, 999, { productSkuId: 300 }),
       ).rejects.toThrow(NotFoundException);
     });
   });

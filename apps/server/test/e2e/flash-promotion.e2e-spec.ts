@@ -72,8 +72,8 @@ describe('FlashPromotion API (e2e)', () => {
   // ---- 秒杀活动 ----
   const flashBase = '/api/v1/admin/sms/flash-promotions';
 
-  describe('GET /api/v1/admin/sms/flash-promotions/list', () => {
-    const url = `${flashBase}/list`;
+  describe('GET /api/v1/admin/sms/flash-promotions', () => {
+    const url = flashBase;
 
     it('无 token → 401', async () => {
       const res = await request(app.getHttpServer()).get(url).expect(401);
@@ -100,7 +100,7 @@ describe('FlashPromotion API (e2e)', () => {
     });
   });
 
-  describe('POST /api/v1/admin/sms/flash-promotions/create', () => {
+  describe('POST /api/v1/admin/sms/flash-promotions', () => {
     it('添加秒杀活动 → 201', async () => {
       const dto = {
         title: '618 秒杀',
@@ -110,7 +110,7 @@ describe('FlashPromotion API (e2e)', () => {
       mockService.createFlash.mockResolvedValue({ id: 1, ...dto });
 
       const res = await request(app.getHttpServer())
-        .post(`${flashBase}/create`)
+        .post(flashBase)
         .set('Authorization', bearerHeader(token))
         .send(dto)
         .expect(200);
@@ -120,12 +120,12 @@ describe('FlashPromotion API (e2e)', () => {
     });
   });
 
-  describe('PUT /api/v1/admin/sms/flash-promotions/update/:id', () => {
+  describe('PUT /api/v1/admin/sms/flash-promotions/:id', () => {
     it('修改秒杀活动 → 200', async () => {
       mockService.updateFlash.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${flashBase}/update/1`)
+        .put(`${flashBase}/1`)
         .set('Authorization', bearerHeader(token))
         .send({ title: '双11 秒杀' })
         .expect(200);
@@ -138,12 +138,12 @@ describe('FlashPromotion API (e2e)', () => {
     });
   });
 
-  describe('DELETE /api/v1/admin/sms/flash-promotions/delete/:id', () => {
+  describe('DELETE /api/v1/admin/sms/flash-promotions/:id', () => {
     it('删除秒杀活动 → 200', async () => {
       mockService.deleteFlash.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .delete(`${flashBase}/delete/1`)
+        .delete(`${flashBase}/1`)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -155,14 +155,14 @@ describe('FlashPromotion API (e2e)', () => {
   // ---- 秒杀场次 ----
   const sessionBase = '/api/v1/admin/sms/flash-sessions';
 
-  describe('GET /api/v1/admin/sms/flash-sessions/list', () => {
+  describe('GET /api/v1/admin/sms/flash-sessions', () => {
     it('获取全部场次 → 200', async () => {
       mockService.listSession.mockResolvedValue([
         { id: 1, name: '08:00 场', startTime: '08:00:00', endTime: '10:00:00' },
       ]);
 
       const res = await request(app.getHttpServer())
-        .get(`${sessionBase}/list`)
+        .get(sessionBase)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -171,7 +171,7 @@ describe('FlashPromotion API (e2e)', () => {
     });
   });
 
-  describe('POST /api/v1/admin/sms/flash-sessions/create', () => {
+  describe('POST /api/v1/admin/sms/flash-sessions', () => {
     it('添加场次 → 201', async () => {
       const dto = {
         name: '10:00 场',
@@ -181,7 +181,7 @@ describe('FlashPromotion API (e2e)', () => {
       mockService.createSession.mockResolvedValue({ id: 2, ...dto });
 
       const res = await request(app.getHttpServer())
-        .post(`${sessionBase}/create`)
+        .post(sessionBase)
         .set('Authorization', bearerHeader(token))
         .send(dto)
         .expect(200);
@@ -194,7 +194,7 @@ describe('FlashPromotion API (e2e)', () => {
   // ---- 秒杀商品关联 ----
   const relationBase = '/api/v1/admin/sms/flash-product-relations';
 
-  describe('GET /api/v1/admin/sms/flash-product-relations/list', () => {
+  describe('GET /api/v1/admin/sms/flash-product-relations', () => {
     it('分页查询商品关联 → 200', async () => {
       mockService.listRelation.mockResolvedValue({
         list: [],
@@ -205,7 +205,7 @@ describe('FlashPromotion API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(`${relationBase}/list`)
+        .get(relationBase)
         .set('Authorization', bearerHeader(token))
         .query({
           flashPromotionId: 1,
@@ -220,7 +220,7 @@ describe('FlashPromotion API (e2e)', () => {
     });
   });
 
-  describe('POST /api/v1/admin/sms/flash-product-relations/create', () => {
+  describe('POST /api/v1/admin/sms/flash-product-relations', () => {
     it('批量添加商品关联 → 201', async () => {
       const dto = [
         {
@@ -235,7 +235,7 @@ describe('FlashPromotion API (e2e)', () => {
       mockService.createRelation.mockResolvedValue([{ id: 1, ...dto[0] }]);
 
       const res = await request(app.getHttpServer())
-        .post(`${relationBase}/create`)
+        .post(relationBase)
         .set('Authorization', bearerHeader(token))
         .send(dto)
         .expect(200);
@@ -257,7 +257,7 @@ describe('FlashPromotion API (e2e)', () => {
       mockService.createRelation.mockResolvedValue([{ id: 1 }]);
 
       const res = await request(app.getHttpServer())
-        .post(`${relationBase}/create`)
+        .post(relationBase)
         .set('Authorization', bearerHeader(token))
         .send(dto)
         .expect(200);
@@ -270,12 +270,12 @@ describe('FlashPromotion API (e2e)', () => {
     });
   });
 
-  describe('PUT /api/v1/admin/sms/flash-product-relations/update/:id', () => {
+  describe('PUT /api/v1/admin/sms/flash-product-relations/:id', () => {
     it('修改关联信息（含价格）→ 200', async () => {
       mockService.updateRelation.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${relationBase}/update/1`)
+        .put(`${relationBase}/1`)
         .set('Authorization', bearerHeader(token))
         .send({ flashPromotionPrice: 88.8, flashPromotionCount: 100 })
         .expect(200);
@@ -292,7 +292,7 @@ describe('FlashPromotion API (e2e)', () => {
       mockService.updateRelation.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${relationBase}/update/1`)
+        .put(`${relationBase}/1`)
         .set('Authorization', bearerHeader(token))
         .send({ flashPromotionCount: 200 })
         .expect(200);
@@ -302,12 +302,12 @@ describe('FlashPromotion API (e2e)', () => {
     });
   });
 
-  describe('PUT /api/v1/admin/sms/flash-promotions/update/status/:id', () => {
+  describe('PUT /api/v1/admin/sms/flash-promotions/:id/status', () => {
     it('修改活动上下线状态 → 200', async () => {
       mockService.updateFlashStatus.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${flashBase}/update/status/1`)
+        .put(`${flashBase}/1/status`)
         .set('Authorization', bearerHeader(token))
         .send({ status: 1 })
         .expect(200);
@@ -332,12 +332,12 @@ describe('FlashPromotion API (e2e)', () => {
     });
   });
 
-  describe('PUT /api/v1/admin/sms/flash-sessions/update/status/:id', () => {
+  describe('PUT /api/v1/admin/sms/flash-sessions/:id/status', () => {
     it('修改场次启用状态 → 200', async () => {
       mockService.updateSessionStatus.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${sessionBase}/update/status/1`)
+        .put(`${sessionBase}/1/status`)
         .set('Authorization', bearerHeader(token))
         .send({ status: 1 })
         .expect(200);
@@ -346,12 +346,12 @@ describe('FlashPromotion API (e2e)', () => {
     });
   });
 
-  describe('DELETE /api/v1/admin/sms/flash-sessions/delete/:id', () => {
+  describe('DELETE /api/v1/admin/sms/flash-sessions/:id', () => {
     it('删除场次 → 200', async () => {
       mockService.deleteSession.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .delete(`${sessionBase}/delete/1`)
+        .delete(`${sessionBase}/1`)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 

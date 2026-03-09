@@ -7,6 +7,7 @@ import {
 } from './infrastructure/persistence/relational/entities/admin-resource.entity';
 import { AdminCacheService } from '@/core/auth/services/admin-cache.service';
 import { PageQueryDto, PageResult } from '@/common/dto/page-result.dto';
+import { paginate } from '@/common/utils/paginate.util';
 
 @Injectable()
 export class AdminResourceService {
@@ -47,7 +48,7 @@ export class AdminResourceService {
 
   /** 删除资源 */
   async delete(id: number): Promise<number> {
-    await this.resourceRepo.delete(id);
+    await this.resourceRepo.softDelete(id);
     // 清除相关 admin 的资源缓存（委托给 AdminCacheService）
     await this.adminCacheService.delResourceListByResource(id);
     return 1;
@@ -76,10 +77,7 @@ export class AdminResourceService {
       });
     }
 
-    qb.skip((query.page - 1) * query.limit).take(query.limit);
-
-    const [list, total] = await qb.getManyAndCount();
-    return PageResult.of(list, total, query);
+    return paginate(qb, query);
   }
 
   /** 获取全部资源 */
@@ -107,7 +105,7 @@ export class AdminResourceService {
 
   /** 删除资源分类 */
   async deleteCategory(id: number): Promise<number> {
-    await this.categoryRepo.delete(id);
+    await this.categoryRepo.softDelete(id);
     return 1;
   }
 

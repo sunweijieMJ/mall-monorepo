@@ -110,12 +110,12 @@ describe('FlashPromotionService', () => {
   });
 
   describe('deleteFlash', () => {
-    it('删除秒杀活动 -> 调用 delete', async () => {
-      mockFlashRepo.delete.mockResolvedValue({ affected: 1 });
+    it('删除秒杀活动 -> 调用 softDelete', async () => {
+      mockFlashRepo.softDelete.mockResolvedValue({ affected: 1 });
 
       await service.deleteFlash(1);
 
-      expect(mockFlashRepo.delete).toHaveBeenCalledWith(1);
+      expect(mockFlashRepo.softDelete).toHaveBeenCalledWith(1);
     });
   });
 
@@ -187,12 +187,12 @@ describe('FlashPromotionService', () => {
   });
 
   describe('deleteSession', () => {
-    it('删除场次 -> 调用 delete', async () => {
-      mockSessionRepo.delete.mockResolvedValue({ affected: 1 });
+    it('删除场次 -> 调用 softDelete', async () => {
+      mockSessionRepo.softDelete.mockResolvedValue({ affected: 1 });
 
       await service.deleteSession(1);
 
-      expect(mockSessionRepo.delete).toHaveBeenCalledWith(1);
+      expect(mockSessionRepo.softDelete).toHaveBeenCalledWith(1);
     });
   });
 

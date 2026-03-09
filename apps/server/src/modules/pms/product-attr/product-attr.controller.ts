@@ -18,12 +18,12 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
-  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { ProductAttrService } from './product-attr.service';
 import { PageQueryDto } from '@/common/dto/page-result.dto';
+import { QueryProductAttrDto } from './dto/query-product-attr.dto';
 import {
   CreateProductAttrCategoryDto,
   UpdateProductAttrCategoryDto,
@@ -43,15 +43,29 @@ import { ProductAttrCategoryVo } from './vo/product-attr-category.vo';
 export class ProductAttrCategoryController {
   constructor(private readonly service: ProductAttrService) {}
 
-  @Post('create')
+  @Post()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '创建属性分类' })
-  @ApiOkResponse({ type: ProductAttrCategoryVo })
+  @ApiWrappedResponse(ProductAttrCategoryVo)
   create(@Body() dto: CreateProductAttrCategoryDto) {
     return this.service.createAttrCategory(dto);
   }
 
-  @Put('update/:id')
+  @Get()
+  @ApiOperation({ summary: '分页获取属性分类' })
+  @ApiPaginatedResponse(ProductAttrCategoryVo)
+  list(@Query() query: PageQueryDto) {
+    return this.service.listAttrCategory(query);
+  }
+
+  @Get('with-attrs')
+  @ApiOperation({ summary: '获取所有属性分类（含属性）' })
+  @ApiWrappedResponse(AttrCategoryWithAttrVo, { isArray: true })
+  listWithAttr() {
+    return this.service.listAttrCategoryWithAttr();
+  }
+
+  @Put(':id')
   @ApiOperation({ summary: '更新属性分类' })
   @ApiParam({ name: 'id', description: '属性分类ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
@@ -62,26 +76,12 @@ export class ProductAttrCategoryController {
     return this.service.updateAttrCategory(id, dto);
   }
 
-  @Delete('delete/:id')
+  @Delete(':id')
   @ApiOperation({ summary: '删除属性分类' })
   @ApiParam({ name: 'id', description: '属性分类ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   delete(@Param('id', ParseIntPipe) id: number) {
     return this.service.deleteAttrCategory(id);
-  }
-
-  @Get('list')
-  @ApiOperation({ summary: '分页获取属性分类' })
-  @ApiPaginatedResponse(ProductAttrCategoryVo)
-  list(@Query() query: PageQueryDto) {
-    return this.service.listAttrCategory(query);
-  }
-
-  @Get('list-with-attr')
-  @ApiOperation({ summary: '获取所有属性分类（含属性）' })
-  @ApiOkResponse({ type: [AttrCategoryWithAttrVo] })
-  listWithAttr() {
-    return this.service.listAttrCategoryWithAttr();
   }
 
   @Get(':id')
@@ -100,15 +100,30 @@ export class ProductAttrCategoryController {
 export class ProductAttrController {
   constructor(private readonly service: ProductAttrService) {}
 
-  @Post('create')
+  @Post()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '创建商品属性' })
-  @ApiOkResponse({ type: ProductAttrVo })
+  @ApiWrappedResponse(ProductAttrVo)
   create(@Body() dto: CreateProductAttrDto) {
     return this.service.createAttr(dto);
   }
 
-  @Put('update/:id')
+  @Post('batch-delete')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '批量删除商品属性' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  batchDelete(@Body() dto: BatchDeleteDto) {
+    return this.service.deleteAttr(dto.ids);
+  }
+
+  @Get()
+  @ApiOperation({ summary: '获取商品属性列表' })
+  @ApiPaginatedResponse(ProductAttrVo)
+  list(@Query() query: QueryProductAttrDto) {
+    return this.service.listAttr(query.categoryId, query.type ?? 0, query);
+  }
+
+  @Put(':id')
   @ApiOperation({ summary: '更新商品属性' })
   @ApiParam({ name: 'id', description: '商品属性ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
@@ -119,36 +134,10 @@ export class ProductAttrController {
     return this.service.updateAttr(id, dto);
   }
 
-  @Delete('delete')
-  @ApiOperation({ summary: '批量删除商品属性' })
-  @ApiOkResponse({ type: Number, description: '受影响的行数' })
-  batchDelete(@Body() dto: BatchDeleteDto) {
-    return this.service.deleteAttr(dto.ids);
-  }
-
-  @Get('list/:categoryId')
-  @ApiOperation({ summary: '获取商品属性列表' })
-  @ApiParam({ name: 'categoryId', description: '属性分类ID', type: 'integer' })
-  @ApiPaginatedResponse(ProductAttrVo)
-  @ApiQuery({
-    name: 'type',
-    required: false,
-    type: Number,
-    enum: [0, 1],
-    description: '属性类型：0->规格；1->参数',
-  })
-  list(
-    @Param('categoryId', ParseIntPipe) categoryId: number,
-    @Query('type', new ParseIntPipe({ optional: true })) type?: number,
-    @Query() query?: PageQueryDto,
-  ) {
-    return this.service.listAttr(categoryId, type ?? 0, query!);
-  }
-
   @Get(':id')
   @ApiOperation({ summary: '获取属性详情' })
   @ApiParam({ name: 'id', description: '商品属性ID', type: 'integer' })
-  @ApiOkResponse({ type: ProductAttrVo })
+  @ApiWrappedResponse(ProductAttrVo)
   getItem(@Param('id', ParseIntPipe) id: number) {
     return this.service.getAttrItem(id);
   }

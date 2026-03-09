@@ -77,7 +77,8 @@ export class MemberLevelService {
    * 批量删除会员等级
    * @param ids 会员等级 ID 列表
    */
-  async delete(ids: number[]): Promise<void> {
-    await this.memberLevelRepo.delete({ id: In(ids) });
+  async delete(ids: number[]): Promise<number> {
+    const result = await this.memberLevelRepo.softDelete({ id: In(ids) });
+    return result.affected ?? 0;
   }
 }

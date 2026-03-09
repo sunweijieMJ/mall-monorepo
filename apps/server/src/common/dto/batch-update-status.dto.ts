@@ -1,5 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsInt, IsOptional, IsString } from 'class-validator';
+import {
+  ArrayMinSize,
+  IsArray,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 /** 通用批量状态更新 */
 export class BatchUpdateStatusDto {
@@ -9,6 +16,7 @@ export class BatchUpdateStatusDto {
     items: { type: 'integer' },
   })
   @IsArray()
+  @ArrayMinSize(1)
   @IsInt({ each: true })
   ids: number[];
 
@@ -25,6 +33,7 @@ export class BatchUpdateVerifyStatusDto {
     items: { type: 'integer' },
   })
   @IsArray()
+  @ArrayMinSize(1)
   @IsInt({ each: true })
   ids: number[];
 
@@ -90,17 +99,18 @@ export class UpdateSortDto {
 
 /** 菜单显示状态更新 */
 export class UpdateHiddenDto {
-  @ApiProperty({ type: 'integer', description: '隐藏状态' })
+  @ApiProperty({
+    type: 'integer',
+    description: '隐藏状态：0-显示 1-隐藏',
+    enum: [0, 1],
+  })
   @IsInt()
+  @IsIn([0, 1])
   hidden: number;
 }
 
-/** 购物车数量更新 */
+/** 购物车数量更新（id 通过路径参数传递） */
 export class UpdateCartQuantityDto {
-  @ApiProperty({ description: '购物车项 ID', type: 'integer' })
-  @IsInt()
-  id: number;
-
   @ApiProperty({ type: 'integer', description: '数量' })
   @IsInt()
   productQuantity: number;

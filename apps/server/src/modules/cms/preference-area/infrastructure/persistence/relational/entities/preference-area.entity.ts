@@ -1,12 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity } from 'typeorm';
+import { BaseEntity } from '@/common/entities/base.entity';
 
 @Entity('cms_prefrence_area')
-export class PreferenceAreaEntity {
-  @ApiProperty({ description: '主键ID', type: 'integer' })
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class PreferenceAreaEntity extends BaseEntity {
   @ApiPropertyOptional({ description: '名称' })
   @Column({ length: 255, nullable: true })
   name: string;

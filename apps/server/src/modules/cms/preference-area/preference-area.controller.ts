@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -39,33 +38,16 @@ import { ProductVo } from '@/modules/pms/product/vo/product.vo';
 export class PreferenceAreaController {
   constructor(private readonly preferenceAreaService: PreferenceAreaService) {}
 
-  @Get('list')
-  @ApiOperation({ summary: '查询全部优选专区列表' })
-  @ApiOkResponse({ type: [PreferenceAreaVo] })
-  list() {
-    return this.preferenceAreaService.list();
-  }
-
-  @Post('create')
+  @Post()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '创建优选专区' })
-  @ApiOkResponse({ type: PreferenceAreaVo })
+  @ApiWrappedResponse(PreferenceAreaVo)
   create(@Body() dto: CreatePreferenceAreaDto) {
     return this.preferenceAreaService.create(dto);
   }
 
-  @Put('update/:id')
-  @ApiOperation({ summary: '更新优选专区' })
-  @ApiParam({ name: 'id', description: '优选专区ID', type: 'integer' })
-  @ApiOkResponse({ type: Number, description: '受影响的行数' })
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdatePreferenceAreaDto,
-  ) {
-    return this.preferenceAreaService.update(id, dto);
-  }
-
-  @Delete('delete')
+  @Post('batch-delete')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: '批量删除优选专区',
     description: '传入专区 ID 数组',
@@ -75,14 +57,33 @@ export class PreferenceAreaController {
     return this.preferenceAreaService.delete(dto.ids);
   }
 
-  @Get('product-list')
+  @Get()
+  @ApiOperation({ summary: '查询全部优选专区列表' })
+  @ApiWrappedResponse(PreferenceAreaVo, { isArray: true })
+  list() {
+    return this.preferenceAreaService.list();
+  }
+
+  @Get(':id/products')
   @ApiOperation({ summary: '查询优选专区关联商品列表' })
+  @ApiParam({ name: 'id', description: '优选专区ID', type: 'integer' })
   @ApiPaginatedResponse(ProductVo)
   getProductList(
-    @Query('preferenceAreaId', ParseIntPipe) preferenceAreaId: number,
+    @Param('id', ParseIntPipe) id: number,
     @Query() query: PageQueryDto,
   ) {
-    return this.preferenceAreaService.getProductList(preferenceAreaId, query);
+    return this.preferenceAreaService.getProductList(id, query);
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: '更新优选专区' })
+  @ApiParam({ name: 'id', description: '优选专区ID', type: 'integer' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdatePreferenceAreaDto,
+  ) {
+    return this.preferenceAreaService.update(id, dto);
   }
 
   @Get(':id')

@@ -38,6 +38,7 @@ describe('AdminUserService', () => {
   const mockCache = createMockCacheManager();
   const mockManager = {
     delete: vi.fn().mockResolvedValue({}),
+    softDelete: vi.fn().mockResolvedValue({ affected: 1 }),
     create: vi.fn().mockImplementation((_e: any, d: any) => d),
     save: vi.fn().mockResolvedValue({}),
   };
@@ -115,35 +116,23 @@ describe('AdminUserService', () => {
   });
 
   describe('update', () => {
-    it('密码相同 → 不重新加密', async () => {
-      const qb = mockAdminRepo.createQueryBuilder();
-      mockAdminRepo.createQueryBuilder.mockReturnValue(qb);
-      qb.getOne.mockResolvedValue(adminFixture());
-      vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+    it('更新基本信息（密码字段被忽略）', async () => {
+      mockAdminRepo.findOneBy.mockResolvedValue(adminFixture());
       mockAdminRepo.update.mockResolvedValue({});
 
       await service.update(1, { password: 'samepass', nickName: '新昵称' });
 
-      // password 应被删除，不应调用 hash
+      // update 方法会 delete dto.password，所以不应调用 hash
       expect(bcrypt.hash).not.toHaveBeenCalled();
-    });
-
-    it('密码不同 → 重新加密', async () => {
-      const qb = mockAdminRepo.createQueryBuilder();
-      mockAdminRepo.createQueryBuilder.mockReturnValue(qb);
-      qb.getOne.mockResolvedValue(adminFixture());
-      vi.mocked(bcrypt.compare).mockResolvedValue(false as never);
-      mockAdminRepo.update.mockResolvedValue({});
-
-      await service.update(1, { password: 'newpass' });
-
-      expect(bcrypt.hash).toHaveBeenCalled();
+      // update 调用时不应包含 password
+      expect(mockAdminRepo.update).toHaveBeenCalledWith(
+        1,
+        expect.not.objectContaining({ password: expect.anything() }),
+      );
     });
 
     it('管理员不存在 → 404', async () => {
-      const qb = mockAdminRepo.createQueryBuilder();
-      mockAdminRepo.createQueryBuilder.mockReturnValue(qb);
-      qb.getOne.mockResolvedValue(null);
+      mockAdminRepo.findOneBy.mockResolvedValue(null);
 
       await expect(service.update(999, {})).rejects.toThrow(NotFoundException);
     });
@@ -152,7 +141,7 @@ describe('AdminUserService', () => {
   describe('delete', () => {
     it('存在 → 删除 + 清缓存', async () => {
       mockAdminRepo.findOneBy.mockResolvedValue(adminFixture());
-      mockAdminRepo.delete.mockResolvedValue({});
+      mockManager.softDelete.mockResolvedValue({ affected: 1 });
 
       const result = await service.delete(1);
 

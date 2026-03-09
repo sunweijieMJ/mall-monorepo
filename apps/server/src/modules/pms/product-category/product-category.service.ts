@@ -54,31 +54,38 @@ export class ProductCategoryService {
     return this.categoryRepo.save(entity);
   }
 
-  async update(id: number, dto: Partial<ProductCategoryEntity>): Promise<void> {
+  async update(
+    id: number,
+    dto: Partial<ProductCategoryEntity>,
+  ): Promise<number> {
     await this.setCategoryLevel(dto);
-    await this.categoryRepo.update(id, dto);
+    const result = await this.categoryRepo.update(id, dto);
+    return result.affected ?? 0;
   }
 
-  async delete(id: number): Promise<void> {
-    await this.categoryRepo.delete(id);
+  async delete(id: number): Promise<number> {
+    const result = await this.categoryRepo.softDelete(id);
+    return result.affected ?? 0;
   }
 
-  async updateNavStatus(ids: number[], navStatus: number): Promise<void> {
-    await this.categoryRepo
+  async updateNavStatus(ids: number[], navStatus: number): Promise<number> {
+    const result = await this.categoryRepo
       .createQueryBuilder()
       .update()
       .set({ navStatus })
       .where('id IN (:...ids)', { ids })
       .execute();
+    return result.affected ?? 0;
   }
 
-  async updateShowStatus(ids: number[], showStatus: number): Promise<void> {
-    await this.categoryRepo
+  async updateShowStatus(ids: number[], showStatus: number): Promise<number> {
+    const result = await this.categoryRepo
       .createQueryBuilder()
       .update()
       .set({ showStatus })
       .where('id IN (:...ids)', { ids })
       .execute();
+    return result.affected ?? 0;
   }
 
   private async setCategoryLevel(

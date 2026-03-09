@@ -110,11 +110,11 @@ describe('MemberLevelService', () => {
 
   describe('delete', () => {
     it('批量删除会员等级', async () => {
-      mockRepo.delete.mockResolvedValue({ affected: 2 });
+      mockRepo.softDelete.mockResolvedValue({ affected: 2 });
 
       await service.delete([1, 2]);
 
-      expect(mockRepo.delete).toHaveBeenCalled();
+      expect(mockRepo.softDelete).toHaveBeenCalled();
     });
   });
 });

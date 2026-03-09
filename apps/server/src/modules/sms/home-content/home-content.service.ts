@@ -9,6 +9,7 @@ import {
   HomeHotProductEntity,
 } from './infrastructure/persistence/relational/entities/home-content.entity';
 import { PageQueryDto, PageResult } from '@/common/dto/page-result.dto';
+import { paginate } from '@/common/utils/paginate.util';
 
 @Injectable()
 export class HomeContentService {
@@ -47,10 +48,8 @@ export class HomeContentService {
     }
 
     qb.orderBy('a.sort', 'DESC');
-    qb.skip((query.page - 1) * query.limit).take(query.limit);
 
-    const [list, total] = await qb.getManyAndCount();
-    return PageResult.of(list, total, query);
+    return paginate(qb, query);
   }
 
   async getAdvertiseItem(id: number): Promise<HomeAdvertiseEntity | null> {
@@ -68,16 +67,19 @@ export class HomeContentService {
   async updateAdvertise(
     id: number,
     dto: Partial<HomeAdvertiseEntity>,
-  ): Promise<void> {
-    await this.advertiseRepo.update(id, dto);
+  ): Promise<number> {
+    const result = await this.advertiseRepo.update(id, dto);
+    return result.affected ?? 0;
   }
 
-  async deleteAdvertise(ids: number[]): Promise<void> {
-    await this.advertiseRepo.delete(ids);
+  async deleteAdvertise(ids: number[]): Promise<number> {
+    const result = await this.advertiseRepo.softDelete(ids);
+    return result.affected ?? 0;
   }
 
-  async updateAdvertiseStatus(id: number, status: number): Promise<void> {
-    await this.advertiseRepo.update(id, { status });
+  async updateAdvertiseStatus(id: number, status: number): Promise<number> {
+    const result = await this.advertiseRepo.update(id, { status });
+    return result.affected ?? 0;
   }
 
   // ---- 首页品牌推荐 ----
@@ -99,10 +101,8 @@ export class HomeContentService {
     }
 
     qb.orderBy('b.sort', 'DESC');
-    qb.skip((query.page - 1) * query.limit).take(query.limit);
 
-    const [list, total] = await qb.getManyAndCount();
-    return PageResult.of(list, total, query);
+    return paginate(qb, query);
   }
 
   async createHomeBrand(
@@ -118,21 +118,24 @@ export class HomeContentService {
     return this.homeBrandRepo.save(entities);
   }
 
-  async updateHomeBrandStatus(ids: number[], status: number): Promise<void> {
-    await this.homeBrandRepo
+  async updateHomeBrandStatus(ids: number[], status: number): Promise<number> {
+    const result = await this.homeBrandRepo
       .createQueryBuilder()
       .update()
       .set({ recommendStatus: status })
       .whereInIds(ids)
       .execute();
+    return result.affected ?? 0;
   }
 
-  async updateHomeBrandSort(id: number, sort: number): Promise<void> {
-    await this.homeBrandRepo.update(id, { sort });
+  async updateHomeBrandSort(id: number, sort: number): Promise<number> {
+    const result = await this.homeBrandRepo.update(id, { sort });
+    return result.affected ?? 0;
   }
 
-  async deleteHomeBrand(ids: number[]): Promise<void> {
-    await this.homeBrandRepo.delete(ids);
+  async deleteHomeBrand(ids: number[]): Promise<number> {
+    const result = await this.homeBrandRepo.softDelete(ids);
+    return result.affected ?? 0;
   }
 
   // ---- 首页专题推荐 ----
@@ -154,10 +157,8 @@ export class HomeContentService {
     }
 
     qb.orderBy('s.sort', 'DESC');
-    qb.skip((query.page - 1) * query.limit).take(query.limit);
 
-    const [list, total] = await qb.getManyAndCount();
-    return PageResult.of(list, total, query);
+    return paginate(qb, query);
   }
 
   async createSubject(
@@ -173,21 +174,24 @@ export class HomeContentService {
     return this.subjectRepo.save(entities);
   }
 
-  async deleteSubject(ids: number[]): Promise<void> {
-    await this.subjectRepo.delete(ids);
+  async deleteSubject(ids: number[]): Promise<number> {
+    const result = await this.subjectRepo.softDelete(ids);
+    return result.affected ?? 0;
   }
 
-  async updateSubjectStatus(ids: number[], status: number): Promise<void> {
-    await this.subjectRepo
+  async updateSubjectStatus(ids: number[], status: number): Promise<number> {
+    const result = await this.subjectRepo
       .createQueryBuilder()
       .update()
       .set({ recommendStatus: status })
       .whereInIds(ids)
       .execute();
+    return result.affected ?? 0;
   }
 
-  async updateSubjectSort(id: number, sort: number): Promise<void> {
-    await this.subjectRepo.update(id, { sort });
+  async updateSubjectSort(id: number, sort: number): Promise<number> {
+    const result = await this.subjectRepo.update(id, { sort });
+    return result.affected ?? 0;
   }
 
   // ---- 新品推荐 ----
@@ -209,10 +213,8 @@ export class HomeContentService {
     }
 
     qb.orderBy('p.sort', 'DESC');
-    qb.skip((query.page - 1) * query.limit).take(query.limit);
 
-    const [list, total] = await qb.getManyAndCount();
-    return PageResult.of(list, total, query);
+    return paginate(qb, query);
   }
 
   async createNewProduct(
@@ -228,21 +230,24 @@ export class HomeContentService {
     return this.newProductRepo.save(entities);
   }
 
-  async deleteNewProduct(ids: number[]): Promise<void> {
-    await this.newProductRepo.delete(ids);
+  async deleteNewProduct(ids: number[]): Promise<number> {
+    const result = await this.newProductRepo.softDelete(ids);
+    return result.affected ?? 0;
   }
 
-  async updateNewProductStatus(ids: number[], status: number): Promise<void> {
-    await this.newProductRepo
+  async updateNewProductStatus(ids: number[], status: number): Promise<number> {
+    const result = await this.newProductRepo
       .createQueryBuilder()
       .update()
       .set({ recommendStatus: status })
       .whereInIds(ids)
       .execute();
+    return result.affected ?? 0;
   }
 
-  async updateNewProductSort(id: number, sort: number): Promise<void> {
-    await this.newProductRepo.update(id, { sort });
+  async updateNewProductSort(id: number, sort: number): Promise<number> {
+    const result = await this.newProductRepo.update(id, { sort });
+    return result.affected ?? 0;
   }
 
   // ---- 人气推荐 ----
@@ -264,10 +269,8 @@ export class HomeContentService {
     }
 
     qb.orderBy('p.sort', 'DESC');
-    qb.skip((query.page - 1) * query.limit).take(query.limit);
 
-    const [list, total] = await qb.getManyAndCount();
-    return PageResult.of(list, total, query);
+    return paginate(qb, query);
   }
 
   async createHotProduct(
@@ -283,20 +286,23 @@ export class HomeContentService {
     return this.hotProductRepo.save(entities);
   }
 
-  async deleteHotProduct(ids: number[]): Promise<void> {
-    await this.hotProductRepo.delete(ids);
+  async deleteHotProduct(ids: number[]): Promise<number> {
+    const result = await this.hotProductRepo.softDelete(ids);
+    return result.affected ?? 0;
   }
 
-  async updateHotProductStatus(ids: number[], status: number): Promise<void> {
-    await this.hotProductRepo
+  async updateHotProductStatus(ids: number[], status: number): Promise<number> {
+    const result = await this.hotProductRepo
       .createQueryBuilder()
       .update()
       .set({ recommendStatus: status })
       .whereInIds(ids)
       .execute();
+    return result.affected ?? 0;
   }
 
-  async updateHotProductSort(id: number, sort: number): Promise<void> {
-    await this.hotProductRepo.update(id, { sort });
+  async updateHotProductSort(id: number, sort: number): Promise<number> {
+    const result = await this.hotProductRepo.update(id, { sort });
+    return result.affected ?? 0;
   }
 }

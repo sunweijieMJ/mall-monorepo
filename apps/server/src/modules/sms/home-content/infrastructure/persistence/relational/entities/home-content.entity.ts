@@ -1,12 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity } from 'typeorm';
+import { BaseEntity } from '@/common/entities/base.entity';
 
 @Entity('sms_home_advertise')
-export class HomeAdvertiseEntity {
-  @ApiProperty({ description: '主键ID', type: 'integer' })
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class HomeAdvertiseEntity extends BaseEntity {
   @ApiProperty({ description: '广告名称' })
   @Column({ length: 100 })
   name: string;
@@ -23,11 +20,11 @@ export class HomeAdvertiseEntity {
   @Column({ default: '' })
   pic: string;
 
-  @ApiPropertyOptional({ description: '开始时间' })
+  @ApiPropertyOptional({ description: '开始时间', format: 'date-time' })
   @Column({ name: 'start_time', type: 'timestamp', nullable: true })
   startTime: Date;
 
-  @ApiPropertyOptional({ description: '结束时间' })
+  @ApiPropertyOptional({ description: '结束时间', format: 'date-time' })
   @Column({ name: 'end_time', type: 'timestamp', nullable: true })
   endTime: Date;
 
@@ -61,11 +58,7 @@ export class HomeAdvertiseEntity {
 }
 
 @Entity('sms_home_brand')
-export class HomeBrandEntity {
-  @ApiProperty({ description: '主键ID', type: 'integer' })
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class HomeBrandEntity extends BaseEntity {
   @ApiProperty({ description: '品牌ID', type: 'integer' })
   @Column({ name: 'brand_id' })
   brandId: number;
@@ -92,11 +85,7 @@ export class HomeBrandEntity {
 }
 
 @Entity('sms_home_subject')
-export class HomeSubjectEntity {
-  @ApiProperty({ description: '主键ID', type: 'integer' })
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class HomeSubjectEntity extends BaseEntity {
   @ApiProperty({ description: '专题ID', type: 'integer' })
   @Column({ name: 'subject_id' })
   subjectId: number;
@@ -115,11 +104,7 @@ export class HomeSubjectEntity {
 }
 
 @Entity('sms_home_new_product')
-export class HomeNewProductEntity {
-  @ApiProperty({ description: '主键ID', type: 'integer' })
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class HomeNewProductEntity extends BaseEntity {
   @ApiProperty({ description: '商品ID', type: 'integer' })
   @Column({ name: 'product_id' })
   productId: number;
@@ -138,11 +123,7 @@ export class HomeNewProductEntity {
 }
 
 @Entity('sms_home_hot_product')
-export class HomeHotProductEntity {
-  @ApiProperty({ description: '主键ID', type: 'integer' })
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class HomeHotProductEntity extends BaseEntity {
   @ApiProperty({ description: '商品ID', type: 'integer' })
   @Column({ name: 'product_id' })
   productId: number;

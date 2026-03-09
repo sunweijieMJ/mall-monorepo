@@ -7,7 +7,6 @@ import {
   Param,
   ParseIntPipe,
   Put,
-  Delete,
   Post,
   Query,
   UseGuards,
@@ -39,7 +38,7 @@ import { ProductVo } from '@/modules/pms/product/vo/product.vo';
 export class BrandController {
   constructor(private readonly brandService: BrandService) {}
 
-  @Post('create')
+  @Post()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '创建品牌' })
   @ApiWrappedResponse(BrandVo)
@@ -47,36 +46,15 @@ export class BrandController {
     return this.brandService.create(dto);
   }
 
-  @Put('update/show-status')
-  @ApiOperation({ summary: '更新显示状态' })
-  @ApiOkResponse({ type: Number, description: '受影响的行数' })
-  updateShowStatus(@Body() dto: BatchUpdateStatusDto) {
-    return this.brandService.updateShowStatus(dto.ids, dto.status);
-  }
-
-  @Put('update/factory-status')
-  @ApiOperation({ summary: '更新厂家制造商状态' })
-  @ApiOkResponse({ type: Number, description: '受影响的行数' })
-  updateFactoryStatus(@Body() dto: BatchUpdateStatusDto) {
-    return this.brandService.updateFactoryStatus(dto.ids, dto.status);
-  }
-
-  @Put('update/:id')
-  @ApiOperation({ summary: '更新品牌' })
-  @ApiParam({ name: 'id', description: '品牌ID', type: 'integer' })
-  @ApiOkResponse({ type: Number, description: '受影响的行数' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateBrandDto) {
-    return this.brandService.update(id, dto);
-  }
-
-  @Delete('delete')
+  @Post('batch-delete')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '批量删除品牌' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   batchDelete(@Body() dto: BatchDeleteDto) {
     return this.brandService.remove(dto.ids);
   }
 
-  @Get('list')
+  @Get()
   @ApiOperation({ summary: '品牌列表（分页）' })
   @ApiPaginatedResponse(BrandVo)
   list(@Query() query: QueryBrandDto) {
@@ -88,6 +66,28 @@ export class BrandController {
   @ApiWrappedResponse(BrandVo, { isArray: true })
   listAll() {
     return this.brandService.findAll();
+  }
+
+  @Put('batch-status/show')
+  @ApiOperation({ summary: '更新显示状态' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  updateShowStatus(@Body() dto: BatchUpdateStatusDto) {
+    return this.brandService.updateShowStatus(dto.ids, dto.status);
+  }
+
+  @Put('batch-status/factory')
+  @ApiOperation({ summary: '更新厂家制造商状态' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  updateFactoryStatus(@Body() dto: BatchUpdateStatusDto) {
+    return this.brandService.updateFactoryStatus(dto.ids, dto.status);
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: '更新品牌' })
+  @ApiParam({ name: 'id', description: '品牌ID', type: 'integer' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateBrandDto) {
+    return this.brandService.update(id, dto);
   }
 
   @Get(':id')
@@ -114,23 +114,23 @@ export class PortalBrandController {
   }
 
   @Public()
-  @Get(':brandId/products')
+  @Get(':id/products')
   @ApiOperation({ summary: '品牌下的商品列表（分页）' })
-  @ApiParam({ name: 'brandId', description: '品牌ID', type: 'integer' })
+  @ApiParam({ name: 'id', description: '品牌ID', type: 'integer' })
   @ApiPaginatedResponse(ProductVo)
   productList(
-    @Param('brandId', ParseIntPipe) brandId: number,
+    @Param('id', ParseIntPipe) id: number,
     @Query() query: PageQueryDto,
   ) {
-    return this.brandService.getProductList(brandId, query);
+    return this.brandService.getProductList(id, query);
   }
 
   @Public()
-  @Get(':brandId')
+  @Get(':id')
   @ApiOperation({ summary: '品牌详情' })
-  @ApiParam({ name: 'brandId', description: '品牌ID', type: 'integer' })
+  @ApiParam({ name: 'id', description: '品牌ID', type: 'integer' })
   @ApiWrappedResponse(BrandVo)
-  getItem(@Param('brandId', ParseIntPipe) brandId: number) {
-    return this.brandService.getItem(brandId);
+  getItem(@Param('id', ParseIntPipe) id: number) {
+    return this.brandService.getItem(id);
   }
 }

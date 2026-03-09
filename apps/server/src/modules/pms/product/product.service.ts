@@ -13,8 +13,10 @@ import { SkuStockEntity } from '@/modules/pms/sku-stock/infrastructure/persisten
 import { SubjectProductRelationEntity } from '@/modules/cms/subject/infrastructure/persistence/relational/entities/subject-product-relation.entity';
 import { PreferenceAreaProductRelationEntity } from '@/modules/cms/preference-area/infrastructure/persistence/relational/entities/preference-area-product-relation.entity';
 import { PageResult } from '@/common/dto/page-result.dto';
+import { paginate } from '@/common/utils/paginate.util';
 import { ProductQueryDto } from './dto/product-query.dto';
 import { CreateProductDto, UpdateProductDto } from './dto/product-param.dto';
+import { ProductUpdateInfoVo } from './vo/product-update-info.vo';
 
 /**
  * 将日期格式化为 yyyyMMdd 字符串（用于生成 SKU 编码）
@@ -81,12 +83,9 @@ export class ProductService {
       });
     }
 
-    qb.orderBy('p.id', 'DESC')
-      .skip((query.page - 1) * query.limit)
-      .take(query.limit);
+    qb.orderBy('p.id', 'DESC');
 
-    const [list, total] = await qb.getManyAndCount();
-    return PageResult.of(list, total, query);
+    return paginate(qb, query);
   }
 
   /**
@@ -308,8 +307,8 @@ export class ProductService {
       // 6. SKU 三路处理（增量更新）
       const currSkuList: any[] = dto.skuStockList ?? [];
       if (currSkuList.length === 0) {
-        // 当前无 SKU 则全部删除
-        await manager.delete(SkuStockEntity, { productId: id });
+        // 当前无 SKU 则全部软删除
+        await manager.softDelete(SkuStockEntity, { productId: id });
       } else {
         // 查询 DB 中当前该商品的 SKU 列表
         const oriSkuList = await manager.find(SkuStockEntity, {
@@ -346,22 +345,19 @@ export class ProductService {
           await manager.save(SkuStockEntity, skuEntities);
         }
 
-        // 删除不再需要的 SKU
+        // 软删除不再需要的 SKU
         if (deleteSkuIds.length > 0) {
-          await manager.delete(SkuStockEntity, { id: In(deleteSkuIds) });
+          await manager.softDelete(SkuStockEntity, { id: In(deleteSkuIds) });
         }
 
-        // 逐条更新现有 SKU（同时更新 skuCode）
+        // 逐条更新现有 SKU（仅当前端显式传入 skuCode 时才更新，否则保留原值）
         for (let i = 0; i < updateSkuList.length; i++) {
           const sku = updateSkuList[i];
-          const skuCode =
-            sku.skuCode ||
-            `${dateStr}${String(id).padStart(4, '0')}${String(i + 1).padStart(3, '0')}`;
-          await manager.update(SkuStockEntity, sku.id, {
-            ...sku,
-            productId: id,
-            skuCode,
-          });
+          const updateData: any = { ...sku, productId: id };
+          if (!sku.skuCode) {
+            delete updateData.skuCode;
+          }
+          await manager.update(SkuStockEntity, sku.id, updateData);
         }
       }
 
@@ -410,7 +406,7 @@ export class ProductService {
    * 获取商品详情（含 SKU 列表、属性值列表等聚合信息）
    * 并行查询所有关联子表，聚合返回
    */
-  async getUpdateInfo(id: number): Promise<any> {
+  async getUpdateInfo(id: number): Promise<ProductUpdateInfoVo> {
     const [
       product,
       skuStockList,
@@ -464,8 +460,8 @@ export class ProductService {
   /**
    * 批量删除商品（软删除，设置 deleteStatus = 1）
    */
-  async delete(ids: number[]): Promise<void> {
-    if (!ids.length) return;
+  async delete(ids: number[]): Promise<number> {
+    if (!ids.length) return 0;
     const result = await this.productRepo
       .createQueryBuilder()
       .update()
@@ -475,6 +471,7 @@ export class ProductService {
     if (result.affected === 0) {
       throw new NotFoundException('未找到要删除的商品');
     }
+    return result.affected ?? 0;
   }
 
   /**
@@ -486,10 +483,10 @@ export class ProductService {
     verifyStatus: number,
     detail: string,
     verifyMan: string,
-  ): Promise<void> {
-    await this.transactionService.run(async (manager) => {
+  ): Promise<number> {
+    return this.transactionService.run(async (manager) => {
       // 1. 批量更新商品审核状态
-      await manager
+      const result = await manager
         .createQueryBuilder()
         .update(ProductEntity)
         .set({ verifyStatus })
@@ -508,6 +505,8 @@ export class ProductService {
         }),
       );
       await manager.save(ProductVertifyRecordEntity, records);
+
+      return result.affected ?? 0;
     });
   }
 
@@ -515,35 +514,38 @@ export class ProductService {
   async updatePublishStatus(
     ids: number[],
     publishStatus: number,
-  ): Promise<void> {
-    await this.productRepo
+  ): Promise<number> {
+    const result = await this.productRepo
       .createQueryBuilder()
       .update()
       .set({ publishStatus })
       .whereInIds(ids)
       .execute();
+    return result.affected ?? 0;
   }
 
   /** 批量更新新品状态 */
-  async updateNewStatus(ids: number[], newStatus: number): Promise<void> {
-    await this.productRepo
+  async updateNewStatus(ids: number[], newStatus: number): Promise<number> {
+    const result = await this.productRepo
       .createQueryBuilder()
       .update()
       .set({ newStatus })
       .whereInIds(ids)
       .execute();
+    return result.affected ?? 0;
   }
 
   /** 批量更新推荐状态 */
   async updateRecommendStatus(
     ids: number[],
     recommendStatus: number,
-  ): Promise<void> {
-    await this.productRepo
+  ): Promise<number> {
+    const result = await this.productRepo
       .createQueryBuilder()
       .update()
       .set({ recommendStatus })
       .whereInIds(ids)
       .execute();
+    return result.affected ?? 0;
   }
 }

@@ -10,27 +10,37 @@ import { CouponVo } from '@/modules/sms/coupon/vo/coupon.vo';
 
 /** 移动端商品详情聚合 VO */
 export class PortalProductDetailVo {
-  @ApiProperty({ type: ProductVo })
+  @ApiProperty({ type: ProductVo, description: '商品信息' })
   product: ProductVo;
 
-  @ApiPropertyOptional({ type: BrandVo, nullable: true })
+  @ApiPropertyOptional({
+    type: BrandVo,
+    nullable: true,
+    description: '品牌信息',
+  })
   brand: BrandVo | null;
 
-  @ApiProperty({ type: [SkuStockVo] })
+  @ApiProperty({ type: [SkuStockVo], description: 'SKU 库存列表' })
   skuStockList: SkuStockVo[];
 
-  @ApiProperty({ type: [ProductAttrVo] })
+  @ApiProperty({
+    type: [ProductAttrVo],
+    description: '商品属性列表（规格/参数定义）',
+  })
   productAttrList: ProductAttrVo[];
 
-  @ApiProperty({ type: [ProductAttrValueVo] })
+  @ApiProperty({ type: [ProductAttrValueVo], description: '商品属性值列表' })
   productAttrValueList: ProductAttrValueVo[];
 
-  @ApiPropertyOptional({ type: [ProductLadderVo] })
+  @ApiPropertyOptional({ type: [ProductLadderVo], description: '阶梯价格列表' })
   productLadderList?: ProductLadderVo[];
 
-  @ApiPropertyOptional({ type: [ProductFullReductionVo] })
+  @ApiPropertyOptional({
+    type: [ProductFullReductionVo],
+    description: '满减价格列表',
+  })
   productFullReductionList?: ProductFullReductionVo[];
 
-  @ApiProperty({ type: [CouponVo] })
+  @ApiProperty({ type: [CouponVo], description: '可用优惠券列表' })
   couponList: CouponVo[];
 }

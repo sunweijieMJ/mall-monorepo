@@ -168,11 +168,11 @@ describe('ReturnApplyService', () => {
 
   describe('delete', () => {
     it('批量删除', async () => {
-      mockRepo.delete.mockResolvedValue({ affected: 2 });
+      mockRepo.softDelete.mockResolvedValue({ affected: 2 });
 
       await service.delete([1, 2]);
 
-      expect(mockRepo.delete).toHaveBeenCalledWith([1, 2]);
+      expect(mockRepo.softDelete).toHaveBeenCalledWith([1, 2]);
     });
   });
 

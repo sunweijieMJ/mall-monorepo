@@ -70,15 +70,17 @@ export class ReadHistoryService {
   /**
    * 批量删除指定浏览历史（校验归属权）
    */
-  async batchDelete(memberId: number, ids: number[]): Promise<void> {
-    if (ids.length === 0) return;
-    await this.readHistoryRepo.delete({ id: In(ids), memberId });
+  async batchDelete(memberId: number, ids: number[]): Promise<number> {
+    if (ids.length === 0) return 0;
+    const result = await this.readHistoryRepo.delete({ id: In(ids), memberId });
+    return result.affected ?? 0;
   }
 
   /**
    * 清空该会员所有浏览历史
    */
-  async clear(memberId: number): Promise<void> {
-    await this.readHistoryRepo.delete({ memberId });
+  async clear(memberId: number): Promise<number> {
+    const result = await this.readHistoryRepo.delete({ memberId });
+    return result.affected ?? 0;
   }
 }

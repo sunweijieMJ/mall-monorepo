@@ -45,6 +45,7 @@ function createMockManager() {
     find: vi.fn().mockResolvedValue([]),
     update: vi.fn().mockResolvedValue({}),
     delete: vi.fn().mockResolvedValue({}),
+    softDelete: vi.fn().mockResolvedValue({ affected: 1 }),
   };
   return { manager, qb };
 }
@@ -540,12 +541,12 @@ describe('ProductService', () => {
 
       await service.update(1, { ...baseUpdateDto, skuStockList: [] });
 
-      // 验证以 productId 条件删除所有 SKU
-      const deleteCalls = mockManager.delete.mock.calls;
-      const skuDeleteCall = deleteCalls.find(
+      // 验证以 productId 条件软删除所有 SKU
+      const softDeleteCalls = mockManager.softDelete.mock.calls;
+      const skuSoftDeleteCall = softDeleteCalls.find(
         (call: any[]) => call[1]?.productId === 1,
       );
-      expect(skuDeleteCall).toBeDefined();
+      expect(skuSoftDeleteCall).toBeDefined();
     });
 
     it('新增+更新分流 → 新 SKU 无 id，更新 SKU 有 id', async () => {
@@ -576,7 +577,7 @@ describe('ProductService', () => {
       expect(skuUpdateCall).toBeDefined();
     });
 
-    it('删除不在列表中的旧 SKU → 验证 delete 使用 In(deleteSkuIds)', async () => {
+    it('删除不在列表中的旧 SKU → 验证 softDelete 使用 In(deleteSkuIds)', async () => {
       mockManager.findOneBy.mockResolvedValue(productFixture());
       mockManager.findOne.mockResolvedValue(productFixture());
       // 数据库中有 id: 100 和 id: 200
@@ -593,13 +594,13 @@ describe('ProductService', () => {
 
       await service.update(1, dto);
 
-      // 验证删除调用包含被移除的 SKU id
-      const deleteCalls = mockManager.delete.mock.calls;
-      // 查找针对 SKU 的 delete 调用（条件包含 id: In(...)）
-      const skuDeleteCall = deleteCalls.find(
+      // 验证软删除调用包含被移除的 SKU id
+      const softDeleteCalls = mockManager.softDelete.mock.calls;
+      // 查找针对 SKU 的 softDelete 调用（条件包含 id: In(...)）
+      const skuSoftDeleteCall = softDeleteCalls.find(
         (call: any[]) => call[1]?.id !== undefined,
       );
-      expect(skuDeleteCall).toBeDefined();
+      expect(skuSoftDeleteCall).toBeDefined();
     });
 
     it('纯更新无增删 → 只调 update 不调 save 也不调 delete（针对 SKU）', async () => {
@@ -637,11 +638,11 @@ describe('ProductService', () => {
       });
       expect(skuSaveCalls.length).toBe(0);
 
-      // 不应有以 In(...) 为条件的 SKU delete（全量 productId 删除来自子表先删后插，不算 SKU 删除）
-      const skuDeleteCalls = mockManager.delete.mock.calls.filter(
+      // 不应有以 In(...) 为条件的 SKU softDelete（全量 productId 软删除来自子表先删后插，不算 SKU 删除）
+      const skuSoftDeleteCalls = mockManager.softDelete.mock.calls.filter(
         (call: any[]) => call[1]?.id !== undefined,
       );
-      expect(skuDeleteCalls.length).toBe(0);
+      expect(skuSoftDeleteCalls.length).toBe(0);
     });
   });
 });

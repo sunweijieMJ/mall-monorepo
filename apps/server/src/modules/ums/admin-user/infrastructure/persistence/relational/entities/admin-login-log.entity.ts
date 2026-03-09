@@ -11,7 +11,7 @@ export class AdminLoginLogEntity {
   @Column({ name: 'admin_id', nullable: true })
   adminId: number;
 
-  @ApiPropertyOptional({ description: '创建时间' })
+  @ApiPropertyOptional({ description: '创建时间', format: 'date-time' })
   @Column({ name: 'create_time', type: 'timestamp', nullable: true })
   createdAt: Date;
 

@@ -13,6 +13,7 @@ import {
 import { OrderItemEntity } from '../order/infrastructure/persistence/relational/entities/order-item.entity';
 import { MemberEntity } from '@/modules/portal/member/infrastructure/persistence/relational/entities/member.entity';
 import { PageQueryDto, PageResult } from '@/common/dto/page-result.dto';
+import { paginate } from '@/common/utils/paginate.util';
 import { ReturnApplyQueryDto } from './dto/return-apply-query.dto';
 import { PortalCreateReturnApplyDto } from './dto/portal-create-return-apply.dto';
 import { UpdateReturnStatusDto } from './dto/update-return-status.dto';
@@ -56,12 +57,9 @@ export class ReturnApplyService {
       });
     }
 
-    qb.orderBy('ra.id', 'DESC')
-      .skip((query.page - 1) * query.limit)
-      .take(query.limit);
+    qb.orderBy('ra.id', 'DESC');
 
-    const [list, total] = await qb.getManyAndCount();
-    return PageResult.of(list, total, query);
+    return paginate(qb, query);
   }
 
   /**
@@ -78,7 +76,7 @@ export class ReturnApplyService {
   async updateStatus(
     id: number,
     dto: Omit<UpdateReturnStatusDto, 'id'>,
-  ): Promise<void> {
+  ): Promise<number> {
     const updateFields: Partial<ReturnApplyEntity> = {
       status: dto.status,
     };
@@ -101,34 +99,36 @@ export class ReturnApplyService {
       updateFields.receiveTime = new Date();
     }
 
-    await this.repo
+    const result = await this.repo
       .createQueryBuilder()
       .update()
       .set(updateFields)
       .where('id = :id', { id })
       .execute();
+    return result.affected ?? 0;
   }
 
   /**
    * 处理退货申请（兼容旧接口）
    * 迁移自 OmsOrderReturnApplyServiceImpl.update()
    */
-  async handle(id: number, dto: any): Promise<void> {
+  async handle(id: number, dto: any): Promise<number> {
     return this.updateStatus(id, dto);
   }
 
   /**
    * 确认收货（兼容旧接口）
    */
-  async confirmReceive(id: number, dto: any): Promise<void> {
+  async confirmReceive(id: number, dto: any): Promise<number> {
     return this.updateStatus(id, { status: 2, ...dto });
   }
 
   /**
    * 删除退货申请
    */
-  async delete(ids: number[]): Promise<void> {
-    await this.repo.delete(ids);
+  async delete(ids: number[]): Promise<number> {
+    const result = await this.repo.softDelete(ids);
+    return result.affected ?? 0;
   }
 
   // ========== 移动端（Portal）接口 ==========

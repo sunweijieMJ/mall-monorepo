@@ -24,6 +24,7 @@ export class CreateProductCategoryDto {
   @ApiPropertyOptional({
     type: 'integer',
     description: '是否显示在导航栏：0-不显示 1-显示',
+    enum: [0, 1],
     example: 0,
   })
   @IsInt()
@@ -33,6 +34,7 @@ export class CreateProductCategoryDto {
   @ApiPropertyOptional({
     type: 'integer',
     description: '显示状态：0-不显示 1-显示',
+    enum: [0, 1],
     example: 1,
   })
   @IsInt()

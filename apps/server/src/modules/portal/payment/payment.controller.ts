@@ -14,6 +14,7 @@ import {
   ApiOkResponse,
   ApiOperation,
 } from '@nestjs/swagger';
+import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
 import { Request, Response } from 'express';
 import { PaymentService } from './payment.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
@@ -21,6 +22,7 @@ import { Public } from '@/core/auth/decorators/public.decorator';
 import { CurrentUser } from '@/core/auth/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/auth/types/jwt-payload.type';
 import { SkipResponseTransform } from '@/common/decorators/skip-response-transform.decorator';
+import { AlipayPayVo } from './vo/alipay-pay.vo';
 
 @ApiTags('portal-payment')
 @Controller({ path: 'portal/payment', version: '1' })
@@ -33,10 +35,7 @@ export class PaymentController {
   @ApiBearerAuth('portal-jwt')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '创建支付宝支付' })
-  @ApiOkResponse({
-    description: '支付表单 HTML',
-    schema: { properties: { payForm: { type: 'string' } } },
-  })
+  @ApiWrappedResponse(AlipayPayVo)
   createAlipayPayment(
     @Body() dto: CreatePaymentDto,
     @CurrentUser() user: JwtPayload,

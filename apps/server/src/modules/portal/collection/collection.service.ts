@@ -60,8 +60,9 @@ export class CollectionService {
   /**
    * 取消收藏商品
    */
-  async delete(memberId: number, productId: number): Promise<void> {
-    await this.collectionRepo.delete({ memberId, productId });
+  async delete(memberId: number, productId: number): Promise<number> {
+    const result = await this.collectionRepo.delete({ memberId, productId });
+    return result.affected ?? 0;
   }
 
   /**
@@ -84,8 +85,9 @@ export class CollectionService {
   /**
    * 清空该会员所有收藏记录
    */
-  async clear(memberId: number): Promise<void> {
-    await this.collectionRepo.delete({ memberId });
+  async clear(memberId: number): Promise<number> {
+    const result = await this.collectionRepo.delete({ memberId });
+    return result.affected ?? 0;
   }
 
   /**

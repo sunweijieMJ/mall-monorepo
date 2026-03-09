@@ -96,16 +96,16 @@ export class CartService {
       throw new NotFoundException(`商品 ${productId} 不存在`);
     }
 
-    // 构建新购物车条目
+    // 构建新购物车条目（商品信息全部由服务端查询填充，不信任客户端传入值）
     const item = this.cartRepo.create({
       memberId,
       productId: product.id,
       productSkuId: sku.id,
-      productName: dto.productName ?? product.name,
-      productBrand: dto.productBrand ?? product.brandName,
-      productSn: dto.productSn ?? product.productSn,
-      productPic: dto.productPic ?? product.pic,
-      productAttr: dto.productAttr ?? sku.spData,
+      productName: product.name,
+      productBrand: product.brandName,
+      productSn: product.productSn,
+      productPic: product.pic,
+      productAttr: sku.spData,
       productPrice: sku.price,
       productQuantity,
       productCategoryId: product.productCategoryId,
@@ -126,13 +126,16 @@ export class CartService {
     memberId: number,
     id: number,
     quantity: number,
-  ): Promise<void> {
+  ): Promise<number> {
     // 验证该购物车条目归属于当前会员
     const item = await this.cartRepo.findOne({ where: { id, memberId } });
     if (!item) {
       throw new NotFoundException('购物车条目不存在或无权操作');
     }
-    await this.cartRepo.update(id, { productQuantity: quantity });
+    const result = await this.cartRepo.update(id, {
+      productQuantity: quantity,
+    });
+    return result.affected ?? 0;
   }
 
   /**
@@ -140,20 +143,22 @@ export class CartService {
    * @param memberId 会员 ID
    * @param ids 购物车条目 ID 数组
    */
-  async delete(memberId: number, ids: number[]): Promise<void> {
-    await this.cartRepo
+  async delete(memberId: number, ids: number[]): Promise<number> {
+    const result = await this.cartRepo
       .createQueryBuilder()
       .delete()
       .where('id IN (:...ids) AND member_id = :memberId', { ids, memberId })
       .execute();
+    return result.affected ?? 0;
   }
 
   /**
    * 清空购物车
    * @param memberId 会员 ID
    */
-  async clear(memberId: number): Promise<void> {
-    await this.cartRepo.delete({ memberId });
+  async clear(memberId: number): Promise<number> {
+    const result = await this.cartRepo.delete({ memberId });
+    return result.affected ?? 0;
   }
 
   /**
@@ -189,10 +194,11 @@ export class CartService {
    */
   async updateAttr(
     memberId: number,
-    dto: { id: number; productSkuId: number },
-  ): Promise<void> {
+    id: number,
+    dto: { productSkuId: number },
+  ): Promise<number> {
     const cartItem = await this.cartRepo.findOne({
-      where: { id: dto.id, memberId },
+      where: { id, memberId },
     });
     if (!cartItem) throw new NotFoundException('购物车条目不存在或无权操作');
 
@@ -220,7 +226,7 @@ export class CartService {
     });
 
     // 使用事务保证合并/删除操作的原子性
-    await this.transactionService.run(async (manager) => {
+    return this.transactionService.run(async (manager) => {
       if (existingItem && existingItem.id !== cartItem.id) {
         // 合并数量到已有条目
         existingItem.productQuantity += cartItem.productQuantity;
@@ -233,6 +239,7 @@ export class CartService {
         cartItem.productAttr = newSku.spData ?? cartItem.productAttr;
         await manager.save(CartItemEntity, cartItem);
       }
+      return 1;
     });
   }
 }

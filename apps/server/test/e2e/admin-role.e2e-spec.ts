@@ -49,8 +49,8 @@ describe('Admin Role API (e2e)', () => {
   afterAll(() => app?.close());
   beforeEach(() => vi.clearAllMocks());
 
-  describe('POST /api/v1/admin/ums/roles/create', () => {
-    const url = '/api/v1/admin/ums/roles/create';
+  describe('POST /api/v1/admin/ums/roles', () => {
+    const url = '/api/v1/admin/ums/roles';
 
     it('无 token → 401', async () => {
       const res = await request(app.getHttpServer()).post(url).expect(401);
@@ -71,12 +71,12 @@ describe('Admin Role API (e2e)', () => {
     });
   });
 
-  describe('PUT /api/v1/admin/ums/roles/update/:id', () => {
+  describe('PUT /api/v1/admin/ums/roles/:id', () => {
     it('更新角色 → 200', async () => {
       mockRoleService.update.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .put('/api/v1/admin/ums/roles/update/1')
+        .put('/api/v1/admin/ums/roles/1')
         .set('Authorization', bearerHeader(token))
         .send({ name: '新名称' })
         .expect(200);
@@ -85,12 +85,12 @@ describe('Admin Role API (e2e)', () => {
     });
   });
 
-  describe('DELETE /api/v1/admin/ums/roles/delete', () => {
+  describe('POST /api/v1/admin/ums/roles/batch-delete', () => {
     it('批量删除 → 200', async () => {
       mockRoleService.delete.mockResolvedValue(2);
 
       const res = await request(app.getHttpServer())
-        .delete('/api/v1/admin/ums/roles/delete')
+        .post('/api/v1/admin/ums/roles/batch-delete')
         .set('Authorization', bearerHeader(token))
         .send({ ids: [1, 2] })
         .expect(200);
@@ -116,7 +116,7 @@ describe('Admin Role API (e2e)', () => {
     });
   });
 
-  describe('GET /api/v1/admin/ums/roles/list', () => {
+  describe('GET /api/v1/admin/ums/roles', () => {
     it('分页查询 → 200', async () => {
       mockRoleService.list.mockResolvedValue({
         list: [{ id: 1, name: '管理员' }],
@@ -124,7 +124,7 @@ describe('Admin Role API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get('/api/v1/admin/ums/roles/list')
+        .get('/api/v1/admin/ums/roles')
         .set('Authorization', bearerHeader(token))
         .query({ keyword: '管理', pageNum: 1, pageSize: 10 })
         .expect(200);

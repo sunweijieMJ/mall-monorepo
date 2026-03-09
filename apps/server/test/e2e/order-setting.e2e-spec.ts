@@ -68,12 +68,12 @@ describe('OrderSetting API (e2e)', () => {
     });
   });
 
-  describe('PUT /update/:id', () => {
+  describe('PUT /:id', () => {
     it('更新订单设置 → 200', async () => {
       mockService.update.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${baseUrl}/update/1`)
+        .put(`${baseUrl}/1`)
         .set('Authorization', bearerHeader(token))
         .send({ flashOrderOvertime: 30, normalOrderOvertime: 60 })
         .expect(200);

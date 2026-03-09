@@ -55,7 +55,7 @@ export class AdminMenuService {
     // 递归收集所有后代菜单 ID
     const idsToDelete = await this.collectDescendantIds(id);
     idsToDelete.push(id);
-    await this.menuRepo.delete(idsToDelete);
+    await this.menuRepo.softDelete(idsToDelete);
     return idsToDelete.length;
   }
 

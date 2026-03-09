@@ -1,21 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
+import { BaseEntity } from '@/common/entities/base.entity';
 import { CouponHistoryEntity } from './coupon-history.entity';
 import { CouponProductRelationEntity } from './coupon-product-relation.entity';
 import { CouponProductCategoryRelationEntity } from './coupon-product-category-relation.entity';
 
 @Entity('sms_coupon')
-export class CouponEntity {
-  @ApiProperty({ description: '主键ID', type: 'integer' })
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class CouponEntity extends BaseEntity {
   @ApiProperty({
     description: '优惠券类型：0->全场通用；1->指定分类；2->指定商品',
     type: 'integer',
@@ -110,17 +101,13 @@ export class CouponEntity {
   @Column({ length: 64, nullable: true, comment: '优惠码' })
   code: string;
 
-  @ApiProperty({ description: '可领取的会员类型：0->无限制' })
+  @ApiProperty({ description: '可领取的会员类型：0->无限制', type: 'integer' })
   @Column({
     name: 'member_level',
     default: 0,
     comment: '可领取的会员类型：0->无限制',
   })
   memberLevel: number;
-
-  @ApiProperty({ description: '创建时间' })
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
 
   // ---- Relations ----
 

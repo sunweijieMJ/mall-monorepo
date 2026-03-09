@@ -13,7 +13,7 @@ import {
 } from 'class-validator';
 
 /** SKU 库存子项 DTO */
-export class SkuStockItemDto {
+export class ProductSkuStockItemDto {
   @ApiPropertyOptional({ description: 'SKU ID', type: 'integer' })
   @IsOptional()
   @IsNumber()
@@ -235,19 +235,31 @@ export class CreateProductDto {
   @IsIn([0, 1])
   publishStatus?: number;
 
-  @ApiPropertyOptional({ type: 'integer', description: '新品状态' })
+  @ApiPropertyOptional({
+    type: 'integer',
+    description: '新品状态：0-非新品 1-新品',
+    enum: [0, 1],
+  })
   @IsOptional()
-  @IsNumber()
+  @IsIn([0, 1])
   newStatus?: number;
 
-  @ApiPropertyOptional({ type: 'integer', description: '推荐状态' })
+  @ApiPropertyOptional({
+    type: 'integer',
+    description: '推荐状态：0-不推荐 1-推荐',
+    enum: [0, 1],
+  })
   @IsOptional()
-  @IsNumber()
+  @IsIn([0, 1])
   recommendStatus?: number;
 
-  @ApiPropertyOptional({ type: 'integer', description: '审核状态' })
+  @ApiPropertyOptional({
+    type: 'integer',
+    description: '审核状态：0-未审核 1-审核通过',
+    enum: [0, 1],
+  })
   @IsOptional()
-  @IsNumber()
+  @IsIn([0, 1])
   verifyStatus?: number;
 
   @ApiPropertyOptional({ type: 'integer', description: '排序' })
@@ -390,12 +402,15 @@ export class CreateProductDto {
 
   // ===== 关联子表 =====
 
-  @ApiPropertyOptional({ description: 'SKU 库存列表', type: [SkuStockItemDto] })
+  @ApiPropertyOptional({
+    description: 'SKU 库存列表',
+    type: [ProductSkuStockItemDto],
+  })
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => SkuStockItemDto)
-  skuStockList?: SkuStockItemDto[];
+  @Type(() => ProductSkuStockItemDto)
+  skuStockList?: ProductSkuStockItemDto[];
 
   @ApiPropertyOptional({
     description: '商品属性值列表',

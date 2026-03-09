@@ -9,6 +9,10 @@ import {
 } from 'typeorm';
 
 @Entity('oms_cart_item')
+@Index('IDX_cart_member_sku_active', ['memberId', 'productSkuId'], {
+  unique: true,
+  where: '"delete_status" = 1',
+})
 export class CartItemEntity {
   @ApiProperty({ description: '主键ID', type: 'integer' })
   @PrimaryGeneratedColumn()
@@ -77,11 +81,11 @@ export class CartItemEntity {
   })
   deleteStatus: number;
 
-  @ApiProperty({ description: '创建时间' })
+  @ApiProperty({ description: '创建时间', format: 'date-time' })
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @ApiProperty({ description: '更新时间' })
+  @ApiProperty({ description: '更新时间', format: 'date-time' })
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 }

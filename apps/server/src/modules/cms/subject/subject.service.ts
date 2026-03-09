@@ -80,8 +80,8 @@ export class SubjectService {
       await manager.delete(SubjectProductRelationEntity, {
         subjectId: In(ids),
       });
-      // 再删除专题
-      await manager.delete(SubjectEntity, ids);
+      // 软删除专题
+      await manager.softDelete(SubjectEntity, ids);
     });
   }
 
@@ -101,6 +101,7 @@ export class SubjectService {
       where: { subjectId },
       skip: (page - 1) * limit,
       take: limit,
+      order: { id: 'ASC' },
     });
 
     if (relations.length === 0) {
@@ -112,6 +113,12 @@ export class SubjectService {
       where: { id: In(productIds) },
     });
 
-    return PageResult.of(products, totalCount, query);
+    // 按 productIds 顺序排列结果（In() 查询不保证顺序）
+    const productMap = new Map(products.map((p) => [p.id, p]));
+    const sorted = productIds
+      .map((id) => productMap.get(id))
+      .filter(Boolean) as ProductEntity[];
+
+    return PageResult.of(sorted, totalCount, query);
   }
 }

@@ -60,29 +60,32 @@ export class BrandService {
     return brand;
   }
 
-  async remove(ids: number[]): Promise<void> {
-    await this.brandRepo.delete(ids);
+  async remove(ids: number[]): Promise<number> {
+    const result = await this.brandRepo.softDelete(ids);
+    return result.affected ?? 0;
   }
 
-  async updateShowStatus(ids: number[], showStatus: number): Promise<void> {
-    await this.brandRepo
+  async updateShowStatus(ids: number[], showStatus: number): Promise<number> {
+    const result = await this.brandRepo
       .createQueryBuilder()
       .update()
       .set({ showStatus })
       .where('id IN (:...ids)', { ids })
       .execute();
+    return result.affected ?? 0;
   }
 
   async updateFactoryStatus(
     ids: number[],
     factoryStatus: number,
-  ): Promise<void> {
-    await this.brandRepo
+  ): Promise<number> {
+    const result = await this.brandRepo
       .createQueryBuilder()
       .update()
       .set({ factoryStatus })
       .where('id IN (:...ids)', { ids })
       .execute();
+    return result.affected ?? 0;
   }
 
   // ========== 移动端（Portal）接口 ==========

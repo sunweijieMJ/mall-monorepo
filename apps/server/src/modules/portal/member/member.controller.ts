@@ -20,6 +20,7 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
 import { MemberService } from './member.service';
 import { CurrentUser } from '@/core/auth/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/auth/types/jwt-payload.type';
@@ -42,17 +43,17 @@ import { PageQueryDto } from '@/common/dto/page-result.dto';
 export class MemberInfoController {
   constructor(private readonly memberService: MemberService) {}
 
-  @Get('info')
+  @Get()
   @ApiOperation({
     summary: '获取当前会员信息',
     description: '对应前端 GET /member/info',
   })
-  @ApiOkResponse({ type: MemberVo })
+  @ApiWrappedResponse(MemberVo)
   getInfo(@CurrentUser() user: JwtPayload) {
     return this.memberService.getCurrentMember(user.sub);
   }
 
-  @Put('update')
+  @Put()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: '更新会员基本信息',
@@ -69,16 +70,16 @@ export class MemberInfoController {
 
 @ApiTags('portal-member-address')
 @ApiBearerAuth('portal-jwt')
-@Controller({ path: 'portal/member/address', version: '1' })
+@Controller({ path: 'portal/member/addresses', version: '1' })
 export class MemberAddressController {
   constructor(private readonly memberService: MemberService) {}
 
-  @Get('list')
+  @Get()
   @ApiOperation({
     summary: '获取收货地址列表',
-    description: '对应前端 GET /member/address/list',
+    description: '对应前端 GET /member/addresses/list',
   })
-  @ApiOkResponse({ type: [MemberAddressVo] })
+  @ApiWrappedResponse(MemberAddressVo, { isArray: true })
   list(@CurrentUser() user: JwtPayload) {
     return this.memberService.listAddress(user.sub);
   }
@@ -86,10 +87,10 @@ export class MemberAddressController {
   @Get(':id')
   @ApiOperation({
     summary: '获取收货地址详情',
-    description: '对应前端 GET /member/address/:id',
+    description: '对应前端 GET /member/addresses/:id',
   })
   @ApiParam({ name: 'id', description: '收货地址ID', type: 'integer' })
-  @ApiOkResponse({ type: MemberAddressVo })
+  @ApiWrappedResponse(MemberAddressVo)
   getItem(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: JwtPayload,
@@ -97,11 +98,11 @@ export class MemberAddressController {
     return this.memberService.getAddress(id, user.sub);
   }
 
-  @Post('create')
+  @Post()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: '添加收货地址',
-    description: '对应前端 POST /member/address/create',
+    description: '对应前端 POST /member/addresses',
   })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   create(
@@ -111,10 +112,10 @@ export class MemberAddressController {
     return this.memberService.addAddress(user.sub, body);
   }
 
-  @Put('update/:id')
+  @Put(':id')
   @ApiOperation({
     summary: '更新收货地址',
-    description: '对应前端 PUT /member/address/update/:id',
+    description: '对应前端 PUT /member/addresses/:id',
   })
   @ApiParam({ name: 'id', description: '收货地址ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
@@ -126,10 +127,10 @@ export class MemberAddressController {
     return this.memberService.updateAddress(id, user.sub, body);
   }
 
-  @Delete('delete/:id')
+  @Delete(':id')
   @ApiOperation({
     summary: '删除收货地址',
-    description: '对应前端 DELETE /member/address/delete/:id',
+    description: '对应前端 DELETE /member/addresses/:id',
   })
   @ApiParam({ name: 'id', description: '收货地址ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
@@ -160,7 +161,7 @@ export class MemberCouponController {
     return this.memberService.addCoupon(user.sub, couponId);
   }
 
-  @Get('list')
+  @Get()
   @ApiOperation({ summary: '我的优惠券列表（返回优惠券对象）' })
   @ApiPaginatedResponse(CouponVo)
   @ApiQuery({
@@ -201,7 +202,7 @@ export class MemberCouponController {
   @Get('product/:productId')
   @ApiOperation({ summary: '查询商品相关可用优惠券' })
   @ApiParam({ name: 'productId', description: '商品ID', type: 'integer' })
-  @ApiOkResponse({ type: [CouponVo] })
+  @ApiWrappedResponse(CouponVo, { isArray: true })
   listCouponsByProduct(
     @Param('productId', ParseIntPipe) productId: number,
     @CurrentUser() user: JwtPayload,
@@ -211,7 +212,7 @@ export class MemberCouponController {
 
   @Get('list-cart')
   @ApiOperation({ summary: '获取购物车可用优惠券列表（结算页使用）' })
-  @ApiOkResponse({ type: [CouponVo] })
+  @ApiWrappedResponse(CouponVo, { isArray: true })
   @ApiQuery({
     name: 'cartIds',
     required: true,

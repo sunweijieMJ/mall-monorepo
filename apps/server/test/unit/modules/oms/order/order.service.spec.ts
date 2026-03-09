@@ -334,6 +334,14 @@ describe('OrderService', () => {
 
   describe('close', () => {
     it('批量关闭 → 更新状态 + 写入操作历史', async () => {
+      // close 先通过 orderRepo.createQueryBuilder('o').where().getMany() 查询可关闭订单
+      const qb = mockOrderRepo.createQueryBuilder();
+      qb.getMany.mockResolvedValue([
+        orderFixture({ id: 1 }),
+        orderFixture({ id: 2 }),
+      ]);
+      mockOrderRepo.createQueryBuilder.mockReturnValue(qb);
+
       await service.close([1, 2], '测试关闭');
 
       expect(mockTransactionService.run).toHaveBeenCalled();
@@ -525,18 +533,18 @@ describe('OrderService', () => {
       expect(mockManagerQb.set).toHaveBeenCalled();
     });
 
-    it('订单不存在 → 静默返回', async () => {
+    it('订单不存在 → 静默返回 0', async () => {
       mockOrderRepo.findOne.mockResolvedValue(null);
 
-      // 不应抛出异常
-      await expect(service.cancelOrder(1, 999)).resolves.toBeUndefined();
+      // 不应抛出异常，返回 0
+      await expect(service.cancelOrder(1, 999)).resolves.toBe(0);
       expect(mockTransactionService.run).not.toHaveBeenCalled();
     });
 
-    it('非本人订单（非系统调用）→ 静默返回', async () => {
+    it('非本人订单（非系统调用）→ 静默返回 0', async () => {
       mockOrderRepo.findOne.mockResolvedValue(orderFixture({ memberId: 2 }));
 
-      await expect(service.cancelOrder(1, 1)).resolves.toBeUndefined();
+      await expect(service.cancelOrder(1, 1)).resolves.toBe(0);
       expect(mockTransactionService.run).not.toHaveBeenCalled();
     });
 

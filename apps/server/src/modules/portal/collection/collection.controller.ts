@@ -18,6 +18,7 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
 import { AuthGuard } from '@nestjs/passport';
 import { CollectionService } from './collection.service';
 import { AddCollectionDto } from './dto/add-collection.dto';
@@ -34,10 +35,10 @@ import { ApiPaginatedResponse } from '@/common/decorators/api-paginated-response
 export class CollectionController {
   constructor(private readonly collectionService: CollectionService) {}
 
-  @Post('create')
+  @Post()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '收藏商品' })
-  @ApiOkResponse({ type: MemberProductCollectionVo })
+  @ApiWrappedResponse(MemberProductCollectionVo)
   create(@CurrentUser() user: JwtPayload, @Body() dto: AddCollectionDto) {
     return this.collectionService.add(user.sub, dto);
   }
@@ -60,19 +61,20 @@ export class CollectionController {
     return this.collectionService.delete(user.sub, productId);
   }
 
-  @Get('list')
+  @Get()
   @ApiOperation({ summary: '分页查询收藏商品列表' })
   @ApiPaginatedResponse(MemberProductCollectionVo)
   list(@CurrentUser() user: JwtPayload, @Query() query: PageQueryDto) {
     return this.collectionService.list(user.sub, query);
   }
 
-  @Get('detail')
+  @Get(':productId')
   @ApiOperation({ summary: '查询单条收藏详情' })
-  @ApiOkResponse({ type: MemberProductCollectionVo })
+  @ApiParam({ name: 'productId', description: '商品ID', type: 'integer' })
+  @ApiWrappedResponse(MemberProductCollectionVo)
   getItem(
     @CurrentUser() user: JwtPayload,
-    @Query('productId', ParseIntPipe) productId: number,
+    @Param('productId', ParseIntPipe) productId: number,
   ) {
     return this.collectionService.getDetail(user.sub, productId);
   }

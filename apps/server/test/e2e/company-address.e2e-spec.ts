@@ -45,12 +45,12 @@ describe('CompanyAddress API (e2e)', () => {
 
   const baseUrl = '/api/v1/admin/oms/company-addresses';
 
-  describe('GET /list', () => {
+  describe('GET /', () => {
     it('获取地址列表 → 200', async () => {
       mockService.list.mockResolvedValue([{ id: 1, addressName: '总部' }]);
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/list`)
+        .get(baseUrl)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -59,9 +59,7 @@ describe('CompanyAddress API (e2e)', () => {
     });
 
     it('无 token → 401', async () => {
-      const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/list`)
-        .expect(401);
+      const res = await request(app.getHttpServer()).get(baseUrl).expect(401);
 
       expect(res.body.code).toBe(401);
     });
@@ -81,12 +79,12 @@ describe('CompanyAddress API (e2e)', () => {
     });
   });
 
-  describe('POST /create', () => {
-    it('创建地址 → 201', async () => {
+  describe('POST /', () => {
+    it('创建地址 → 200', async () => {
       mockService.create.mockResolvedValue({ id: 2, addressName: '分部' });
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/create`)
+        .post(baseUrl)
         .set('Authorization', bearerHeader(token))
         .send({
           addressName: '分部',
@@ -104,12 +102,12 @@ describe('CompanyAddress API (e2e)', () => {
     });
   });
 
-  describe('PUT /update/:id', () => {
+  describe('PUT /:id', () => {
     it('更新地址 → 200', async () => {
       mockService.update.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${baseUrl}/update/1`)
+        .put(`${baseUrl}/1`)
         .set('Authorization', bearerHeader(token))
         .send({ addressName: '修改后的总部' })
         .expect(200);
@@ -119,12 +117,12 @@ describe('CompanyAddress API (e2e)', () => {
     });
   });
 
-  describe('DELETE /delete/:id', () => {
+  describe('DELETE /:id', () => {
     it('删除地址 → 200', async () => {
       mockService.delete.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .delete(`${baseUrl}/delete/1`)
+        .delete(`${baseUrl}/1`)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 

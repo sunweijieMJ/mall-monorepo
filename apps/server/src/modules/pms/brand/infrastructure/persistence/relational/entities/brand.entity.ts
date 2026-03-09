@@ -1,18 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, Entity } from 'typeorm';
+import { BaseEntity } from '@/common/entities/base.entity';
 
 @Entity('pms_brand')
-export class BrandEntity {
-  @ApiProperty({ description: '品牌ID', type: 'integer' })
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class BrandEntity extends BaseEntity {
   @ApiProperty({ description: '品牌名称' })
   @Column({ length: 64 })
   name: string;
@@ -25,7 +16,11 @@ export class BrandEntity {
   @Column({ default: 0 })
   sort: number;
 
-  @ApiProperty({ description: '是否为品牌制造商：0-否 1-是' })
+  @ApiProperty({
+    description: '是否为品牌制造商：0-否 1-是',
+    type: 'integer',
+    enum: [0, 1],
+  })
   @Column({
     name: 'factory_status',
     default: 0,
@@ -56,12 +51,4 @@ export class BrandEntity {
   @ApiPropertyOptional({ description: '品牌故事', type: String })
   @Column({ name: 'brand_story', type: 'text', nullable: true })
   brandStory: string | null;
-
-  @ApiProperty({ description: '创建时间' })
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
-
-  @ApiProperty({ description: '更新时间' })
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
 }

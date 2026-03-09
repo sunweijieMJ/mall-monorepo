@@ -50,7 +50,7 @@ describe('ProductCategory API (e2e)', () => {
 
   const baseUrl = '/api/v1/admin/pms/product-categories';
 
-  describe('GET /list/:parentId', () => {
+  describe('GET /', () => {
     it('按父级获取分类列表 → 200', async () => {
       mockCategoryService.getList.mockResolvedValue({
         list: [{ id: 1, name: '手机数码', parentId: 0 }],
@@ -60,23 +60,23 @@ describe('ProductCategory API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/list/0`)
+        .get(baseUrl)
         .set('Authorization', bearerHeader(token))
-        .query({ pageNum: 1, pageSize: 10 })
+        .query({ parentId: 0, pageNum: 1, pageSize: 10 })
         .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('GET /with-children', () => {
+  describe('GET /tree', () => {
     it('获取树形分类列表 → 200', async () => {
       mockCategoryService.listWithChildren.mockResolvedValue([
         { id: 1, name: '手机数码', children: [] },
       ]);
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/with-children`)
+        .get(`${baseUrl}/tree`)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -85,12 +85,12 @@ describe('ProductCategory API (e2e)', () => {
     });
   });
 
-  describe('POST /create', () => {
+  describe('POST /', () => {
     it('创建分类 → 200', async () => {
       mockCategoryService.create.mockResolvedValue({ id: 10 });
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/create`)
+        .post(baseUrl)
         .set('Authorization', bearerHeader(token))
         .send({ name: '新分类', parentId: 0 })
         .expect(200);
@@ -99,12 +99,12 @@ describe('ProductCategory API (e2e)', () => {
     });
   });
 
-  describe('PUT /update/:id', () => {
+  describe('PUT /:id', () => {
     it('更新分类 → 200', async () => {
       mockCategoryService.update.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .put(`${baseUrl}/update/1`)
+        .put(`${baseUrl}/1`)
         .set('Authorization', bearerHeader(token))
         .send({ name: '修改分类名' })
         .expect(200);
@@ -114,10 +114,8 @@ describe('ProductCategory API (e2e)', () => {
   });
 
   describe('无 token', () => {
-    it('GET /list/:parentId → 401', async () => {
-      const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/list/0`)
-        .expect(401);
+    it('GET / → 401', async () => {
+      const res = await request(app.getHttpServer()).get(baseUrl).expect(401);
 
       expect(res.body.code).toBe(401);
     });

@@ -54,7 +54,7 @@ describe('ReturnApply API (e2e)', () => {
   // ReturnApplyController: @Controller({ path: 'admin/oms/return-applies', version: '1' })
   const baseUrl = '/api/v1/admin/oms/return-applies';
 
-  describe('GET /list', () => {
+  describe('GET /', () => {
     it('获取退货申请列表 → 200', async () => {
       mockReturnApplyService.list.mockResolvedValue({
         list: [{ id: 1, orderSn: '202501010001' }],
@@ -64,7 +64,7 @@ describe('ReturnApply API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/list`)
+        .get(baseUrl)
         .set('Authorization', bearerHeader(token))
         .query({ pageNum: 1, pageSize: 10 })
         .expect(200);
@@ -92,10 +92,8 @@ describe('ReturnApply API (e2e)', () => {
   });
 
   describe('无 token', () => {
-    it('GET /list → 401', async () => {
-      const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/list`)
-        .expect(401);
+    it('GET / → 401', async () => {
+      const res = await request(app.getHttpServer()).get(baseUrl).expect(401);
 
       expect(res.body.code).toBe(401);
     });

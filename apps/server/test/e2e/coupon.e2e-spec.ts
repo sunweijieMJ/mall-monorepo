@@ -50,8 +50,8 @@ describe('Coupon API (e2e)', () => {
 
   // ======================== 优惠券 CRUD ========================
 
-  describe('GET /api/v1/admin/sms/coupons/list', () => {
-    const url = '/api/v1/admin/sms/coupons/list';
+  describe('GET /api/v1/admin/sms/coupons', () => {
+    const url = '/api/v1/admin/sms/coupons';
 
     it('无 token → 401', async () => {
       const res = await request(app.getHttpServer()).get(url).expect(401);
@@ -96,12 +96,12 @@ describe('Coupon API (e2e)', () => {
     });
   });
 
-  describe('POST /api/v1/admin/sms/coupons/create', () => {
+  describe('POST /api/v1/admin/sms/coupons', () => {
     it('创建优惠券 → 200', async () => {
       mockCouponService.create.mockResolvedValue({ id: 1 });
 
       const res = await request(app.getHttpServer())
-        .post('/api/v1/admin/sms/coupons/create')
+        .post('/api/v1/admin/sms/coupons')
         .set('Authorization', bearerHeader(token))
         .send({ name: '新券', amount: 10, minPoint: 100, type: 0 })
         .expect(200);
@@ -110,12 +110,12 @@ describe('Coupon API (e2e)', () => {
     });
   });
 
-  describe('PUT /api/v1/admin/sms/coupons/update/:id', () => {
+  describe('PUT /api/v1/admin/sms/coupons/:id', () => {
     it('更新优惠券 → 200', async () => {
       mockCouponService.update.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .put('/api/v1/admin/sms/coupons/update/1')
+        .put('/api/v1/admin/sms/coupons/1')
         .set('Authorization', bearerHeader(token))
         .send({ name: '修改后的券' })
         .expect(200);
@@ -124,12 +124,12 @@ describe('Coupon API (e2e)', () => {
     });
   });
 
-  describe('DELETE /api/v1/admin/sms/coupons/delete/:id', () => {
+  describe('DELETE /api/v1/admin/sms/coupons/:id', () => {
     it('删除优惠券 → 200', async () => {
       mockCouponService.delete.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .delete('/api/v1/admin/sms/coupons/delete/1')
+        .delete('/api/v1/admin/sms/coupons/1')
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -139,7 +139,7 @@ describe('Coupon API (e2e)', () => {
 
   // ======================== 优惠券领取记录 ========================
 
-  describe('GET /api/v1/admin/sms/coupon-histories/list', () => {
+  describe('GET /api/v1/admin/sms/coupon-histories', () => {
     it('查询记录 → 200', async () => {
       mockCouponService.listHistory.mockResolvedValue({
         list: [],
@@ -149,7 +149,7 @@ describe('Coupon API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get('/api/v1/admin/sms/coupon-histories/list')
+        .get('/api/v1/admin/sms/coupon-histories')
         .set('Authorization', bearerHeader(token))
         .query({ pageNum: 1, pageSize: 10 })
         .expect(200);

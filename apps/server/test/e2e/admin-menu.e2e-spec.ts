@@ -47,12 +47,12 @@ describe('AdminMenu API (e2e)', () => {
 
   const baseUrl = '/api/v1/admin/ums/menus';
 
-  describe('POST /create', () => {
-    it('添加后台菜单 → 201', async () => {
+  describe('POST /', () => {
+    it('添加后台菜单 → 200', async () => {
       mockService.create.mockResolvedValue({ id: 1 });
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/create`)
+        .post(baseUrl)
         .set('Authorization', bearerHeader(token))
         .send({ name: 'pms', parentId: 0, sort: 0 })
         .expect(200);
@@ -62,12 +62,12 @@ describe('AdminMenu API (e2e)', () => {
     });
   });
 
-  describe('PUT /update/:id', () => {
+  describe('PUT /:id', () => {
     it('修改后台菜单 → 200', async () => {
       mockService.update.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${baseUrl}/update/1`)
+        .put(`${baseUrl}/1`)
         .set('Authorization', bearerHeader(token))
         .send({ title: '商品管理V2' })
         .expect(200);
@@ -94,12 +94,12 @@ describe('AdminMenu API (e2e)', () => {
     });
   });
 
-  describe('DELETE /delete/:id', () => {
+  describe('DELETE /:id', () => {
     it('删除后台菜单 → 200', async () => {
       mockService.delete.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .delete(`${baseUrl}/delete/1`)
+        .delete(`${baseUrl}/1`)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -107,7 +107,7 @@ describe('AdminMenu API (e2e)', () => {
     });
   });
 
-  describe('GET /list/:parentId', () => {
+  describe('GET /?parentId=', () => {
     it('分页查询子菜单 → 200', async () => {
       mockService.list.mockResolvedValue({
         list: [{ id: 2, title: '商品列表', parentId: 1 }],
@@ -115,21 +115,21 @@ describe('AdminMenu API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/list/1`)
+        .get(baseUrl)
         .set('Authorization', bearerHeader(token))
-        .query({ pageNum: 1, pageSize: 10 })
+        .query({ parentId: 1, pageNum: 1, pageSize: 10 })
         .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('PUT /update/hidden/:id', () => {
+  describe('PUT /:id/hidden', () => {
     it('修改菜单显示状态 → 200', async () => {
       mockService.updateHidden.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${baseUrl}/update/hidden/1`)
+        .put(`${baseUrl}/1/hidden`)
         .set('Authorization', bearerHeader(token))
         .send({ hidden: 1 })
         .expect(200);
@@ -139,12 +139,12 @@ describe('AdminMenu API (e2e)', () => {
     });
   });
 
-  describe('GET /tree-list', () => {
+  describe('GET /tree', () => {
     it('树形菜单列表 → 200', async () => {
       mockService.treeList.mockResolvedValue([]);
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/tree-list`)
+        .get(`${baseUrl}/tree`)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -153,9 +153,9 @@ describe('AdminMenu API (e2e)', () => {
   });
 
   describe('无 token', () => {
-    it('GET /tree-list → 401', async () => {
+    it('GET /tree → 401', async () => {
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/tree-list`)
+        .get(`${baseUrl}/tree`)
         .expect(401);
 
       expect(res.body.code).toBe(401);

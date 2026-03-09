@@ -75,13 +75,15 @@ export class UpdateMemberPasswordDto {
 
 /** 短信验证码登录 DTO */
 export class PortalSmsLoginDto {
-  @ApiProperty({ example: '13800138000' })
+  @ApiProperty({ example: '13800138000', description: '手机号' })
   @IsString()
   @IsNotEmpty()
+  @Matches(/^1[3-9]\d{9}$/, { message: '手机号格式不正确' })
   phone: string;
 
-  @ApiProperty({ example: '123456' })
+  @ApiProperty({ example: '123456', description: '短信验证码（6位数字）' })
   @IsString()
   @IsNotEmpty()
+  @Matches(/^\d{6}$/, { message: '验证码必须为6位数字' })
   code: string;
 }

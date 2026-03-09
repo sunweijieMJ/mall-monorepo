@@ -28,19 +28,22 @@ export class ReturnReasonService {
     return this.repo.save(entity);
   }
 
-  async update(id: number, dto: Partial<ReturnReasonEntity>): Promise<void> {
-    await this.repo.update(id, dto);
+  async update(id: number, dto: Partial<ReturnReasonEntity>): Promise<number> {
+    const result = await this.repo.update(id, dto);
+    return result.affected ?? 0;
   }
 
-  async delete(ids: number[]): Promise<void> {
-    await this.repo.delete(ids);
+  async delete(ids: number[]): Promise<number> {
+    const result = await this.repo.softDelete(ids);
+    return result.affected ?? 0;
   }
 
   async getItem(id: number): Promise<ReturnReasonEntity | null> {
     return this.repo.findOneBy({ id });
   }
 
-  async updateStatus(ids: number[], status: number): Promise<void> {
-    await this.repo.update({ id: In(ids) }, { status });
+  async updateStatus(ids: number[], status: number): Promise<number> {
+    const result = await this.repo.update({ id: In(ids) }, { status });
+    return result.affected ?? 0;
   }
 }

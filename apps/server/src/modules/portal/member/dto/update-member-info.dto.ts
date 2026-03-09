@@ -16,12 +16,17 @@ export class UpdateMemberInfoDto {
   @ApiPropertyOptional({
     type: 'integer',
     description: '性别：0→未知 1→男 2→女',
+    enum: [0, 1, 2],
   })
   @IsOptional()
   @IsInt()
   gender?: number;
 
-  @ApiPropertyOptional({ description: '生日' })
+  @ApiPropertyOptional({
+    description: '生日',
+    format: 'date',
+    example: '1990-01-15',
+  })
   @IsOptional()
   @IsString()
   birthday?: string;

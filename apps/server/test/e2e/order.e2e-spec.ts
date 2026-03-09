@@ -63,8 +63,8 @@ describe('Order API (e2e)', () => {
 
   // ======================== 管理端 ========================
 
-  describe('GET /api/v1/admin/oms/orders/list', () => {
-    const url = '/api/v1/admin/oms/orders/list';
+  describe('GET /api/v1/admin/oms/orders', () => {
+    const url = '/api/v1/admin/oms/orders';
 
     it('无 token → 401', async () => {
       const res = await request(app.getHttpServer()).get(url).expect(401);
@@ -88,7 +88,7 @@ describe('Order API (e2e)', () => {
     });
   });
 
-  describe('GET /api/v1/admin/oms/orders/detail/:id', () => {
+  describe('GET /api/v1/admin/oms/orders/:id', () => {
     it('订单详情 → 200', async () => {
       mockOrderService.detail.mockResolvedValue({
         id: 1,
@@ -98,7 +98,7 @@ describe('Order API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get('/api/v1/admin/oms/orders/detail/1')
+        .get('/api/v1/admin/oms/orders/1')
         .set('Authorization', bearerHeader(adminToken))
         .expect(200);
 
@@ -149,10 +149,10 @@ describe('Order API (e2e)', () => {
     });
   });
 
-  describe('DELETE /api/v1/admin/oms/orders/delete', () => {
+  describe('POST /api/v1/admin/oms/orders/batch-delete', () => {
     it('缺少 ids → 422', async () => {
       const res = await request(app.getHttpServer())
-        .delete('/api/v1/admin/oms/orders/delete')
+        .post('/api/v1/admin/oms/orders/batch-delete')
         .set('Authorization', bearerHeader(adminToken))
         .expect(422);
 
@@ -163,7 +163,7 @@ describe('Order API (e2e)', () => {
       mockOrderService.adminDelete.mockResolvedValue(2);
 
       const res = await request(app.getHttpServer())
-        .delete('/api/v1/admin/oms/orders/delete')
+        .post('/api/v1/admin/oms/orders/batch-delete')
         .set('Authorization', bearerHeader(adminToken))
         .send({ ids: [1, 2] })
         .expect(200);
@@ -266,8 +266,8 @@ describe('Order API (e2e)', () => {
     });
   });
 
-  describe('GET /api/v1/portal/orders/list', () => {
-    const url = '/api/v1/portal/orders/list';
+  describe('GET /api/v1/portal/orders', () => {
+    const url = '/api/v1/portal/orders';
 
     it('无 token → 401', async () => {
       const res = await request(app.getHttpServer()).get(url).expect(401);
@@ -305,7 +305,7 @@ describe('Order API (e2e)', () => {
     });
   });
 
-  describe('GET /api/v1/portal/orders/detail/:orderId', () => {
+  describe('GET /api/v1/portal/orders/:id', () => {
     it('移动端订单详情 → 200', async () => {
       mockOrderService.detail.mockResolvedValue({
         id: 1,
@@ -314,7 +314,7 @@ describe('Order API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get('/api/v1/portal/orders/detail/1')
+        .get('/api/v1/portal/orders/1')
         .set('Authorization', bearerHeader(memberToken))
         .expect(200);
 
@@ -323,7 +323,7 @@ describe('Order API (e2e)', () => {
     });
   });
 
-  describe('PUT /api/v1/portal/orders/:orderId/cancel', () => {
+  describe('PUT /api/v1/portal/orders/:id/cancel', () => {
     it('取消订单 → 200', async () => {
       mockOrderService.cancelOrder.mockResolvedValue(1);
 
@@ -336,7 +336,7 @@ describe('Order API (e2e)', () => {
     });
   });
 
-  describe('PUT /api/v1/portal/orders/:orderId/confirm-receive', () => {
+  describe('PUT /api/v1/portal/orders/:id/confirm-receive', () => {
     it('确认收货 → 200', async () => {
       mockOrderService.confirmReceive.mockResolvedValue(1);
 
@@ -349,7 +349,7 @@ describe('Order API (e2e)', () => {
     });
   });
 
-  describe('DELETE /api/v1/portal/orders/:orderId', () => {
+  describe('DELETE /api/v1/portal/orders/:id', () => {
     it('删除订单 → 200', async () => {
       mockOrderService.deleteOrder.mockResolvedValue(1);
 
@@ -362,12 +362,12 @@ describe('Order API (e2e)', () => {
     });
   });
 
-  describe('POST /api/v1/portal/orders/:orderId/pay', () => {
-    it('支付成功回调 → 201', async () => {
+  describe('PUT /api/v1/portal/orders/:id/pay', () => {
+    it('支付成功回调 → 200', async () => {
       mockOrderService.paySuccess.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .post('/api/v1/portal/orders/1/pay')
+        .put('/api/v1/portal/orders/1/pay')
         .set('Authorization', bearerHeader(memberToken))
         .send({ payType: 1 })
         .expect(200);

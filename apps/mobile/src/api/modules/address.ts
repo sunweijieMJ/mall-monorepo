@@ -2,11 +2,11 @@ import http from '../instance';
 import type { Address, ApiResponse } from '@/interface';
 
 const Dict = {
-  fetchAddressList: `/member/address/list`,
-  fetchAddressDetail: `/member/address`,
-  addAddress: `/member/address/create`,
-  updateAddress: `/member/address/update`,
-  deleteAddress: `/member/address/delete`,
+  fetchAddressList: `/member/addresses`,
+  fetchAddressDetail: `/member/addresses`,
+  addAddress: `/member/addresses`,
+  updateAddress: `/member/addresses`,
+  deleteAddress: `/member/addresses`,
 } as const;
 
 /**

@@ -34,16 +34,19 @@ export class FlashPromotionService {
   async updateFlash(
     id: number,
     dto: Partial<FlashPromotionEntity>,
-  ): Promise<void> {
-    await this.flashRepo.update(id, dto);
+  ): Promise<number> {
+    const result = await this.flashRepo.update(id, dto);
+    return result.affected ?? 0;
   }
 
-  async deleteFlash(id: number): Promise<void> {
-    await this.flashRepo.delete(id);
+  async deleteFlash(id: number): Promise<number> {
+    const result = await this.flashRepo.softDelete(id);
+    return result.affected ?? 0;
   }
 
-  async updateFlashStatus(id: number, status: number): Promise<void> {
-    await this.flashRepo.update(id, { status });
+  async updateFlashStatus(id: number, status: number): Promise<number> {
+    const result = await this.flashRepo.update(id, { status });
+    return result.affected ?? 0;
   }
 
   async getFlashItem(id: number): Promise<FlashPromotionEntity | null> {
@@ -82,16 +85,19 @@ export class FlashPromotionService {
   async updateSession(
     id: number,
     dto: Partial<FlashSessionEntity>,
-  ): Promise<void> {
-    await this.sessionRepo.update(id, dto);
+  ): Promise<number> {
+    const result = await this.sessionRepo.update(id, dto);
+    return result.affected ?? 0;
   }
 
-  async updateSessionStatus(id: number, status: number): Promise<void> {
-    await this.sessionRepo.update(id, { status });
+  async updateSessionStatus(id: number, status: number): Promise<number> {
+    const result = await this.sessionRepo.update(id, { status });
+    return result.affected ?? 0;
   }
 
-  async deleteSession(id: number): Promise<void> {
-    await this.sessionRepo.delete(id);
+  async deleteSession(id: number): Promise<number> {
+    const result = await this.sessionRepo.softDelete(id);
+    return result.affected ?? 0;
   }
 
   async getSessionItem(id: number): Promise<FlashSessionEntity | null> {
@@ -136,12 +142,14 @@ export class FlashPromotionService {
   async updateRelation(
     id: number,
     dto: Partial<FlashProductRelationEntity>,
-  ): Promise<void> {
-    await this.relationRepo.update(id, dto);
+  ): Promise<number> {
+    const result = await this.relationRepo.update(id, dto);
+    return result.affected ?? 0;
   }
 
-  async deleteRelation(id: number): Promise<void> {
-    await this.relationRepo.delete(id);
+  async deleteRelation(id: number): Promise<number> {
+    const result = await this.relationRepo.delete(id);
+    return result.affected ?? 0;
   }
 
   async getRelationItem(

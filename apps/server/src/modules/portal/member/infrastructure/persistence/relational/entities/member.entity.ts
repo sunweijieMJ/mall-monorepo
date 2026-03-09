@@ -3,22 +3,12 @@ import {
   ApiProperty,
   ApiPropertyOptional,
 } from '@nestjs/swagger';
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  Index,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, Entity, Index } from 'typeorm';
+import { BaseEntity } from '@/common/entities/base.entity';
 
 /** C端会员表 */
 @Entity('ums_member')
-export class MemberEntity {
-  @ApiProperty({ description: '主键ID', type: 'integer' })
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class MemberEntity extends BaseEntity {
   @ApiPropertyOptional({ description: '会员等级ID', type: 'integer' })
   @Column({ name: 'member_level_id', nullable: true })
   memberLevelId: number;
@@ -61,12 +51,12 @@ export class MemberEntity {
   @Column({ nullable: true, comment: '性别：0->未知；1->男；2->女' })
   gender: number;
 
-  @ApiPropertyOptional({ description: '生日' })
+  @ApiPropertyOptional({ description: '生日', format: 'date' })
   @Column({ type: 'date', nullable: true, comment: '生日' })
   birthday: Date;
 
-  @ApiPropertyOptional({ description: '所做城市' })
-  @Column({ length: 100, nullable: true, comment: '所做城市' })
+  @ApiPropertyOptional({ description: '所在城市' })
+  @Column({ length: 100, nullable: true, comment: '所在城市' })
   city: string;
 
   @ApiPropertyOptional({ description: '职业' })
@@ -102,7 +92,7 @@ export class MemberEntity {
   @Column({ name: 'history_integration', default: 0, comment: '历史积分数量' })
   historyIntegration: number;
 
-  @ApiPropertyOptional({ description: '最后登录时间' })
+  @ApiPropertyOptional({ description: '最后登录时间', format: 'date-time' })
   @Column({
     name: 'login_time',
     type: 'timestamp',
@@ -110,23 +100,11 @@ export class MemberEntity {
     comment: '最后登录时间',
   })
   loginTime: Date;
-
-  @ApiProperty({ description: '创建时间' })
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
-
-  @ApiProperty({ description: '更新时间' })
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
 }
 
 /** 会员收货地址表 */
 @Entity('ums_member_receive_address')
-export class MemberAddressEntity {
-  @ApiProperty({ description: '主键ID', type: 'integer' })
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class MemberAddressEntity extends BaseEntity {
   @ApiProperty({ description: '会员ID', type: 'integer' })
   @Index()
   @Column({ name: 'member_id' })

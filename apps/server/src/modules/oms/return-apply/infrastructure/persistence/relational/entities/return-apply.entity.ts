@@ -1,17 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity } from 'typeorm';
+import { BaseEntity } from '@/common/entities/base.entity';
 
 @Entity('oms_order_return_apply')
-export class ReturnApplyEntity {
-  @ApiProperty({ description: '主键 ID', type: 'integer' })
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class ReturnApplyEntity extends BaseEntity {
   @ApiPropertyOptional({ description: '会员 ID', type: 'integer' })
   @Column({ name: 'member_id', nullable: true, comment: '会员 ID' })
   memberId: number;
@@ -59,7 +51,7 @@ export class ReturnApplyEntity {
   })
   status: number;
 
-  @ApiPropertyOptional({ description: '处理时间' })
+  @ApiPropertyOptional({ description: '处理时间', format: 'date-time' })
   @Column({ name: 'handle_time', type: 'timestamp', nullable: true })
   handleTime: Date;
 
@@ -132,15 +124,11 @@ export class ReturnApplyEntity {
   @Column({ name: 'receive_man', length: 100, nullable: true })
   receiveMan: string;
 
-  @ApiPropertyOptional({ description: '收货时间' })
+  @ApiPropertyOptional({ description: '收货时间', format: 'date-time' })
   @Column({ name: 'receive_time', type: 'timestamp', nullable: true })
   receiveTime: Date;
 
   @ApiPropertyOptional({ description: '收货备注' })
   @Column({ name: 'receive_note', type: 'text', nullable: true })
   receiveNote: string;
-
-  @ApiProperty({ description: '创建时间' })
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
 }

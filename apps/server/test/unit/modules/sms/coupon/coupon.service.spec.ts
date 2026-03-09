@@ -40,6 +40,7 @@ describe('CouponService', () => {
     insert: vi.fn().mockResolvedValue({}),
     update: vi.fn().mockResolvedValue({}),
     delete: vi.fn().mockResolvedValue({}),
+    softDelete: vi.fn().mockResolvedValue({ affected: 1 }),
   };
   const mockTransactionService = {
     run: vi.fn().mockImplementation(async (cb: any) => cb(mockManager)),
@@ -188,7 +189,7 @@ describe('CouponService', () => {
     it('删除优惠券 + 关联关系', async () => {
       await service.delete(1);
 
-      expect(mockManager.delete).toHaveBeenCalledWith(CouponEntity, 1);
+      expect(mockManager.softDelete).toHaveBeenCalledWith(CouponEntity, 1);
       expect(mockManager.delete).toHaveBeenCalledWith(
         CouponProductRelationEntity,
         { couponId: 1 },

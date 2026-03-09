@@ -1,5 +1,16 @@
 {
   "mcpServers": {
+    "lark-mcp": {
+      "command": "sh",
+      "args": [
+        "-c",
+        "npx -y @larksuiteoapi/lark-mcp mcp -a $LARK_APP_ID -s $LARK_APP_SECRET --oauth"
+      ],
+      "env": {
+        "LARK_APP_ID": "${LARK_APP_ID}",
+        "LARK_APP_SECRET": "${LARK_APP_SECRET}"
+      }
+    },
     "figma": {
       "command": "npx",
       "args": ["-y", "figma-developer-mcp", "--stdio"],
@@ -10,10 +21,6 @@
     "playwright": {
       "command": "npx",
       "args": ["-y", "@executeautomation/playwright-mcp-server"]
-    },
-    "chrome-devtools": {
-      "command": "npx",
-      "args": ["-y", "chrome-devtools-mcp@latest"]
     },
     "github": {
       "command": "npx",

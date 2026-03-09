@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -29,7 +28,6 @@ import { PageQueryDto } from '@/common/dto/page-result.dto';
 import { ReturnApplyQueryDto } from './dto/return-apply-query.dto';
 import { CurrentUser } from '@/core/auth/decorators/current-user.decorator';
 import { JwtPayload } from '@/core/auth/types/jwt-payload.type';
-import { UpdateReturnStatusDto } from './dto/update-return-status.dto';
 import { HandleReturnApplyDto } from './dto/handle-return-apply.dto';
 import { ConfirmReceiveDto } from './dto/confirm-receive.dto';
 import { PortalCreateReturnApplyDto } from './dto/portal-create-return-apply.dto';
@@ -41,7 +39,7 @@ import { PortalCreateReturnApplyDto } from './dto/portal-create-return-apply.dto
 export class ReturnApplyController {
   constructor(private readonly service: ReturnApplyService) {}
 
-  @Get('list')
+  @Get()
   @ApiOperation({
     summary: '退货申请列表',
     description: '支持过滤：status / startTime / endTime',
@@ -51,40 +49,51 @@ export class ReturnApplyController {
     return this.service.list(query);
   }
 
-  @Get(':id')
-  @ApiOperation({
-    summary: '退货申请详情',
-    description: '对应前端 GET /returnApply/detail/:id',
-  })
-  @ApiParam({ name: 'id', description: '退货申请ID', type: 'integer' })
-  @ApiOkResponse({ type: ReturnApplyVo })
-  getItem(@Param('id', ParseIntPipe) id: number) {
-    return this.service.detail(id);
+  @Post('batch-delete')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '删除退货申请' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  batchDelete(@Body() dto: BatchDeleteDto) {
+    return this.service.delete(dto.ids);
   }
 
-  @Put('update/status')
+  @Put(':id/status')
   @ApiOperation({
     summary: '更新退货申请状态',
-    description: '对应前端 PUT /returnApply/update/status，body 中需传 id',
+    description: '通过 Path 传递退货申请 ID，Body 传递处理信息',
   })
+  @ApiParam({ name: 'id', description: '退货申请ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
-  updateStatus(@Body() dto: UpdateReturnStatusDto) {
-    const { id, ...rest } = dto;
-    return this.service.updateStatus(Number(id), rest);
+  updateStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: HandleReturnApplyDto,
+  ) {
+    return this.service.updateStatus(id, dto);
   }
 
-  @Put('update/:id')
+  @Put(':id')
   @ApiOperation({
     summary: '处理退货申请',
     description: '对应前端 PUT /returnApply/update/:id',
   })
   @ApiParam({ name: 'id', description: '退货申请ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
-  handle(
+  update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: HandleReturnApplyDto,
   ) {
     return this.service.handle(id, dto);
+  }
+
+  @Get(':id')
+  @ApiOperation({
+    summary: '退货申请详情',
+    description: '对应前端 GET /returnApply/detail/:id',
+  })
+  @ApiParam({ name: 'id', description: '退货申请ID', type: 'integer' })
+  @ApiWrappedResponse(ReturnApplyVo)
+  getItem(@Param('id', ParseIntPipe) id: number) {
+    return this.service.detail(id);
   }
 
   @Post(':id/receive')
@@ -101,13 +110,6 @@ export class ReturnApplyController {
   ) {
     return this.service.confirmReceive(id, dto);
   }
-
-  @Delete('delete')
-  @ApiOperation({ summary: '删除退货申请' })
-  @ApiOkResponse({ type: Number, description: '受影响的行数' })
-  batchDelete(@Body() dto: BatchDeleteDto) {
-    return this.service.delete(dto.ids);
-  }
 }
 
 /** 移动端退货申请 Controller */
@@ -118,10 +120,10 @@ export class ReturnApplyController {
 export class PortalReturnApplyController {
   constructor(private readonly returnApplyService: ReturnApplyService) {}
 
-  @Post('create')
+  @Post()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '申请退货' })
-  @ApiOkResponse({ type: ReturnApplyVo })
+  @ApiWrappedResponse(ReturnApplyVo)
   create(
     @CurrentUser() user: JwtPayload,
     @Body() dto: PortalCreateReturnApplyDto,
@@ -129,7 +131,7 @@ export class PortalReturnApplyController {
     return this.returnApplyService.portalCreate(user.sub, dto);
   }
 
-  @Get('list')
+  @Get()
   @ApiOperation({ summary: '我的退货申请列表' })
   @ApiPaginatedResponse(ReturnApplyVo)
   list(@CurrentUser() user: JwtPayload, @Query() query: PageQueryDto) {

@@ -14,6 +14,7 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
 import { OrderSettingVo } from './vo/order-setting.vo';
 import { AuthGuard } from '@nestjs/passport';
 import { OrderSettingService } from './order-setting.service';
@@ -26,15 +27,7 @@ import { UpdateOrderSettingDto } from './dto/update-order-setting.dto';
 export class OrderSettingController {
   constructor(private readonly service: OrderSettingService) {}
 
-  @Get(':id')
-  @ApiOperation({ summary: '获取订单设置' })
-  @ApiParam({ name: 'id', description: '订单设置ID', type: 'integer' })
-  @ApiOkResponse({ type: OrderSettingVo })
-  getItem(@Param('id', ParseIntPipe) id: number) {
-    return this.service.getItem(id);
-  }
-
-  @Put('update/:id')
+  @Put(':id')
   @ApiOperation({ summary: '更新订单设置' })
   @ApiParam({ name: 'id', description: '订单设置ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
@@ -43,5 +36,13 @@ export class OrderSettingController {
     @Body() body: UpdateOrderSettingDto,
   ) {
     return this.service.update(id, body);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: '获取订单设置' })
+  @ApiParam({ name: 'id', description: '订单设置ID', type: 'integer' })
+  @ApiWrappedResponse(OrderSettingVo)
+  getItem(@Param('id', ParseIntPipe) id: number) {
+    return this.service.getItem(id);
   }
 }

@@ -45,7 +45,7 @@ describe('Subject API (e2e)', () => {
 
   const baseUrl = '/api/v1/admin/cms/subjects';
 
-  describe('GET /list', () => {
+  describe('GET /', () => {
     it('分页查询专题列表 → 200', async () => {
       mockService.list.mockResolvedValue({
         list: [{ id: 1, title: '春季新品' }],
@@ -55,7 +55,7 @@ describe('Subject API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/list`)
+        .get(baseUrl)
         .set('Authorization', bearerHeader(token))
         .query({ pageNum: 1, pageSize: 10 })
         .expect(200);
@@ -64,20 +64,18 @@ describe('Subject API (e2e)', () => {
     });
 
     it('无 token → 401', async () => {
-      const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/list`)
-        .expect(401);
+      const res = await request(app.getHttpServer()).get(baseUrl).expect(401);
 
       expect(res.body.code).toBe(401);
     });
   });
 
-  describe('POST /create', () => {
-    it('创建专题 → 201', async () => {
+  describe('POST /', () => {
+    it('创建专题 → 200', async () => {
       mockService.create.mockResolvedValue({ id: 1, title: '新专题' });
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/create`)
+        .post(baseUrl)
         .set('Authorization', bearerHeader(token))
         .send({ title: '新专题', categoryName: '手机' })
         .expect(200);
@@ -86,12 +84,12 @@ describe('Subject API (e2e)', () => {
     });
   });
 
-  describe('PUT /update/:id', () => {
+  describe('PUT /:id', () => {
     it('更新专题 → 200', async () => {
       mockService.update.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${baseUrl}/update/1`)
+        .put(`${baseUrl}/1`)
         .set('Authorization', bearerHeader(token))
         .send({ title: '修改后专题' })
         .expect(200);
@@ -100,12 +98,12 @@ describe('Subject API (e2e)', () => {
     });
   });
 
-  describe('DELETE /delete', () => {
+  describe('POST /batch-delete', () => {
     it('批量删除专题 → 200', async () => {
       mockService.delete.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .delete(`${baseUrl}/delete`)
+        .post(`${baseUrl}/batch-delete`)
         .set('Authorization', bearerHeader(token))
         .send({ ids: [1, 2] })
         .expect(200);
@@ -115,7 +113,7 @@ describe('Subject API (e2e)', () => {
     });
   });
 
-  describe('GET /product-list', () => {
+  describe('GET /:id/products', () => {
     it('查询专题关联商品列表 → 200', async () => {
       mockService.getProductList.mockResolvedValue({
         list: [{ id: 1, name: '商品A' }],
@@ -123,9 +121,9 @@ describe('Subject API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/product-list`)
+        .get(`${baseUrl}/1/products`)
         .set('Authorization', bearerHeader(token))
-        .query({ subjectId: 1, pageNum: 1, pageSize: 10 })
+        .query({ pageNum: 1, pageSize: 10 })
         .expect(200);
 
       expect(res.body.code).toBe(200);

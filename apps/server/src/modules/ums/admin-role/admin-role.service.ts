@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Like, Repository } from 'typeorm';
 import { TransactionService } from '@/infrastructure/database/transaction/transaction.service';
@@ -45,17 +45,20 @@ export class AdminRoleService {
     return 1;
   }
 
-  /** 批量删除角色 */
+  /** 批量删除角色（软删除） */
   async delete(ids: number[]): Promise<number> {
-    const count = await this.roleRepo
-      .createQueryBuilder()
-      .delete()
-      .where('id IN (:...ids)', { ids })
-      .execute();
+    const count = await this.roleRepo.softDelete(ids);
 
     // 清除相关 admin 的资源缓存
     await this.delResourceListByRoleIds(ids);
     return count.affected ?? 0;
+  }
+
+  /** 获取角色详情 */
+  async getItem(id: number): Promise<AdminRoleEntity> {
+    const role = await this.roleRepo.findOneBy({ id });
+    if (!role) throw new NotFoundException('角色不存在');
+    return role;
   }
 
   /** 获取所有角色 */
@@ -83,6 +86,8 @@ export class AdminRoleService {
   /** 更新角色状态 */
   async updateStatus(id: number, status: number): Promise<number> {
     await this.roleRepo.update(id, { status });
+    // 清除受影响的 admin 资源缓存（角色禁用/启用影响权限）
+    await this.delResourceListByRoleIds([id]);
     return 1;
   }
 
@@ -118,6 +123,9 @@ export class AdminRoleService {
         await manager.save(RoleMenuRelationEntity, relations);
       }
     });
+
+    // 清除受影响的 admin 缓存（事务提交后执行，与 allocResource 保持一致）
+    await this.delResourceListByRoleIds([roleId]);
     return menuIds?.length ?? 0;
   }
 

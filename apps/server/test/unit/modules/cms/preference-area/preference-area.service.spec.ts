@@ -36,6 +36,7 @@ const productFixture = {
 // ── Mock TransactionService ──
 const mockManager = {
   delete: vi.fn().mockResolvedValue({ affected: 1 }),
+  softDelete: vi.fn().mockResolvedValue({ affected: 1 }),
 };
 const mockTransactionService = {
   run: vi.fn((cb: (manager: any) => Promise<any>) => cb(mockManager)),
@@ -123,15 +124,18 @@ describe('PreferenceAreaService', () => {
 
       // 验证 transactionService.run 被调用
       expect(mockTransactionService.run).toHaveBeenCalledTimes(1);
-      // 验证 manager.delete 被调用两次
-      expect(mockManager.delete).toHaveBeenCalledTimes(2);
-      // 第一次删除关联关系（使用 In 批量匹配）
+      // 验证关联关系硬删除 + 专区本体软删除
+      expect(mockManager.delete).toHaveBeenCalledTimes(1);
+      expect(mockManager.softDelete).toHaveBeenCalledTimes(1);
+      // 第一次硬删除关联关系（使用 In 批量匹配）
       expect(mockManager.delete).toHaveBeenCalledWith(
         PreferenceAreaProductRelationEntity,
         { preferenceAreaId: In([1, 2]) },
       );
-      // 第二次删除专区本体
-      expect(mockManager.delete.mock.calls[1][0]).toBe(PreferenceAreaEntity);
+      // 第二次软删除专区本体
+      expect(mockManager.softDelete.mock.calls[0][0]).toBe(
+        PreferenceAreaEntity,
+      );
     });
   });
 

@@ -14,7 +14,8 @@ export class OrderSettingService {
     return this.repo.findOneBy({ id });
   }
 
-  async update(id: number, dto: Partial<OrderSettingEntity>): Promise<void> {
-    await this.repo.update(id, dto);
+  async update(id: number, dto: Partial<OrderSettingEntity>): Promise<number> {
+    const result = await this.repo.update(id, dto);
+    return result.affected ?? 0;
   }
 }

@@ -262,19 +262,23 @@ export class ProductEntity {
   })
   promotionPerLimit: number | null;
 
-  @ApiProperty({ description: '促销类型：0无优惠 1特惠 2会员价 3阶梯价 4满减' })
+  @ApiProperty({
+    description: '促销类型：0-无优惠；1-特惠；2-会员价；3-阶梯价；4-满减',
+    type: 'integer',
+    enum: [0, 1, 2, 3, 4],
+  })
   @Column({
     name: 'promotion_type',
     default: 0,
-    comment: '促销类型：0无优惠 1特惠 2会员价 3阶梯价 4满减',
+    comment: '促销类型：0-无优惠；1-特惠；2-会员价；3-阶梯价；4-满减',
   })
   promotionType: number;
 
-  @ApiProperty({ description: '创建时间' })
+  @ApiProperty({ description: '创建时间', format: 'date-time' })
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @ApiProperty({ description: '更新时间' })
+  @ApiProperty({ description: '更新时间', format: 'date-time' })
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 

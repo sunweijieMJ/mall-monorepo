@@ -128,7 +128,8 @@ export class OrderEntity {
   sourceType: number;
 
   @ApiProperty({
-    description: '订单状态',
+    description:
+      '订单状态：0-待付款 1-已付款/待发货 2-已发货 3-已完成 4-已取消 5-售后关闭',
     type: 'integer',
     enum: [0, 1, 2, 3, 4, 5],
   })
@@ -274,31 +275,31 @@ export class OrderEntity {
   })
   deliverySn: string;
 
-  @ApiPropertyOptional({ description: '支付时间' })
+  @ApiPropertyOptional({ description: '支付时间', format: 'date-time' })
   @Column({ name: 'payment_time', type: 'timestamp', nullable: true })
   paymentTime: Date;
 
-  @ApiPropertyOptional({ description: '发货时间' })
+  @ApiPropertyOptional({ description: '发货时间', format: 'date-time' })
   @Column({ name: 'delivery_time', type: 'timestamp', nullable: true })
   deliveryTime: Date;
 
-  @ApiPropertyOptional({ description: '确认收货时间' })
+  @ApiPropertyOptional({ description: '确认收货时间', format: 'date-time' })
   @Column({ name: 'receive_time', type: 'timestamp', nullable: true })
   receiveTime: Date;
 
-  @ApiPropertyOptional({ description: '评价时间' })
+  @ApiPropertyOptional({ description: '评价时间', format: 'date-time' })
   @Column({ name: 'comment_time', type: 'timestamp', nullable: true })
   commentTime: Date;
 
-  @ApiPropertyOptional({ description: '修改时间' })
+  @ApiPropertyOptional({ description: '修改时间', format: 'date-time' })
   @Column({ name: 'modify_time', type: 'timestamp', nullable: true })
   modifyTime: Date;
 
-  @ApiProperty({ description: '创建时间' })
+  @ApiProperty({ description: '创建时间', format: 'date-time' })
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @ApiProperty({ description: '更新时间' })
+  @ApiProperty({ description: '更新时间', format: 'date-time' })
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 

@@ -3,20 +3,11 @@ import {
   ApiProperty,
   ApiPropertyOptional,
 } from '@nestjs/swagger';
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, Entity } from 'typeorm';
+import { BaseEntity } from '@/common/entities/base.entity';
 
 @Entity('ums_admin')
-export class AdminUserEntity {
-  @ApiProperty({ description: '主键ID', type: 'integer' })
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class AdminUserEntity extends BaseEntity {
   @ApiProperty({ description: '用户名' })
   @Column({ length: 64, unique: true })
   username: string;
@@ -41,7 +32,7 @@ export class AdminUserEntity {
   @Column({ type: 'text', nullable: true })
   note: string;
 
-  @ApiPropertyOptional({ description: '最后登录时间' })
+  @ApiPropertyOptional({ description: '最后登录时间', format: 'date-time' })
   @Column({ name: 'login_time', type: 'timestamp', nullable: true })
   loginTime: Date;
 
@@ -52,12 +43,4 @@ export class AdminUserEntity {
   })
   @Column({ default: 1, comment: '帐号启用状态：0->禁用；1->启用' })
   status: number;
-
-  @ApiProperty({ description: '创建时间' })
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
-
-  @ApiProperty({ description: '更新时间' })
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
 }

@@ -8,11 +8,6 @@ export class UpdateAdminUserDto {
   @IsOptional()
   username?: string;
 
-  @ApiPropertyOptional({ description: '密码' })
-  @IsString()
-  @IsOptional()
-  password?: string;
-
   @ApiPropertyOptional({ description: '头像' })
   @IsString()
   @IsOptional()

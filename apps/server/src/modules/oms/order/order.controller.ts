@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseArrayPipe,
   ParseIntPipe,
   Post,
   Put,
@@ -52,7 +53,7 @@ import { PaySuccessDto } from './dto/portal-order-action.dto';
 export class AdminOrderController {
   constructor(private readonly orderService: OrderService) {}
 
-  @Get('list')
+  @Get()
   @ApiOperation({
     summary: '管理端订单列表',
     description: '对应前端 GET /order/list',
@@ -62,18 +63,8 @@ export class AdminOrderController {
     return this.orderService.adminList(query);
   }
 
-  @Get('detail/:id')
-  @ApiOperation({
-    summary: '订单详情',
-    description: '对应前端 GET /order/detail/:id',
-  })
-  @ApiParam({ name: 'id', description: '订单ID', type: 'integer' })
-  @ApiWrappedResponse(OrderDetailVo)
-  getItem(@Param('id', ParseIntPipe) id: number) {
-    return this.orderService.detail(id);
-  }
-
-  @Delete('delete')
+  @Post('batch-delete')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: '删除订单',
     description: '对应前端 DELETE /order/delete?ids=1,2',
@@ -81,6 +72,17 @@ export class AdminOrderController {
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   batchDelete(@Body() dto: BatchDeleteDto) {
     return this.orderService.adminDelete(dto.ids);
+  }
+
+  @Get(':id')
+  @ApiOperation({
+    summary: '订单详情',
+    description: '对应前端 GET /order/:id',
+  })
+  @ApiParam({ name: 'id', description: '订单ID', type: 'integer' })
+  @ApiWrappedResponse(OrderDetailVo)
+  getItem(@Param('id', ParseIntPipe) id: number) {
+    return this.orderService.detail(id);
   }
 
   @Post('delivery')
@@ -91,7 +93,10 @@ export class AdminOrderController {
   })
   @ApiBody({ type: [AdminOrderDeliveryDto] })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
-  delivery(@Body() deliveryList: AdminOrderDeliveryDto[]) {
+  delivery(
+    @Body(new ParseArrayPipe({ items: AdminOrderDeliveryDto }))
+    deliveryList: AdminOrderDeliveryDto[],
+  ) {
     return this.orderService.delivery(deliveryList);
   }
 
@@ -183,7 +188,7 @@ export class PortalOrderController {
     return this.orderService.generateOrder(user.sub, dto);
   }
 
-  @Get('list')
+  @Get()
   @ApiOperation({
     summary: '我的订单列表',
     description: '对应前端 GET /order/list',
@@ -204,76 +209,74 @@ export class PortalOrderController {
     return this.orderService.memberList(user.sub, status ?? -1, query!);
   }
 
-  @Get('detail/:orderId')
+  @Get(':id')
   @ApiOperation({
     summary: '订单详情',
-    description: '对应前端 GET /order/detail/:orderId',
+    description: '对应前端 GET /order/:id',
   })
-  @ApiParam({ name: 'orderId', description: '订单ID', type: 'integer' })
+  @ApiParam({ name: 'id', description: '订单ID', type: 'integer' })
   @ApiWrappedResponse(OrderDetailVo)
   getItem(
     @CurrentUser() user: JwtPayload,
-    @Param('orderId', ParseIntPipe) orderId: number,
+    @Param('id', ParseIntPipe) id: number,
   ) {
-    return this.orderService.detail(orderId, user.sub);
+    return this.orderService.detail(id, user.sub);
   }
 
-  @Post(':orderId/pay')
-  @HttpCode(HttpStatus.OK)
+  @Put(':id/pay')
   @ApiOperation({
     summary: '支付成功回调',
-    description: '对应前端 POST /order/:orderId/pay',
+    description: '对应前端 PUT /order/:id/pay',
   })
-  @ApiParam({ name: 'orderId', description: '订单ID', type: 'integer' })
+  @ApiParam({ name: 'id', description: '订单ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   paySuccess(
     @CurrentUser() user: JwtPayload,
-    @Param('orderId', ParseIntPipe) orderId: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() dto: PaySuccessDto,
   ) {
-    return this.orderService.paySuccess(orderId, dto.payType ?? 0, user.sub);
+    return this.orderService.paySuccess(id, dto.payType ?? 0, user.sub);
   }
 
-  @Put(':orderId/cancel')
+  @Put(':id/cancel')
   @ApiOperation({
     summary: '取消订单',
-    description: '对应前端 PUT /order/:orderId/cancel',
+    description: '对应前端 PUT /order/:id/cancel',
   })
-  @ApiParam({ name: 'orderId', description: '订单ID', type: 'integer' })
+  @ApiParam({ name: 'id', description: '订单ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   cancel(
     @CurrentUser() user: JwtPayload,
-    @Param('orderId', ParseIntPipe) orderId: number,
+    @Param('id', ParseIntPipe) id: number,
   ) {
-    return this.orderService.cancelOrder(user.sub, orderId);
+    return this.orderService.cancelOrder(user.sub, id);
   }
 
-  @Put(':orderId/confirm-receive')
+  @Put(':id/confirm-receive')
   @ApiOperation({
     summary: '确认收货',
-    description: '对应前端 PUT /order/:orderId/confirm-receive',
+    description: '对应前端 PUT /order/:id/confirm-receive',
   })
-  @ApiParam({ name: 'orderId', description: '订单ID', type: 'integer' })
+  @ApiParam({ name: 'id', description: '订单ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   confirmReceive(
     @CurrentUser() user: JwtPayload,
-    @Param('orderId', ParseIntPipe) orderId: number,
+    @Param('id', ParseIntPipe) id: number,
   ) {
-    return this.orderService.confirmReceive(user.sub, orderId);
+    return this.orderService.confirmReceive(user.sub, id);
   }
 
-  @Delete(':orderId')
+  @Delete(':id')
   @ApiOperation({
     summary: '删除订单',
-    description:
-      '仅允许删除已完成或已取消的订单，对应前端 DELETE /order/:orderId',
+    description: '仅允许删除已完成或已取消的订单，对应前端 DELETE /order/:id',
   })
-  @ApiParam({ name: 'orderId', description: '订单ID', type: 'integer' })
+  @ApiParam({ name: 'id', description: '订单ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   delete(
     @CurrentUser() user: JwtPayload,
-    @Param('orderId', ParseIntPipe) orderId: number,
+    @Param('id', ParseIntPipe) id: number,
   ) {
-    return this.orderService.deleteOrder(user.sub, orderId);
+    return this.orderService.deleteOrder(user.sub, id);
   }
 }

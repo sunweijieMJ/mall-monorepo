@@ -7,12 +7,12 @@ export class CreateBrandDto {
   @IsNotEmpty()
   name: string;
 
-  @ApiPropertyOptional({ example: 'A' })
+  @ApiPropertyOptional({ description: '品牌首字母', example: 'A' })
   @IsString()
   @IsOptional()
   firstLetter?: string;
 
-  @ApiPropertyOptional({ type: 'integer', example: 0 })
+  @ApiPropertyOptional({ type: 'integer', description: '排序权重', example: 0 })
   @IsInt()
   @Min(0)
   @IsOptional()
@@ -21,13 +21,19 @@ export class CreateBrandDto {
   @ApiPropertyOptional({
     type: 'integer',
     description: '是否为品牌制造商：0-否 1-是',
+    enum: [0, 1],
     example: 0,
   })
   @IsInt()
   @IsOptional()
   factoryStatus?: number;
 
-  @ApiPropertyOptional({ type: 'integer', example: 1 })
+  @ApiPropertyOptional({
+    type: 'integer',
+    description: '显示状态：0-隐藏 1-显示',
+    enum: [0, 1],
+    example: 1,
+  })
   @IsInt()
   @IsOptional()
   showStatus?: number;

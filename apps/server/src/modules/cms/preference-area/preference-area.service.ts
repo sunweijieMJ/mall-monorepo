@@ -67,8 +67,8 @@ export class PreferenceAreaService {
       await manager.delete(PreferenceAreaProductRelationEntity, {
         preferenceAreaId: In(ids),
       });
-      // 再删除专区
-      await manager.delete(PreferenceAreaEntity, ids);
+      // 软删除专区
+      await manager.softDelete(PreferenceAreaEntity, ids);
     });
   }
 
@@ -87,6 +87,7 @@ export class PreferenceAreaService {
       where: { preferenceAreaId },
       skip: (page - 1) * limit,
       take: limit,
+      order: { id: 'ASC' },
     });
 
     if (relations.length === 0) {
@@ -98,6 +99,12 @@ export class PreferenceAreaService {
       where: { id: In(productIds) },
     });
 
-    return PageResult.of(products, totalCount, query);
+    // 按 productIds 顺序排列结果（In() 查询不保证顺序）
+    const productMap = new Map(products.map((p) => [p.id, p]));
+    const sorted = productIds
+      .map((id) => productMap.get(id))
+      .filter(Boolean) as ProductEntity[];
+
+    return PageResult.of(sorted, totalCount, query);
   }
 }

@@ -1,12 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity } from 'typeorm';
+import { BaseEntity } from '@/common/entities/base.entity';
 
 @Entity('ums_menu')
-export class AdminMenuEntity {
-  @ApiProperty({ description: '主键ID', type: 'integer' })
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class AdminMenuEntity extends BaseEntity {
   @ApiPropertyOptional({ description: '父级ID', type: 'integer' })
   @Column({ name: 'parent_id', nullable: true, comment: '父级ID' })
   parentId: number;

@@ -55,12 +55,12 @@ describe('ProductAttr API (e2e)', () => {
 
   const catUrl = '/api/v1/admin/pms/product-attribute-categories';
 
-  describe('POST /productAttributeCategory/create', () => {
+  describe('POST /productAttributeCategory/', () => {
     it('创建属性分类 → 200', async () => {
       mockService.createAttrCategory.mockResolvedValue({ id: 1 });
 
       const res = await request(app.getHttpServer())
-        .post(`${catUrl}/create`)
+        .post(catUrl)
         .set('Authorization', bearerHeader(token))
         .send({ name: '规格' })
         .expect(200);
@@ -70,12 +70,12 @@ describe('ProductAttr API (e2e)', () => {
     });
   });
 
-  describe('PUT /productAttributeCategory/update/:id', () => {
+  describe('PUT /productAttributeCategory/:id', () => {
     it('更新属性分类 → 200', async () => {
       mockService.updateAttrCategory.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${catUrl}/update/1`)
+        .put(`${catUrl}/1`)
         .set('Authorization', bearerHeader(token))
         .send({ name: '参数' })
         .expect(200);
@@ -84,12 +84,12 @@ describe('ProductAttr API (e2e)', () => {
     });
   });
 
-  describe('DELETE /productAttributeCategory/delete/:id', () => {
+  describe('DELETE /productAttributeCategory/:id', () => {
     it('删除属性分类 → 200', async () => {
       mockService.deleteAttrCategory.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .delete(`${catUrl}/delete/1`)
+        .delete(`${catUrl}/1`)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -97,7 +97,7 @@ describe('ProductAttr API (e2e)', () => {
     });
   });
 
-  describe('GET /productAttributeCategory/list', () => {
+  describe('GET /productAttributeCategory/', () => {
     it('分页获取属性分类 → 200', async () => {
       mockService.listAttrCategory.mockResolvedValue({
         list: [{ id: 1, name: '规格' }],
@@ -105,7 +105,7 @@ describe('ProductAttr API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(`${catUrl}/list`)
+        .get(catUrl)
         .set('Authorization', bearerHeader(token))
         .query({ pageNum: 1, pageSize: 10 })
         .expect(200);
@@ -114,12 +114,12 @@ describe('ProductAttr API (e2e)', () => {
     });
   });
 
-  describe('GET /productAttributeCategory/list-with-attr', () => {
+  describe('GET /productAttributeCategory/with-attrs', () => {
     it('获取属性分类含属性 → 200', async () => {
       mockService.listAttrCategoryWithAttr.mockResolvedValue([]);
 
       const res = await request(app.getHttpServer())
-        .get(`${catUrl}/list-with-attr`)
+        .get(`${catUrl}/with-attrs`)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -131,12 +131,12 @@ describe('ProductAttr API (e2e)', () => {
 
   const attrUrl = '/api/v1/admin/pms/product-attributes';
 
-  describe('POST /productAttribute/create', () => {
+  describe('POST /productAttribute/', () => {
     it('创建商品属性 → 200', async () => {
       mockService.createAttr.mockResolvedValue({ id: 1 });
 
       const res = await request(app.getHttpServer())
-        .post(`${attrUrl}/create`)
+        .post(attrUrl)
         .set('Authorization', bearerHeader(token))
         .send({ name: '颜色', productAttributeCategoryId: 1, type: 0 })
         .expect(200);
@@ -145,12 +145,12 @@ describe('ProductAttr API (e2e)', () => {
     });
   });
 
-  describe('PUT /productAttribute/update/:id', () => {
+  describe('PUT /productAttribute/:id', () => {
     it('更新商品属性 → 200', async () => {
       mockService.updateAttr.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${attrUrl}/update/1`)
+        .put(`${attrUrl}/1`)
         .set('Authorization', bearerHeader(token))
         .send({ name: '尺码' })
         .expect(200);
@@ -159,12 +159,12 @@ describe('ProductAttr API (e2e)', () => {
     });
   });
 
-  describe('DELETE /productAttribute/delete', () => {
+  describe('POST /productAttribute/batch-delete', () => {
     it('批量删除商品属性 → 200', async () => {
       mockService.deleteAttr.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .delete(`${attrUrl}/delete`)
+        .post(`${attrUrl}/batch-delete`)
         .set('Authorization', bearerHeader(token))
         .send({ ids: [1, 2] })
         .expect(200);
@@ -173,7 +173,7 @@ describe('ProductAttr API (e2e)', () => {
     });
   });
 
-  describe('GET /productAttribute/list/:categoryId', () => {
+  describe('GET /productAttribute/?categoryId=', () => {
     it('获取商品属性列表 → 200', async () => {
       mockService.listAttr.mockResolvedValue({
         list: [{ id: 1, name: '颜色' }],
@@ -181,9 +181,9 @@ describe('ProductAttr API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(`${attrUrl}/list/1`)
+        .get(attrUrl)
         .set('Authorization', bearerHeader(token))
-        .query({ type: '0', pageNum: 1, pageSize: 10 })
+        .query({ categoryId: 1, type: '0', pageNum: 1, pageSize: 10 })
         .expect(200);
 
       expect(res.body.code).toBe(200);
@@ -204,9 +204,9 @@ describe('ProductAttr API (e2e)', () => {
   });
 
   describe('无 token', () => {
-    it('POST /productAttribute/create → 401', async () => {
+    it('POST /productAttribute/ → 401', async () => {
       const res = await request(app.getHttpServer())
-        .post(`${attrUrl}/create`)
+        .post(attrUrl)
         .send({ name: '颜色' })
         .expect(401);
 

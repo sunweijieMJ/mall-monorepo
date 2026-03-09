@@ -37,10 +37,10 @@ class HomeFlashPromotionVo {
   @ApiProperty({ description: '活动标题' })
   title: string;
 
-  @ApiProperty({ description: '场次开始时间' })
+  @ApiProperty({ description: '场次开始时间', format: 'time' })
   startTime: string;
 
-  @ApiProperty({ description: '场次结束时间' })
+  @ApiProperty({ description: '场次结束时间', format: 'time' })
   endTime: string;
 
   @ApiProperty({ description: '场次ID', type: 'integer' })
@@ -64,21 +64,25 @@ class HomeFlashPromotionVo {
 
 /** 首页数据聚合响应 */
 export class HomeContentVo {
-  @ApiProperty({ type: [HomeAdvertiseVo] })
+  @ApiProperty({ type: [HomeAdvertiseVo], description: '首页广告轮播列表' })
   advertiseList: HomeAdvertiseVo[];
 
-  @ApiProperty({ type: [HomeBrandVo] })
+  @ApiProperty({ type: [HomeBrandVo], description: '推荐品牌列表' })
   brandList: HomeBrandVo[];
 
-  @ApiProperty({ type: [HomeNewProductVo] })
+  @ApiProperty({ type: [HomeNewProductVo], description: '新品推荐列表' })
   newProductList: HomeNewProductVo[];
 
-  @ApiProperty({ type: [HomeHotProductVo] })
+  @ApiProperty({ type: [HomeHotProductVo], description: '人气推荐列表' })
   hotProductList: HomeHotProductVo[];
 
-  @ApiProperty({ type: [HomeRecommendSubjectVo] })
+  @ApiProperty({ type: [HomeRecommendSubjectVo], description: '推荐专题列表' })
   subjectList: HomeRecommendSubjectVo[];
 
-  @ApiPropertyOptional({ type: HomeFlashPromotionVo, nullable: true })
+  @ApiPropertyOptional({
+    type: HomeFlashPromotionVo,
+    nullable: true,
+    description: '当前秒杀活动信息',
+  })
   homeFlashPromotion: HomeFlashPromotionVo | null;
 }

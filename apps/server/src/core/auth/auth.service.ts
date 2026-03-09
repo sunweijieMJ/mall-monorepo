@@ -20,7 +20,7 @@ import { REDIS_CLIENT } from '@/infrastructure/redis/redis-client.module';
 import { AdminLoginDto } from './dto/admin-login.dto';
 import { RegisterAdminDto } from './dto/register-admin.dto';
 import { PortalLoginDto, PortalRegisterDto } from './dto/portal-login.dto';
-import { LoginResponseDto } from './dto/login-response.dto';
+import { LoginResponseVo } from './vo/login-response.vo';
 import { JwtPayload } from './types/jwt-payload.type';
 
 import { AdminUserEntity } from '@/modules/ums/admin-user/infrastructure/persistence/relational/entities/admin-user.entity';
@@ -74,7 +74,7 @@ export class AuthService {
   async adminLogin(
     dto: AdminLoginDto,
     ip = '0.0.0.0',
-  ): Promise<LoginResponseDto> {
+  ): Promise<LoginResponseVo> {
     // 0. 检查账号是否被锁定（防暴力破解）
     const isLocked = await this.cacheManager.get(
       CACHE_KEYS.loginLock(dto.username),
@@ -274,7 +274,7 @@ export class AuthService {
    * 使用 Refresh Token 签发新的 Access Token + Refresh Token 对
    * Refresh Token 由 JwtRefreshGuard 预验证签名和过期时间，此处验证 Session 有效性
    */
-  async refreshToken(payload: JwtPayload): Promise<LoginResponseDto> {
+  async refreshToken(payload: JwtPayload): Promise<LoginResponseVo> {
     // 1. 从 payload 中取出 sessionId（JwtRefreshStrategy 已验证其存在）
     const { sessionId, sub, username, type, jti } = payload;
 
@@ -327,7 +327,7 @@ export class AuthService {
    * 移动端登录
    * 迁移自 mall UmsMemberServiceImpl.login()
    */
-  async portalLogin(dto: PortalLoginDto): Promise<LoginResponseDto> {
+  async portalLogin(dto: PortalLoginDto): Promise<LoginResponseVo> {
     // 0. 检查账号是否被锁定（防暴力破解）
     const isLocked = await this.cacheManager.get(
       CACHE_KEYS.loginLock(dto.username),
@@ -518,7 +518,7 @@ export class AuthService {
     userId: number,
     username: string,
     userType: 'admin' | 'member',
-  ): Promise<LoginResponseDto> {
+  ): Promise<LoginResponseVo> {
     const refreshSecret = this.configService.getOrThrow('auth.refreshSecret', {
       infer: true,
     });

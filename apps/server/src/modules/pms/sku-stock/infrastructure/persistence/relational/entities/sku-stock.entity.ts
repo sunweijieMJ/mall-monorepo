@@ -5,20 +5,16 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
-  PrimaryGeneratedColumn,
   Relation,
   VersionColumn,
 } from 'typeorm';
+import { BaseEntity } from '@/common/entities/base.entity';
 // 使用 type-only 导入打破 ProductEntity ↔ SkuStockEntity 循环依赖
 // （SWC 编译保留 class 声明有 TDZ，值导入会导致 "Cannot access before initialization"）
 import type { ProductEntity } from '../../../../../product/infrastructure/persistence/relational/entities/product.entity';
 
 @Entity('pms_sku_stock')
-export class SkuStockEntity {
-  @ApiProperty({ description: '主键ID', type: 'integer' })
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class SkuStockEntity extends BaseEntity {
   @ApiProperty({ description: '商品ID', type: 'integer' })
   @Index()
   @Column({ name: 'product_id' })

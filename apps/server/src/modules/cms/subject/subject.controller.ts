@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -40,44 +39,46 @@ import { ProductVo } from '@/modules/pms/product/vo/product.vo';
 export class SubjectController {
   constructor(private readonly subjectService: SubjectService) {}
 
-  @Get('list')
-  @ApiOperation({ summary: '分页查询专题列表' })
-  @ApiPaginatedResponse(SubjectVo)
-  list(@Query() query: SubjectQueryDto) {
-    return this.subjectService.list(query);
-  }
-
-  @Post('create')
+  @Post()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '创建专题' })
-  @ApiOkResponse({ type: SubjectVo })
+  @ApiWrappedResponse(SubjectVo)
   create(@Body() dto: CreateSubjectDto) {
     return this.subjectService.create(dto);
   }
 
-  @Put('update/:id')
-  @ApiOperation({ summary: '更新专题' })
-  @ApiParam({ name: 'id', description: '专题ID', type: 'integer' })
-  @ApiOkResponse({ type: Number, description: '受影响的行数' })
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateSubjectDto) {
-    return this.subjectService.update(id, dto);
-  }
-
-  @Delete('delete')
+  @Post('batch-delete')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '批量删除专题', description: '传入专题 ID 数组' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   batchDelete(@Body() dto: BatchDeleteDto) {
     return this.subjectService.delete(dto.ids);
   }
 
-  @Get('product-list')
+  @Get()
+  @ApiOperation({ summary: '分页查询专题列表' })
+  @ApiPaginatedResponse(SubjectVo)
+  list(@Query() query: SubjectQueryDto) {
+    return this.subjectService.list(query);
+  }
+
+  @Get(':id/products')
   @ApiOperation({ summary: '查询专题关联商品列表' })
+  @ApiParam({ name: 'id', description: '专题ID', type: 'integer' })
   @ApiPaginatedResponse(ProductVo)
   getProductList(
-    @Query('subjectId', ParseIntPipe) subjectId: number,
+    @Param('id', ParseIntPipe) id: number,
     @Query() query: PageQueryDto,
   ) {
-    return this.subjectService.getProductList(subjectId, query);
+    return this.subjectService.getProductList(id, query);
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: '更新专题' })
+  @ApiParam({ name: 'id', description: '专题ID', type: 'integer' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateSubjectDto) {
+    return this.subjectService.update(id, dto);
   }
 
   @Get(':id')

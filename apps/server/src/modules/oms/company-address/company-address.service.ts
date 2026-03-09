@@ -25,11 +25,16 @@ export class CompanyAddressService {
     return this.repo.save(entity);
   }
 
-  async update(id: number, dto: Partial<CompanyAddressEntity>): Promise<void> {
-    await this.repo.update(id, dto);
+  async update(
+    id: number,
+    dto: Partial<CompanyAddressEntity>,
+  ): Promise<number> {
+    const result = await this.repo.update(id, dto);
+    return result.affected ?? 0;
   }
 
-  async delete(id: number): Promise<void> {
-    await this.repo.delete(id);
+  async delete(id: number): Promise<number> {
+    const result = await this.repo.softDelete(id);
+    return result.affected ?? 0;
   }
 }

@@ -46,7 +46,7 @@ describe('ReturnReason API (e2e)', () => {
 
   const baseUrl = '/api/v1/admin/oms/return-reasons';
 
-  describe('GET /list', () => {
+  describe('GET /', () => {
     it('分页查询退货原因 → 200', async () => {
       mockService.list.mockResolvedValue({
         list: [{ id: 1, name: '质量问题' }],
@@ -56,7 +56,7 @@ describe('ReturnReason API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/list`)
+        .get(baseUrl)
         .set('Authorization', bearerHeader(token))
         .query({ pageNum: 1, pageSize: 10 })
         .expect(200);
@@ -65,9 +65,7 @@ describe('ReturnReason API (e2e)', () => {
     });
 
     it('无 token → 401', async () => {
-      const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/list`)
-        .expect(401);
+      const res = await request(app.getHttpServer()).get(baseUrl).expect(401);
 
       expect(res.body.code).toBe(401);
     });
@@ -87,26 +85,26 @@ describe('ReturnReason API (e2e)', () => {
     });
   });
 
-  describe('POST /create', () => {
-    it('创建退货原因 → 201', async () => {
+  describe('POST /', () => {
+    it('创建退货原因 → 200', async () => {
       mockService.create.mockResolvedValue({ id: 2, name: '不想要了' });
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/create`)
+        .post(baseUrl)
         .set('Authorization', bearerHeader(token))
         .send({ name: '不想要了', sort: 1, status: 1 })
-        .expect(201);
+        .expect(200);
 
       expect(res.body.code).toBe(200);
     });
   });
 
-  describe('PUT /update/:id', () => {
+  describe('PUT /:id', () => {
     it('更新退货原因 → 200', async () => {
       mockService.update.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${baseUrl}/update/1`)
+        .put(`${baseUrl}/1`)
         .set('Authorization', bearerHeader(token))
         .send({ name: '质量不合格' })
         .expect(200);
@@ -115,12 +113,12 @@ describe('ReturnReason API (e2e)', () => {
     });
   });
 
-  describe('DELETE /delete', () => {
+  describe('POST /batch-delete', () => {
     it('批量删除退货原因 → 200', async () => {
       mockService.delete.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .delete(`${baseUrl}/delete`)
+        .post(`${baseUrl}/batch-delete`)
         .set('Authorization', bearerHeader(token))
         .send({ ids: [1, 2] })
         .expect(200);
@@ -130,12 +128,12 @@ describe('ReturnReason API (e2e)', () => {
     });
   });
 
-  describe('PUT /update/status', () => {
+  describe('PUT /batch-status', () => {
     it('批量更新退货原因状态 → 200', async () => {
       mockService.updateStatus.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${baseUrl}/update/status`)
+        .put(`${baseUrl}/batch-status`)
         .set('Authorization', bearerHeader(token))
         .send({ ids: [1, 2], status: 0 })
         .expect(200);

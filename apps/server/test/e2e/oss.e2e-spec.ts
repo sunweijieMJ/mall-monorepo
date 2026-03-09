@@ -39,7 +39,7 @@ describe('OSS API (e2e)', () => {
   afterAll(() => app?.close());
   beforeEach(() => vi.clearAllMocks());
 
-  const baseUrl = '/api/v1/admin/aliyun/oss';
+  const baseUrl = '/api/v1/admin/oss';
 
   describe('GET /policy', () => {
     it('获取OSS上传策略 → 200', async () => {

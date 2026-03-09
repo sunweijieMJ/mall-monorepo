@@ -53,9 +53,7 @@ describe('Brand API (e2e)', () => {
 
   const baseUrl = '/api/v1/admin/pms/brands';
 
-  describe('GET /list', () => {
-    const url = `${baseUrl}/list`;
-
+  describe('GET /', () => {
     it('获取品牌列表 → 200', async () => {
       mockBrandService.findList.mockResolvedValue({
         list: [{ id: 1, name: '测试品牌' }],
@@ -65,7 +63,7 @@ describe('Brand API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(url)
+        .get(baseUrl)
         .set('Authorization', bearerHeader(token))
         .query({ pageNum: 1, pageSize: 10 })
         .expect(200);
@@ -74,7 +72,7 @@ describe('Brand API (e2e)', () => {
     });
 
     it('无 token → 401', async () => {
-      const res = await request(app.getHttpServer()).get(url).expect(401);
+      const res = await request(app.getHttpServer()).get(baseUrl).expect(401);
       expect(res.body.code).toBe(401);
     });
   });
@@ -96,12 +94,12 @@ describe('Brand API (e2e)', () => {
     });
   });
 
-  describe('POST /create', () => {
+  describe('POST /', () => {
     it('创建品牌 → 200', async () => {
       mockBrandService.create.mockResolvedValue({ id: 1 });
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/create`)
+        .post(baseUrl)
         .set('Authorization', bearerHeader(token))
         .send({ name: '新品牌', firstLetter: 'X', sort: 0 })
         .expect(200);
@@ -110,12 +108,12 @@ describe('Brand API (e2e)', () => {
     });
   });
 
-  describe('POST /delete', () => {
+  describe('POST /batch-delete', () => {
     it('批量删除品牌 → 200', async () => {
       mockBrandService.remove.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .delete(`${baseUrl}/delete`)
+        .post(`${baseUrl}/batch-delete`)
         .set('Authorization', bearerHeader(token))
         .send({ ids: [1, 2] })
         .expect(200);

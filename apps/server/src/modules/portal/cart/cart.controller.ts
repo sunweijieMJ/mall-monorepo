@@ -23,6 +23,7 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
 import { AuthGuard } from '@nestjs/passport';
 import { CartService } from './cart.service';
 import { AddCartDto } from './dto/add-cart.dto';
@@ -44,12 +45,34 @@ export class CartController {
     private readonly orderService: OrderService,
   ) {}
 
-  @Get('list')
+  @Post()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: '加入购物车',
+    description: '对应前端 POST /cart/add',
+  })
+  @ApiWrappedResponse(CartItemVo)
+  create(@CurrentUser() user: JwtPayload, @Body() dto: AddCartDto) {
+    return this.service.add(user.sub, dto);
+  }
+
+  @Post('batch-delete')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: '删除购物车商品',
+    description: '对应前端 POST /cart/delete?ids=1,2',
+  })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  delete(@CurrentUser() user: JwtPayload, @Body() dto: BatchDeleteDto) {
+    return this.service.delete(user.sub, dto.ids);
+  }
+
+  @Get()
   @ApiOperation({
     summary: '获取购物车列表',
     description: '对应前端 GET /cart/list',
   })
-  @ApiOkResponse({ type: [CartItemVo] })
+  @ApiWrappedResponse(CartItemVo, { isArray: true })
   list(@CurrentUser() user: JwtPayload) {
     return this.service.getCartList(user.sub);
   }
@@ -61,35 +84,36 @@ export class CartController {
     return this.service.getCount(user.sub);
   }
 
-  @Post('create')
-  @HttpCode(HttpStatus.OK)
+  @Get('promotion')
   @ApiOperation({
-    summary: '加入购物车',
-    description: '对应前端 POST /cart/add',
+    summary: '获取含促销信息的购物车列表',
+    description: '对应前端 GET /cart/promotion，结算页用于展示折后价和优惠信息',
   })
-  @ApiOkResponse({ type: CartItemVo })
-  create(@CurrentUser() user: JwtPayload, @Body() dto: AddCartDto) {
-    return this.service.add(user.sub, dto);
-  }
-
-  @Put('update/quantity')
-  @ApiOperation({ summary: '修改购物车商品数量' })
-  @ApiOkResponse({ type: Number, description: '受影响的行数' })
-  updateQuantity(
+  @ApiWrappedResponse(CartPromotionItemVo, { isArray: true })
+  @ApiQuery({
+    name: 'cartIds',
+    required: true,
+    description: '购物车条目 ID，逗号分隔',
+    type: 'array',
+    items: { type: 'integer' },
+  })
+  promotionList(
     @CurrentUser() user: JwtPayload,
-    @Body() dto: UpdateCartQuantityDto,
+    @Query('cartIds', new ParseArrayPipe({ items: Number, separator: ',' }))
+    cartIds: number[],
   ) {
-    return this.service.updateQuantity(user.sub, dto.id, dto.productQuantity);
+    return this.orderService.listCartPromotion(user.sub, cartIds);
   }
 
-  @Delete('delete')
+  @Get('products/:productId')
   @ApiOperation({
-    summary: '删除购物车商品',
-    description: '对应前端 POST /cart/delete?ids=1,2',
+    summary: '获取购物车商品的规格列表',
+    description: '对应前端 GET /cart/getProduct/:productId，用于重新选择规格',
   })
-  @ApiOkResponse({ type: Number, description: '受影响的行数' })
-  delete(@CurrentUser() user: JwtPayload, @Body() dto: BatchDeleteDto) {
-    return this.service.delete(user.sub, dto.ids);
+  @ApiParam({ name: 'productId', description: '商品ID', type: 'integer' })
+  @ApiWrappedResponse(CartProductVo)
+  cartProduct(@Param('productId', ParseIntPipe) productId: number) {
+    return this.service.getCartProduct(productId);
   }
 
   @Delete('clear')
@@ -99,48 +123,30 @@ export class CartController {
     return this.service.clear(user.sub);
   }
 
-  @Get('promotion')
-  @ApiOperation({
-    summary: '获取含促销信息的购物车列表',
-    description: '对应前端 GET /cart/promotion，结算页用于展示折后价和优惠信息',
-  })
-  @ApiOkResponse({ type: [CartPromotionItemVo] })
-  @ApiQuery({
-    name: 'cartIds',
-    required: false,
-    description: '购物车条目 ID，逗号分隔',
-    type: 'array',
-    items: { type: 'integer' },
-  })
-  promotionList(
+  @Put(':id/quantity')
+  @ApiOperation({ summary: '修改购物车商品数量' })
+  @ApiParam({ name: 'id', description: '购物车条目ID', type: 'integer' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  updateQuantity(
+    @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: JwtPayload,
-    @Query(
-      'cartIds',
-      new ParseArrayPipe({ items: Number, separator: ',', optional: true }),
-    )
-    cartIds?: number[],
+    @Body() dto: UpdateCartQuantityDto,
   ) {
-    return this.orderService.listCartPromotion(user.sub, cartIds);
+    return this.service.updateQuantity(user.sub, id, dto.productQuantity);
   }
 
-  @Get('product/:productId')
-  @ApiOperation({
-    summary: '获取购物车商品的规格列表',
-    description: '对应前端 GET /cart/getProduct/:productId，用于重新选择规格',
-  })
-  @ApiParam({ name: 'productId', description: '商品ID', type: 'integer' })
-  @ApiOkResponse({ type: CartProductVo })
-  cartProduct(@Param('productId', ParseIntPipe) productId: number) {
-    return this.service.getCartProduct(productId);
-  }
-
-  @Put('update/attr')
+  @Put(':id/attr')
   @ApiOperation({
     summary: '修改购物车商品规格',
     description: '对应前端 POST /cart/update/attr',
   })
+  @ApiParam({ name: 'id', description: '购物车条目ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
-  updateAttr(@CurrentUser() user: JwtPayload, @Body() dto: UpdateCartAttrDto) {
-    return this.service.updateAttr(user.sub, dto);
+  updateAttr(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: JwtPayload,
+    @Body() dto: UpdateCartAttrDto,
+  ) {
+    return this.service.updateAttr(user.sub, id, dto);
   }
 }

@@ -1,6 +1,5 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import {
-  IsArray,
   IsIn,
   IsInt,
   IsNotEmpty,
@@ -73,19 +72,6 @@ export class CreateHomeAdvertiseDto {
 export class UpdateHomeAdvertiseDto extends PartialType(
   CreateHomeAdvertiseDto,
 ) {}
-
-// ---- 批量删除 DTO ----
-
-export class BatchDeleteDto {
-  @ApiProperty({
-    description: 'ID 数组',
-    type: 'array',
-    items: { type: 'integer' },
-  })
-  @IsArray()
-  @IsInt({ each: true })
-  ids: number[];
-}
 
 // ---- 首页品牌推荐 DTO ----
 

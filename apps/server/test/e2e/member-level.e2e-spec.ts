@@ -45,14 +45,14 @@ describe('MemberLevel API (e2e)', () => {
 
   const baseUrl = '/api/v1/admin/ums/member-levels';
 
-  describe('GET /list', () => {
+  describe('GET /', () => {
     it('获取会员等级列表 → 200', async () => {
       mockService.list.mockResolvedValue([
         { id: 1, name: '普通会员', defaultStatus: 1 },
       ]);
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/list`)
+        .get(baseUrl)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -64,7 +64,7 @@ describe('MemberLevel API (e2e)', () => {
       mockService.list.mockResolvedValue([]);
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/list`)
+        .get(baseUrl)
         .set('Authorization', bearerHeader(token))
         .query({ defaultStatus: '1' })
         .expect(200);
@@ -91,12 +91,12 @@ describe('MemberLevel API (e2e)', () => {
     });
   });
 
-  describe('POST /create', () => {
-    it('创建会员等级 → 201', async () => {
+  describe('POST /', () => {
+    it('创建会员等级 → 200', async () => {
       mockService.create.mockResolvedValue({ id: 2 });
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/create`)
+        .post(baseUrl)
         .set('Authorization', bearerHeader(token))
         .send({ name: 'VIP', growthPoint: 1000 })
         .expect(200);
@@ -105,12 +105,12 @@ describe('MemberLevel API (e2e)', () => {
     });
   });
 
-  describe('PUT /update/:id', () => {
+  describe('PUT /:id', () => {
     it('更新会员等级 → 200', async () => {
       mockService.update.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .put(`${baseUrl}/update/1`)
+        .put(`${baseUrl}/1`)
         .set('Authorization', bearerHeader(token))
         .send({ name: 'SVIP' })
         .expect(200);
@@ -119,12 +119,12 @@ describe('MemberLevel API (e2e)', () => {
     });
   });
 
-  describe('DELETE /delete', () => {
+  describe('POST /batch-delete', () => {
     it('批量删除会员等级 → 200', async () => {
       mockService.delete.mockResolvedValue(undefined);
 
       const res = await request(app.getHttpServer())
-        .delete(`${baseUrl}/delete`)
+        .post(`${baseUrl}/batch-delete`)
         .set('Authorization', bearerHeader(token))
         .send({ ids: [1, 2] })
         .expect(200);
@@ -134,10 +134,8 @@ describe('MemberLevel API (e2e)', () => {
   });
 
   describe('无 token', () => {
-    it('GET /list → 401', async () => {
-      const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/list`)
-        .expect(401);
+    it('GET / → 401', async () => {
+      const res = await request(app.getHttpServer()).get(baseUrl).expect(401);
 
       expect(res.body.code).toBe(401);
     });

@@ -32,7 +32,7 @@ export class PortalProductController {
     );
   }
 
-  @Get('category-tree-list')
+  @Get('categories/tree')
   @Public()
   @ApiOperation({
     summary: '获取商品分类树',

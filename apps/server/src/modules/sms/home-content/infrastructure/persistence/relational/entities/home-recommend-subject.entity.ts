@@ -1,12 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity } from 'typeorm';
+import { BaseEntity } from '@/common/entities/base.entity';
 
 @Entity('sms_home_recommend_subject')
-export class HomeRecommendSubjectEntity {
-  @ApiProperty({ description: '主键ID', type: 'integer' })
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class HomeRecommendSubjectEntity extends BaseEntity {
   @ApiProperty({ description: '专题ID', type: 'integer' })
   @Column({ name: 'subject_id' })
   subjectId: number;

@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -19,9 +18,9 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
-  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
 import { AuthGuard } from '@nestjs/passport';
 import { HomeContentService } from './home-content.service';
 import {
@@ -29,7 +28,13 @@ import {
   UpdateSingleStatusDto,
   UpdateSortDto,
 } from '@/common/dto/batch-update-status.dto';
-import { PageQueryDto } from '@/common/dto/page-result.dto';
+import {
+  QueryHomeAdDto,
+  QueryHomeBrandDto,
+  QueryHomeSubjectDto,
+  QueryHomeNewProductDto,
+  QueryHomeRecommendProductDto,
+} from './dto/query-home-content.dto';
 import {
   CreateHomeAdvertiseDto,
   UpdateHomeAdvertiseDto,
@@ -53,44 +58,41 @@ import { HomeRecommendProductVo } from './vo/home-recommend-product.vo';
 export class HomeAdvertiseController {
   constructor(private readonly s: HomeContentService) {}
 
-  @Get('list')
-  @ApiOperation({ summary: '分页查询首页广告' })
-  @ApiPaginatedResponse(HomeAdvertiseVo)
-  @ApiQuery({ name: 'keyword', required: false })
-  @ApiQuery({ name: 'type', required: false, type: Number, enum: [0, 1] })
-  @ApiQuery({ name: 'endTime', required: false })
-  list(
-    @Query() q: PageQueryDto,
-    @Query('keyword') keyword?: string,
-    @Query('type') type?: string,
-    @Query('endTime') endTime?: string,
-  ) {
-    return this.s.listAdvertise(
-      Object.assign(q, {
-        keyword,
-        type: type != null ? Number(type) : undefined,
-        endTime,
-      }),
-    );
-  }
-
-  @Get(':id')
-  @ApiOperation({ summary: '获取广告详情' })
-  @ApiParam({ name: 'id', description: '首页广告ID', type: 'integer' })
-  @ApiOkResponse({ type: HomeAdvertiseVo })
-  getItem(@Param('id', ParseIntPipe) id: number) {
-    return this.s.getAdvertiseItem(id);
-  }
-
-  @Post('create')
+  @Post()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '添加广告' })
-  @ApiOkResponse({ type: HomeAdvertiseVo })
+  @ApiWrappedResponse(HomeAdvertiseVo)
   create(@Body() dto: CreateHomeAdvertiseDto) {
     return this.s.createAdvertise(dto);
   }
 
-  @Put('update/:id')
+  @Post('batch-delete')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '批量删除广告' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  batchDelete(@Body() dto: BatchDeleteDto) {
+    return this.s.deleteAdvertise(dto.ids);
+  }
+
+  @Get()
+  @ApiOperation({ summary: '分页查询首页广告' })
+  @ApiPaginatedResponse(HomeAdvertiseVo)
+  list(@Query() query: QueryHomeAdDto) {
+    return this.s.listAdvertise(query);
+  }
+
+  @Put(':id/status')
+  @ApiOperation({ summary: '修改上下线状态' })
+  @ApiParam({ name: 'id', description: '首页广告ID', type: 'integer' })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  updateStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateSingleStatusDto,
+  ) {
+    return this.s.updateAdvertiseStatus(id, dto.status);
+  }
+
+  @Put(':id')
   @ApiOperation({ summary: '修改广告' })
   @ApiParam({ name: 'id', description: '首页广告ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
@@ -101,22 +103,12 @@ export class HomeAdvertiseController {
     return this.s.updateAdvertise(id, dto);
   }
 
-  @Delete('delete')
-  @ApiOperation({ summary: '批量删除广告' })
-  @ApiOkResponse({ type: Number, description: '受影响的行数' })
-  batchDelete(@Body() dto: BatchDeleteDto) {
-    return this.s.deleteAdvertise(dto.ids);
-  }
-
-  @Put('update/status/:id')
-  @ApiOperation({ summary: '修改上下线状态' })
+  @Get(':id')
+  @ApiOperation({ summary: '获取广告详情' })
   @ApiParam({ name: 'id', description: '首页广告ID', type: 'integer' })
-  @ApiOkResponse({ type: Number, description: '受影响的行数' })
-  updateStatus(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateSingleStatusDto,
-  ) {
-    return this.s.updateAdvertiseStatus(id, dto.status);
+  @ApiWrappedResponse(HomeAdvertiseVo)
+  getItem(@Param('id', ParseIntPipe) id: number) {
+    return this.s.getAdvertiseItem(id);
   }
 }
 
@@ -127,35 +119,11 @@ export class HomeAdvertiseController {
 export class HomeBrandController {
   constructor(private readonly s: HomeContentService) {}
 
-  @Get('list')
-  @ApiOperation({ summary: '分页查询推荐品牌' })
-  @ApiPaginatedResponse(HomeBrandVo)
-  @ApiQuery({ name: 'brandName', required: false })
-  @ApiQuery({
-    name: 'recommendStatus',
-    required: false,
-    type: Number,
-    enum: [0, 1],
-  })
-  list(
-    @Query() q: PageQueryDto,
-    @Query('brandName') brandName?: string,
-    @Query('recommendStatus') recommendStatus?: string,
-  ) {
-    return this.s.listHomeBrand(
-      Object.assign(q, {
-        brandName,
-        recommendStatus:
-          recommendStatus != null ? Number(recommendStatus) : undefined,
-      }),
-    );
-  }
-
-  @Post('create')
+  @Post()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '批量添加推荐品牌' })
   @ApiBody({ type: [CreateHomeBrandDto] })
-  @ApiOkResponse({ type: [HomeBrandVo] })
+  @ApiWrappedResponse(HomeBrandVo, { isArray: true })
   batchCreate(
     @Body(new ParseArrayPipe({ items: CreateHomeBrandDto }))
     dto: CreateHomeBrandDto[],
@@ -163,21 +131,29 @@ export class HomeBrandController {
     return this.s.createHomeBrand(dto);
   }
 
-  @Delete('delete')
+  @Post('batch-delete')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '批量删除推荐品牌' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   batchDelete(@Body() dto: BatchDeleteDto) {
     return this.s.deleteHomeBrand(dto.ids);
   }
 
-  @Put('update/recommend-status')
+  @Get()
+  @ApiOperation({ summary: '分页查询推荐品牌' })
+  @ApiPaginatedResponse(HomeBrandVo)
+  list(@Query() query: QueryHomeBrandDto) {
+    return this.s.listHomeBrand(query);
+  }
+
+  @Put('batch-status')
   @ApiOperation({ summary: '批量修改推荐状态' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updateStatus(@Body() dto: BatchUpdateStatusDto) {
     return this.s.updateHomeBrandStatus(dto.ids, dto.status);
   }
 
-  @Put('update/sort/:id')
+  @Put(':id/sort')
   @ApiOperation({ summary: '修改排序' })
   @ApiParam({ name: 'id', description: '首页品牌推荐ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
@@ -196,35 +172,11 @@ export class HomeBrandController {
 export class HomeSubjectController {
   constructor(private readonly s: HomeContentService) {}
 
-  @Get('list')
-  @ApiOperation({ summary: '分页查询推荐专题' })
-  @ApiPaginatedResponse(HomeSubjectVo)
-  @ApiQuery({ name: 'subjectName', required: false })
-  @ApiQuery({
-    name: 'recommendStatus',
-    required: false,
-    type: Number,
-    enum: [0, 1],
-  })
-  list(
-    @Query() q: PageQueryDto,
-    @Query('subjectName') subjectName?: string,
-    @Query('recommendStatus') recommendStatus?: string,
-  ) {
-    return this.s.listSubject(
-      Object.assign(q, {
-        subjectName,
-        recommendStatus:
-          recommendStatus != null ? Number(recommendStatus) : undefined,
-      }),
-    );
-  }
-
-  @Post('create')
+  @Post()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '批量添加推荐专题' })
   @ApiBody({ type: [CreateHomeSubjectDto] })
-  @ApiOkResponse({ type: [HomeSubjectVo] })
+  @ApiWrappedResponse(HomeSubjectVo, { isArray: true })
   batchCreate(
     @Body(new ParseArrayPipe({ items: CreateHomeSubjectDto }))
     dto: CreateHomeSubjectDto[],
@@ -232,21 +184,29 @@ export class HomeSubjectController {
     return this.s.createSubject(dto);
   }
 
-  @Delete('delete')
+  @Post('batch-delete')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '批量删除推荐专题' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   batchDelete(@Body() dto: BatchDeleteDto) {
     return this.s.deleteSubject(dto.ids);
   }
 
-  @Put('update/recommend-status')
+  @Get()
+  @ApiOperation({ summary: '分页查询推荐专题' })
+  @ApiPaginatedResponse(HomeSubjectVo)
+  list(@Query() query: QueryHomeSubjectDto) {
+    return this.s.listSubject(query);
+  }
+
+  @Put('batch-status')
   @ApiOperation({ summary: '批量修改推荐状态' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updateStatus(@Body() dto: BatchUpdateStatusDto) {
     return this.s.updateSubjectStatus(dto.ids, dto.status);
   }
 
-  @Put('update/sort/:id')
+  @Put(':id/sort')
   @ApiOperation({ summary: '修改排序' })
   @ApiParam({ name: 'id', description: '首页专题推荐ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
@@ -265,35 +225,11 @@ export class HomeSubjectController {
 export class HomeNewProductController {
   constructor(private readonly s: HomeContentService) {}
 
-  @Get('list')
-  @ApiOperation({ summary: '分页查询新品推荐' })
-  @ApiPaginatedResponse(HomeNewProductVo)
-  @ApiQuery({ name: 'productName', required: false })
-  @ApiQuery({
-    name: 'recommendStatus',
-    required: false,
-    type: Number,
-    enum: [0, 1],
-  })
-  list(
-    @Query() q: PageQueryDto,
-    @Query('productName') productName?: string,
-    @Query('recommendStatus') recommendStatus?: string,
-  ) {
-    return this.s.listNewProduct(
-      Object.assign(q, {
-        productName,
-        recommendStatus:
-          recommendStatus != null ? Number(recommendStatus) : undefined,
-      }),
-    );
-  }
-
-  @Post('create')
+  @Post()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '批量添加新品推荐' })
   @ApiBody({ type: [CreateHomeNewProductDto] })
-  @ApiOkResponse({ type: [HomeNewProductVo] })
+  @ApiWrappedResponse(HomeNewProductVo, { isArray: true })
   batchCreate(
     @Body(new ParseArrayPipe({ items: CreateHomeNewProductDto }))
     dto: CreateHomeNewProductDto[],
@@ -301,21 +237,29 @@ export class HomeNewProductController {
     return this.s.createNewProduct(dto);
   }
 
-  @Delete('delete')
+  @Post('batch-delete')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '批量删除新品推荐' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   batchDelete(@Body() dto: BatchDeleteDto) {
     return this.s.deleteNewProduct(dto.ids);
   }
 
-  @Put('update/recommend-status')
+  @Get()
+  @ApiOperation({ summary: '分页查询新品推荐' })
+  @ApiPaginatedResponse(HomeNewProductVo)
+  list(@Query() query: QueryHomeNewProductDto) {
+    return this.s.listNewProduct(query);
+  }
+
+  @Put('batch-status')
   @ApiOperation({ summary: '批量修改推荐状态' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updateStatus(@Body() dto: BatchUpdateStatusDto) {
     return this.s.updateNewProductStatus(dto.ids, dto.status);
   }
 
-  @Put('update/sort/:id')
+  @Put(':id/sort')
   @ApiOperation({ summary: '修改排序' })
   @ApiParam({ name: 'id', description: '首页新品推荐ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
@@ -334,35 +278,11 @@ export class HomeNewProductController {
 export class HomeRecommendProductController {
   constructor(private readonly s: HomeContentService) {}
 
-  @Get('list')
-  @ApiOperation({ summary: '分页查询人气推荐' })
-  @ApiPaginatedResponse(HomeRecommendProductVo)
-  @ApiQuery({ name: 'productName', required: false })
-  @ApiQuery({
-    name: 'recommendStatus',
-    required: false,
-    type: Number,
-    enum: [0, 1],
-  })
-  list(
-    @Query() q: PageQueryDto,
-    @Query('productName') productName?: string,
-    @Query('recommendStatus') recommendStatus?: string,
-  ) {
-    return this.s.listHotProduct(
-      Object.assign(q, {
-        productName,
-        recommendStatus:
-          recommendStatus != null ? Number(recommendStatus) : undefined,
-      }),
-    );
-  }
-
-  @Post('create')
+  @Post()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '批量添加人气推荐' })
   @ApiBody({ type: [CreateHomeRecommendProductDto] })
-  @ApiOkResponse({ type: [HomeRecommendProductVo] })
+  @ApiWrappedResponse(HomeRecommendProductVo, { isArray: true })
   batchCreate(
     @Body(new ParseArrayPipe({ items: CreateHomeRecommendProductDto }))
     dto: CreateHomeRecommendProductDto[],
@@ -370,21 +290,29 @@ export class HomeRecommendProductController {
     return this.s.createHotProduct(dto);
   }
 
-  @Delete('delete')
+  @Post('batch-delete')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '批量删除人气推荐' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   batchDelete(@Body() dto: BatchDeleteDto) {
     return this.s.deleteHotProduct(dto.ids);
   }
 
-  @Put('update/recommend-status')
+  @Get()
+  @ApiOperation({ summary: '分页查询人气推荐' })
+  @ApiPaginatedResponse(HomeRecommendProductVo)
+  list(@Query() query: QueryHomeRecommendProductDto) {
+    return this.s.listHotProduct(query);
+  }
+
+  @Put('batch-status')
   @ApiOperation({ summary: '批量修改推荐状态' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updateStatus(@Body() dto: BatchUpdateStatusDto) {
     return this.s.updateHotProductStatus(dto.ids, dto.status);
   }
 
-  @Put('update/sort/:id')
+  @Put(':id/sort')
   @ApiOperation({ summary: '修改排序' })
   @ApiParam({ name: 'id', description: '首页人气推荐ID', type: 'integer' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })

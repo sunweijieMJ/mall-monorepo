@@ -72,7 +72,11 @@ export class CreateMemberLevelDto {
   @IsInt()
   privilegePromotion?: number;
 
-  @ApiPropertyOptional({ description: '是否有会员价格特权', default: 0 })
+  @ApiPropertyOptional({
+    type: 'integer',
+    description: '是否有会员价格特权',
+    default: 0,
+  })
   @IsOptional()
   @IsInt()
   privilegeMemberPrice?: number;

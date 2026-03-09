@@ -93,11 +93,11 @@ describe('CompanyAddressService', () => {
 
   describe('delete', () => {
     it('删除公司地址', async () => {
-      mockRepo.delete.mockResolvedValue({ affected: 1 });
+      mockRepo.softDelete.mockResolvedValue({ affected: 1 });
 
       await service.delete(1);
 
-      expect(mockRepo.delete).toHaveBeenCalledWith(1);
+      expect(mockRepo.softDelete).toHaveBeenCalledWith(1);
     });
   });
 });

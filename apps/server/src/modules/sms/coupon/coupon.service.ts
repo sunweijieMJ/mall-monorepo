@@ -7,6 +7,7 @@ import { CouponHistoryEntity } from './infrastructure/persistence/relational/ent
 import { CouponProductRelationEntity } from './infrastructure/persistence/relational/entities/coupon-product-relation.entity';
 import { CouponProductCategoryRelationEntity } from './infrastructure/persistence/relational/entities/coupon-product-category-relation.entity';
 import { PageQueryDto, PageResult } from '@/common/dto/page-result.dto';
+import { paginate } from '@/common/utils/paginate.util';
 import { CreateCouponDto, UpdateCouponDto } from './dto/create-coupon.dto';
 
 @Injectable()
@@ -37,10 +38,8 @@ export class CouponService {
     }
 
     qb.orderBy('c.id', 'DESC');
-    qb.skip((query.page - 1) * query.limit).take(query.limit);
 
-    const [list, total] = await qb.getManyAndCount();
-    return PageResult.of(list, total, query);
+    return paginate(qb, query);
   }
 
   // 创建优惠券（含关联关系）
@@ -102,11 +101,11 @@ export class CouponService {
   }
 
   // 更新优惠券（含关联关系）
-  async update(id: number, dto: UpdateCouponDto): Promise<void> {
+  async update(id: number, dto: UpdateCouponDto): Promise<number> {
     const { productRelationList, productCategoryRelationList, ...couponData } =
       dto;
 
-    await this.transactionService.run(async (manager) => {
+    return this.transactionService.run(async (manager) => {
       const { amount, minPoint, ...restCouponData } = couponData;
       await manager.update(CouponEntity, id, {
         ...restCouponData,
@@ -135,17 +134,20 @@ export class CouponService {
         }));
         await manager.insert(CouponProductCategoryRelationEntity, relations);
       }
+
+      return 1;
     });
   }
 
   // 删除优惠券（含关联关系）
-  async delete(id: number): Promise<void> {
-    await this.transactionService.run(async (manager) => {
-      await manager.delete(CouponEntity, id);
+  async delete(id: number): Promise<number> {
+    return this.transactionService.run(async (manager) => {
+      const result = await manager.softDelete(CouponEntity, id);
       await manager.delete(CouponProductRelationEntity, { couponId: id });
       await manager.delete(CouponProductCategoryRelationEntity, {
         couponId: id,
       });
+      return result.affected ?? 0;
     });
   }
 
@@ -172,9 +174,7 @@ export class CouponService {
     }
 
     qb.orderBy('h.id', 'DESC');
-    qb.skip((query.page - 1) * query.limit).take(query.limit);
 
-    const [list, total] = await qb.getManyAndCount();
-    return PageResult.of(list, total, query);
+    return paginate(qb, query);
   }
 }

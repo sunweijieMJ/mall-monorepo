@@ -48,7 +48,7 @@ describe('AdminUser API (e2e)', () => {
 
   const baseUrl = '/api/v1/admin/ums/admins';
 
-  describe('GET /list', () => {
+  describe('GET /', () => {
     it('获取管理员列表 → 200', async () => {
       mockAdminUserService.list.mockResolvedValue({
         list: [{ id: 1, username: 'admin' }],
@@ -58,7 +58,7 @@ describe('AdminUser API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/list`)
+        .get(baseUrl)
         .set('Authorization', bearerHeader(token))
         .query({ pageNum: 1, pageSize: 10 })
         .expect(200);
@@ -84,12 +84,12 @@ describe('AdminUser API (e2e)', () => {
     });
   });
 
-  describe('PUT /update/:id', () => {
+  describe('PUT /:id', () => {
     it('修改管理员信息 → 200', async () => {
       mockAdminUserService.update.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .put(`${baseUrl}/update/1`)
+        .put(`${baseUrl}/1`)
         .set('Authorization', bearerHeader(token))
         .send({ nickName: '新昵称', email: 'test@test.com' })
         .expect(200);
@@ -98,12 +98,12 @@ describe('AdminUser API (e2e)', () => {
     });
   });
 
-  describe('PUT /update/status/:id', () => {
+  describe('PUT /:id/status', () => {
     it('修改帐号状态 → 200', async () => {
       mockAdminUserService.updateStatus.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .put(`${baseUrl}/update/status/1`)
+        .put(`${baseUrl}/1/status`)
         .set('Authorization', bearerHeader(token))
         .send({ status: 1 })
         .expect(200);
@@ -112,12 +112,12 @@ describe('AdminUser API (e2e)', () => {
     });
   });
 
-  describe('DELETE /delete/:id', () => {
+  describe('DELETE /:id', () => {
     it('删除管理员 → 200', async () => {
       mockAdminUserService.delete.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .delete(`${baseUrl}/delete/1`)
+        .delete(`${baseUrl}/1`)
         .set('Authorization', bearerHeader(token))
         .expect(200);
 
@@ -192,10 +192,8 @@ describe('AdminUser API (e2e)', () => {
   });
 
   describe('无 token', () => {
-    it('GET /list → 401', async () => {
-      const res = await request(app.getHttpServer())
-        .get(`${baseUrl}/list`)
-        .expect(401);
+    it('GET / → 401', async () => {
+      const res = await request(app.getHttpServer()).get(baseUrl).expect(401);
 
       expect(res.body.code).toBe(401);
     });

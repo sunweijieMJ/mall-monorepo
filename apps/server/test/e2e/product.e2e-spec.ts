@@ -50,11 +50,9 @@ describe('Product API (e2e)', () => {
 
   const baseUrl = '/api/v1/admin/pms/products';
 
-  describe('GET /list', () => {
-    const url = `${baseUrl}/list`;
-
+  describe('GET /', () => {
     it('无 token → 401', async () => {
-      const res = await request(app.getHttpServer()).get(url).expect(401);
+      const res = await request(app.getHttpServer()).get(baseUrl).expect(401);
       expect(res.body.code).toBe(401);
     });
 
@@ -65,7 +63,7 @@ describe('Product API (e2e)', () => {
       });
 
       const res = await request(app.getHttpServer())
-        .get(url)
+        .get(baseUrl)
         .set('Authorization', bearerHeader(token))
         .query({ pageNum: 1, pageSize: 10 })
         .expect(200);
@@ -78,7 +76,7 @@ describe('Product API (e2e)', () => {
       mockProductService.findList.mockResolvedValue({ list: [], total: 0 });
 
       const res = await request(app.getHttpServer())
-        .get(url)
+        .get(baseUrl)
         .set('Authorization', bearerHeader(token))
         .query({ keyword: '手机', publishStatus: 1, pageNum: 1, pageSize: 10 })
         .expect(200);
@@ -122,12 +120,12 @@ describe('Product API (e2e)', () => {
     });
   });
 
-  describe('POST /create', () => {
+  describe('POST /', () => {
     it('创建商品 → 200', async () => {
       mockProductService.create.mockResolvedValue({ id: 1 });
 
       const res = await request(app.getHttpServer())
-        .post(`${baseUrl}/create`)
+        .post(baseUrl)
         .set('Authorization', bearerHeader(token))
         .send({ name: '新商品', brandId: 1, productCategoryId: 1, price: 99 })
         .expect(200);
@@ -136,12 +134,12 @@ describe('Product API (e2e)', () => {
     });
   });
 
-  describe('PUT /update/:id', () => {
+  describe('PUT /:id', () => {
     it('更新商品 → 200', async () => {
       mockProductService.update.mockResolvedValue(1);
 
       const res = await request(app.getHttpServer())
-        .put(`${baseUrl}/update/1`)
+        .put(`${baseUrl}/1`)
         .set('Authorization', bearerHeader(token))
         .send({
           name: '修改后的商品',
@@ -155,10 +153,10 @@ describe('Product API (e2e)', () => {
     });
   });
 
-  describe('DELETE /delete', () => {
+  describe('POST /batch-delete', () => {
     it('缺少 ids → 422', async () => {
       const res = await request(app.getHttpServer())
-        .delete(`${baseUrl}/delete`)
+        .post(`${baseUrl}/batch-delete`)
         .set('Authorization', bearerHeader(token))
         .expect(422);
 
@@ -169,7 +167,7 @@ describe('Product API (e2e)', () => {
       mockProductService.delete.mockResolvedValue(2);
 
       const res = await request(app.getHttpServer())
-        .delete(`${baseUrl}/delete`)
+        .post(`${baseUrl}/batch-delete`)
         .set('Authorization', bearerHeader(token))
         .send({ ids: [1, 2] })
         .expect(200);
@@ -178,13 +176,13 @@ describe('Product API (e2e)', () => {
     });
   });
 
-  describe('PUT /update/verify-status', () => {
+  describe('PUT /batch-status/verify', () => {
     it('批量更新审核状态 → 200', async () => {
       mockProductService.updateVerifyStatus.mockResolvedValue(1);
 
       // 使用 body 传参：ids 为数组，verifyStatus 和 detail 为字段
       const res = await request(app.getHttpServer())
-        .put(`${baseUrl}/update/verify-status`)
+        .put(`${baseUrl}/batch-status/verify`)
         .set('Authorization', bearerHeader(token))
         .send({ ids: [1], verifyStatus: 1, detail: '审核通过' })
         .expect(200);
@@ -194,7 +192,7 @@ describe('Product API (e2e)', () => {
 
     it('缺少 ids → 422', async () => {
       await request(app.getHttpServer())
-        .put(`${baseUrl}/update/verify-status`)
+        .put(`${baseUrl}/batch-status/verify`)
         .set('Authorization', bearerHeader(token))
         .send({ verifyStatus: 1, detail: '审核通过' })
         .expect(422);

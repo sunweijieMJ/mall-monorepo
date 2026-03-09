@@ -7,7 +7,6 @@ import {
   Param,
   ParseIntPipe,
   Put,
-  Delete,
   Post,
   Query,
   UseGuards,
@@ -25,6 +24,7 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
 import { AuthGuard } from '@nestjs/passport';
 
 import { ProductService } from './product.service';
@@ -44,7 +44,30 @@ import { ProductOptionVo } from './vo/product-option.vo';
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
-  @Get('list')
+  @Post()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: '创建商品（事务写入多张关联表）',
+    description:
+      '创建商品主表 + SKU + 属性值 + 阶梯价 + 满减价 + 会员价 + 专题/优选区域关联',
+  })
+  @ApiWrappedResponse(ProductVo)
+  create(@Body() dto: CreateProductDto) {
+    return this.productService.create(dto);
+  }
+
+  @Post('batch-delete')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: '批量删除商品（软删除）',
+    description: '将 deleteStatus 设置为 1',
+  })
+  @ApiOkResponse({ type: Number, description: '受影响的行数' })
+  batchDelete(@Body() dto: BatchDeleteDto) {
+    return this.productService.delete(dto.ids);
+  }
+
+  @Get()
   @ApiOperation({
     summary: '商品列表（分页）',
     description:
@@ -60,36 +83,13 @@ export class ProductController {
     summary: '简单商品列表（选择器用）',
     description: '只返回 id/name/pic，支持关键词搜索',
   })
-  @ApiOkResponse({ type: [ProductOptionVo] })
+  @ApiWrappedResponse(ProductOptionVo, { isArray: true })
   @ApiQuery({ name: 'keyword', required: false })
   listSimple(@Query('keyword') keyword?: string) {
     return this.productService.findSimpleList(keyword);
   }
 
-  @Get(':id')
-  @ApiOperation({
-    summary: '获取商品详情（含SKU、属性值等聚合信息）',
-    description: '获取商品完整信息，包括 SKU、属性值、阶梯价、满减等',
-  })
-  @ApiParam({ name: 'id', description: '商品ID', type: 'integer' })
-  @ApiOkResponse({ type: ProductUpdateInfoVo })
-  getUpdateInfo(@Param('id', ParseIntPipe) id: number) {
-    return this.productService.getUpdateInfo(id);
-  }
-
-  @Post('create')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: '创建商品（事务写入多张关联表）',
-    description:
-      '创建商品主表 + SKU + 属性值 + 阶梯价 + 满减价 + 会员价 + 专题/优选区域关联',
-  })
-  @ApiOkResponse({ type: ProductVo })
-  create(@Body() dto: CreateProductDto) {
-    return this.productService.create(dto);
-  }
-
-  @Put('update/verify-status')
+  @Put('batch-status/verify')
   @ApiOperation({
     summary: '批量更新审核状态',
     description: '更新商品审核状态，同时写入审核记录',
@@ -107,28 +107,28 @@ export class ProductController {
     );
   }
 
-  @Put('update/publish-status')
+  @Put('batch-status/publish')
   @ApiOperation({ summary: '批量更新上架状态' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updatePublishStatus(@Body() dto: BatchUpdateStatusDto) {
     return this.productService.updatePublishStatus(dto.ids, dto.status);
   }
 
-  @Put('update/new-status')
+  @Put('batch-status/new')
   @ApiOperation({ summary: '批量更新新品状态' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updateNewStatus(@Body() dto: BatchUpdateStatusDto) {
     return this.productService.updateNewStatus(dto.ids, dto.status);
   }
 
-  @Put('update/recommend-status')
+  @Put('batch-status/recommend')
   @ApiOperation({ summary: '批量更新推荐状态' })
   @ApiOkResponse({ type: Number, description: '受影响的行数' })
   updateRecommendStatus(@Body() dto: BatchUpdateStatusDto) {
     return this.productService.updateRecommendStatus(dto.ids, dto.status);
   }
 
-  @Put('update/:id')
+  @Put(':id')
   @ApiOperation({
     summary: '更新商品（先删后插 + SKU 增量更新）',
     description: '更新商品主表，子表先删后插，SKU 做增量三路处理',
@@ -139,13 +139,14 @@ export class ProductController {
     return this.productService.update(id, dto);
   }
 
-  @Delete('delete')
+  @Get(':id')
   @ApiOperation({
-    summary: '批量删除商品（软删除）',
-    description: '将 deleteStatus 设置为 1',
+    summary: '获取商品详情（含SKU、属性值等聚合信息）',
+    description: '获取商品完整信息，包括 SKU、属性值、阶梯价、满减等',
   })
-  @ApiOkResponse({ type: Number, description: '受影响的行数' })
-  batchDelete(@Body() dto: BatchDeleteDto) {
-    return this.productService.delete(dto.ids);
+  @ApiParam({ name: 'id', description: '商品ID', type: 'integer' })
+  @ApiWrappedResponse(ProductUpdateInfoVo)
+  getDetail(@Param('id', ParseIntPipe) id: number) {
+    return this.productService.getUpdateInfo(id);
   }
 }

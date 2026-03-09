@@ -1,58 +1,11 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsInt,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  Min,
-  Max,
-} from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsInt, IsNotEmpty } from 'class-validator';
+import { HandleReturnApplyDto } from './handle-return-apply.dto';
 
-/** 更新退货申请状态 DTO */
-export class UpdateReturnStatusDto {
+/** 更新退货申请状态 DTO（通过 body 传递 ID，复用 HandleReturnApplyDto 字段） */
+export class UpdateReturnStatusDto extends HandleReturnApplyDto {
   @ApiProperty({ description: '退货申请ID', type: 'integer' })
   @IsInt()
   @IsNotEmpty()
   id: number;
-
-  @ApiProperty({
-    description: '申请状态：0->待处理；1->退货中；2->已完成；3->已拒绝',
-    type: 'integer',
-    enum: [0, 1, 2, 3],
-  })
-  @IsInt()
-  @Min(0)
-  @Max(3)
-  status: number;
-
-  @ApiPropertyOptional({ description: '处理备注' })
-  @IsString()
-  @IsOptional()
-  handleNote?: string;
-
-  @ApiPropertyOptional({ description: '处理人' })
-  @IsString()
-  @IsOptional()
-  handleMan?: string;
-
-  @ApiPropertyOptional({ description: '收货人' })
-  @IsString()
-  @IsOptional()
-  receiveMan?: string;
-
-  @ApiPropertyOptional({ description: '退款金额' })
-  @IsNumber()
-  @IsOptional()
-  refundAmount?: number;
-
-  @ApiPropertyOptional({ description: '公司收货地址ID', type: 'integer' })
-  @IsInt()
-  @IsOptional()
-  companyAddressId?: number;
-
-  @ApiPropertyOptional({ description: '收货备注' })
-  @IsString()
-  @IsOptional()
-  receiveNote?: string;
 }

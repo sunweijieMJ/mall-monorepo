@@ -21,6 +21,7 @@ export class CreateSubjectDto {
   @ApiPropertyOptional({
     type: 'integer',
     description: '推荐状态：0-不推荐 1-推荐',
+    enum: [0, 1],
     example: 0,
   })
   @IsInt()
@@ -40,6 +41,7 @@ export class CreateSubjectDto {
   @ApiPropertyOptional({
     type: 'integer',
     description: '显示状态：0-不显示 1-显示',
+    enum: [0, 1],
     example: 0,
   })
   @IsInt()

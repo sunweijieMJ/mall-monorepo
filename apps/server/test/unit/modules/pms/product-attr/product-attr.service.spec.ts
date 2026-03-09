@@ -50,6 +50,7 @@ function createMockTransactionService() {
     findOneBy: vi.fn(),
     find: vi.fn(),
     delete: vi.fn().mockResolvedValue({ affected: 1 }),
+    softDelete: vi.fn().mockResolvedValue({ affected: 1 }),
   };
 
   return {
@@ -126,12 +127,12 @@ describe('ProductAttrService', () => {
   });
 
   describe('deleteAttrCategory', () => {
-    it('删除属性分类 -> 调用 delete', async () => {
-      mockCateRepo.delete.mockResolvedValue({ affected: 1 });
+    it('删除属性分类 -> 调用 softDelete', async () => {
+      mockCateRepo.softDelete.mockResolvedValue({ affected: 1 });
 
       await service.deleteAttrCategory(1);
 
-      expect(mockCateRepo.delete).toHaveBeenCalledWith(1);
+      expect(mockCateRepo.softDelete).toHaveBeenCalledWith(1);
     });
   });
 
@@ -279,7 +280,7 @@ describe('ProductAttrService', () => {
       await service.deleteAttr([1]);
 
       expect(mockTx.service.run).toHaveBeenCalled();
-      expect(mockTx.manager.delete).toHaveBeenCalled();
+      expect(mockTx.manager.softDelete).toHaveBeenCalled();
       // 验证 attributeCount 减少 1
       const savedCategory = mockTx.manager.save.mock.calls[0][1];
       expect(savedCategory.attributeCount).toBe(2);
@@ -318,7 +319,7 @@ describe('ProductAttrService', () => {
 
       await service.deleteAttr([1]);
 
-      expect(mockTx.manager.delete).toHaveBeenCalled();
+      expect(mockTx.manager.softDelete).toHaveBeenCalled();
       // save 不应被调用（分类不存在时 continue）
       expect(mockTx.manager.save).not.toHaveBeenCalled();
     });
@@ -328,7 +329,7 @@ describe('ProductAttrService', () => {
 
       await service.deleteAttr([999]);
 
-      expect(mockTx.manager.delete).not.toHaveBeenCalled();
+      expect(mockTx.manager.softDelete).not.toHaveBeenCalled();
     });
 
     it('空数组 -> 直接返回不执行事务', async () => {

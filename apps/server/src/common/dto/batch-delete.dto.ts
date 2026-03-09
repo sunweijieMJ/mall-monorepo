@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsInt } from 'class-validator';
+import { ArrayMinSize, IsArray, IsInt } from 'class-validator';
 
 /** 批量删除 DTO */
 export class BatchDeleteDto {
@@ -9,6 +9,7 @@ export class BatchDeleteDto {
     items: { type: 'integer' },
   })
   @IsArray()
+  @ArrayMinSize(1)
   @IsInt({ each: true })
   ids: number[];
 }
