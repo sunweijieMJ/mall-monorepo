@@ -76,6 +76,7 @@ export class CartItemEntity {
     enum: [0, 1],
   })
   @Column({
+    name: 'delete_status',
     default: 1,
     comment: '是否有效（库存不足时标记）：0->无效；1->有效',
   })
