@@ -200,7 +200,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: mobile-mp-weixin-build
           path: ${{ env.APP_DIR }}/dist/build/mp-weixin
@@ -257,7 +257,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: mobile-mp-alipay-build
           path: ${{ env.APP_DIR }}/dist/build/mp-alipay
