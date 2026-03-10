@@ -15,7 +15,7 @@ NC='\033[0m'
 # 配置变量
 CONTAINER_NAME="mall-server-api"
 COMPOSE_FILE="deploy/docker-compose.prod.yaml"
-HEALTH_URL="http://localhost:${HOST_PORT:-9090}/api/v1/health/ready"
+HEALTH_URL="http://localhost:${HOST_PORT:-9090}/api/v1/health"
 HEALTH_TIMEOUT=30
 
 log_info()  { echo -e "${GREEN}[INFO]${NC} $*"; }

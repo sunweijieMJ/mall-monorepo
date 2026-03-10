@@ -84,94 +84,92 @@ async function bootstrap() {
   const httpAdapterHost = app.get(HttpAdapterHost);
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
 
-  // Swagger 文档（生产环境禁用）
-  if (nodeEnv !== 'production') {
-    const swaggerConfig = new DocumentBuilder()
-      .setTitle('Mall API')
-      .setDescription(
-        'Mall 电商平台接口文档（管理端 + 移动端）' +
-          '&nbsp;&nbsp;|&nbsp;&nbsp;' +
-          '<a href="/openapi.json" target="_blank">OpenAPI JSON</a>',
-      )
-      .setVersion('1.0')
-      .addBearerAuth(
-        { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
-        'admin-jwt',
-      )
-      .addBearerAuth(
-        { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
-        'portal-jwt',
-      )
-      .addTag('admin-auth', '管理端 - 认证')
-      .addTag('admin-brand', '管理端 - 品牌管理')
-      .addTag('admin-product', '管理端 - 商品管理')
-      .addTag('admin-product-attr', '管理端 - 商品属性')
-      .addTag('admin-product-attr-category', '管理端 - 商品属性分类')
-      .addTag('admin-product-category', '管理端 - 商品分类')
-      .addTag('admin-sku-stock', '管理端 - SKU库存')
-      .addTag('admin-order', '管理端 - 订单管理')
-      .addTag('admin-order-setting', '管理端 - 订单设置')
-      .addTag('admin-return-apply', '管理端 - 退货申请')
-      .addTag('admin-return-reason', '管理端 - 退货原因')
-      .addTag('admin-company-address', '管理端 - 公司地址')
-      .addTag('admin-coupon', '管理端 - 优惠券')
-      .addTag('admin-flash-promotion', '管理端 - 秒杀活动')
-      .addTag('admin-flash-session', '管理端 - 秒杀场次')
-      .addTag('admin-flash-product-relation', '管理端 - 秒杀商品关联')
-      .addTag('admin-home-ad', '管理端 - 首页广告')
-      .addTag('admin-home-brand', '管理端 - 首页品牌推荐')
-      .addTag('admin-home-subject', '管理端 - 首页专题推荐')
-      .addTag('admin-home-new-product', '管理端 - 首页新品推荐')
-      .addTag('admin-home-recommend-product', '管理端 - 首页人气推荐')
-      .addTag('admin-subject', '管理端 - 专题')
-      .addTag('admin-preference-area', '管理端 - 优选专区')
-      .addTag('admin-user', '管理端 - 用户管理')
-      .addTag('admin-role', '管理端 - 角色管理')
-      .addTag('admin-menu', '管理端 - 菜单管理')
-      .addTag('admin-resource', '管理端 - 资源管理')
-      .addTag('admin-resource-category', '管理端 - 资源分类')
-      .addTag('admin-member-level', '管理端 - 会员等级')
-      .addTag('admin-oss', '管理端 - OSS存储')
-      .addTag('portal-auth', '移动端 - 认证')
-      .addTag('portal-brand', '移动端 - 品牌')
-      .addTag('portal-product', '移动端 - 商品')
-      .addTag('portal-cart', '移动端 - 购物车')
-      .addTag('portal-order', '移动端 - 订单')
-      .addTag('portal-member-profile', '移动端 - 会员信息')
-      .addTag('portal-member-address', '移动端 - 收货地址')
-      .addTag('portal-coupon', '移动端 - 优惠券')
-      .addTag('portal-attention', '移动端 - 品牌关注')
-      .addTag('portal-collection', '移动端 - 商品收藏')
-      .addTag('portal-read-history', '移动端 - 浏览历史')
-      .addTag('portal-return-apply', '移动端 - 退货申请')
-      .addTag('portal-payment', '移动端 - 支付')
-      .addTag('portal-home', '移动端 - 首页')
-      .addTag('health', '健康检查')
-      .build();
-    const document = SwaggerModule.createDocument(app, swaggerConfig, {
-      extraModels: [ApiErrorResponse, ApiResponseDto],
-    });
+  // Swagger 文档
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Mall API')
+    .setDescription(
+      'Mall 电商平台接口文档（管理端 + 移动端）' +
+        '&nbsp;&nbsp;|&nbsp;&nbsp;' +
+        '<a href="/openapi.json" target="_blank">OpenAPI JSON</a>',
+    )
+    .setVersion('1.0')
+    .addBearerAuth(
+      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+      'admin-jwt',
+    )
+    .addBearerAuth(
+      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+      'portal-jwt',
+    )
+    .addTag('admin-auth', '管理端 - 认证')
+    .addTag('admin-brand', '管理端 - 品牌管理')
+    .addTag('admin-product', '管理端 - 商品管理')
+    .addTag('admin-product-attr', '管理端 - 商品属性')
+    .addTag('admin-product-attr-category', '管理端 - 商品属性分类')
+    .addTag('admin-product-category', '管理端 - 商品分类')
+    .addTag('admin-sku-stock', '管理端 - SKU库存')
+    .addTag('admin-order', '管理端 - 订单管理')
+    .addTag('admin-order-setting', '管理端 - 订单设置')
+    .addTag('admin-return-apply', '管理端 - 退货申请')
+    .addTag('admin-return-reason', '管理端 - 退货原因')
+    .addTag('admin-company-address', '管理端 - 公司地址')
+    .addTag('admin-coupon', '管理端 - 优惠券')
+    .addTag('admin-flash-promotion', '管理端 - 秒杀活动')
+    .addTag('admin-flash-session', '管理端 - 秒杀场次')
+    .addTag('admin-flash-product-relation', '管理端 - 秒杀商品关联')
+    .addTag('admin-home-ad', '管理端 - 首页广告')
+    .addTag('admin-home-brand', '管理端 - 首页品牌推荐')
+    .addTag('admin-home-subject', '管理端 - 首页专题推荐')
+    .addTag('admin-home-new-product', '管理端 - 首页新品推荐')
+    .addTag('admin-home-recommend-product', '管理端 - 首页人气推荐')
+    .addTag('admin-subject', '管理端 - 专题')
+    .addTag('admin-preference-area', '管理端 - 优选专区')
+    .addTag('admin-user', '管理端 - 用户管理')
+    .addTag('admin-role', '管理端 - 角色管理')
+    .addTag('admin-menu', '管理端 - 菜单管理')
+    .addTag('admin-resource', '管理端 - 资源管理')
+    .addTag('admin-resource-category', '管理端 - 资源分类')
+    .addTag('admin-member-level', '管理端 - 会员等级')
+    .addTag('admin-oss', '管理端 - OSS存储')
+    .addTag('portal-auth', '移动端 - 认证')
+    .addTag('portal-brand', '移动端 - 品牌')
+    .addTag('portal-product', '移动端 - 商品')
+    .addTag('portal-cart', '移动端 - 购物车')
+    .addTag('portal-order', '移动端 - 订单')
+    .addTag('portal-member-profile', '移动端 - 会员信息')
+    .addTag('portal-member-address', '移动端 - 收货地址')
+    .addTag('portal-coupon', '移动端 - 优惠券')
+    .addTag('portal-attention', '移动端 - 品牌关注')
+    .addTag('portal-collection', '移动端 - 商品收藏')
+    .addTag('portal-read-history', '移动端 - 浏览历史')
+    .addTag('portal-return-apply', '移动端 - 退货申请')
+    .addTag('portal-payment', '移动端 - 支付')
+    .addTag('portal-home', '移动端 - 首页')
+    .addTag('health', '健康检查')
+    .build();
+  const document = SwaggerModule.createDocument(app, swaggerConfig, {
+    extraModels: [ApiErrorResponse, ApiResponseDto],
+  });
 
-    // 后置处理：补全响应包装 + 全局错误响应 + 类型修正
-    postProcessOpenApiDocument(document);
+  // 后置处理：补全响应包装 + 全局错误响应 + 类型修正
+  postProcessOpenApiDocument(document);
 
-    // 修正 Schema 中 enum 值全为整数的 number 类型为 integer
-    fixEnumIntegerSchemas(document);
+  // 修正 Schema 中 enum 值全为整数的 number 类型为 integer
+  fixEnumIntegerSchemas(document);
 
-    // 补全 /api/metrics 的 Swagger 信息（由 @willsoto/nestjs-prometheus 自动注册，无法直接加装饰器）
-    const metricsOp = (document.paths?.['/api/metrics'] as any)?.get;
-    if (metricsOp) {
-      metricsOp.summary = metricsOp.summary || 'Prometheus 指标数据';
-      metricsOp.tags = metricsOp.tags?.length ? metricsOp.tags : ['health'];
-    }
-
-    SwaggerModule.setup('docs', app, document, {
-      jsonDocumentUrl: '/openapi.json',
-      swaggerOptions: {
-        persistAuthorization: true,
-      },
-    });
+  // 补全 /api/metrics 的 Swagger 信息（由 @willsoto/nestjs-prometheus 自动注册，无法直接加装饰器）
+  const metricsOp = (document.paths?.['/api/metrics'] as any)?.get;
+  if (metricsOp) {
+    metricsOp.summary = metricsOp.summary || 'Prometheus 指标数据';
+    metricsOp.tags = metricsOp.tags?.length ? metricsOp.tags : ['health'];
   }
+
+  SwaggerModule.setup('docs', app, document, {
+    jsonDocumentUrl: '/openapi.json',
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
+  });
 
   await app.listen(port);
   const logger = app.get(Logger);
