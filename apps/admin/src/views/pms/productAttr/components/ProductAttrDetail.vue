@@ -107,8 +107,7 @@ import {
 } from 'element-plus';
 import { ref, reactive, watch, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { ProductAttrCateService, ProductAttrService } from '@/api/modules';
-import type { ProductAttr, ProductAttrCate } from '@/interface';
+import { useProductAttrStore } from '@/store';
 
 // Props
 interface Props {
@@ -123,11 +122,13 @@ const props = withDefaults(defineProps<Props>(), {
 const router = useRouter();
 const route = useRoute();
 
+const productAttrStore = useProductAttrStore();
+
 // 表单引用
 const productAttrFormRef = ref<FormInstance>();
 
 // 默认属性数据
-const defaultProductAttr: Partial<ProductAttr> = {
+const defaultProductAttr: Record<string, any> = {
   filterType: 0,
   handAddStatus: 0,
   inputList: '',
@@ -142,10 +143,10 @@ const defaultProductAttr: Partial<ProductAttr> = {
 };
 
 // 属性数据
-const productAttr = reactive<Partial<ProductAttr>>({ ...defaultProductAttr });
+const productAttr = reactive<Record<string, any>>({ ...defaultProductAttr });
 
 // 属性类型列表
-const productAttrCateList = ref<ProductAttrCate[]>([]);
+const productAttrCateList = ref<any[]>([]);
 
 // 输入列表格式化（换行符转逗号）
 const inputListFormat = ref('');
@@ -166,11 +167,8 @@ watch(inputListFormat, (newValue) => {
 // 获取属性类型列表
 const getCateList = async () => {
   try {
-    const response = await ProductAttrCateService.fetchList({
-      pageNum: 1,
-      pageSize: 100,
-    });
-    productAttrCateList.value = response.data.list;
+    await productAttrStore.getCateList({ pageNum: 1, pageSize: 100 });
+    productAttrCateList.value = productAttrStore.cateList;
   } catch (error) {
     console.error('获取属性类型列表失败:', error);
   }
@@ -204,15 +202,12 @@ const onSubmit = async () => {
     if (props.isEdit) {
       // 编辑模式
       const id = Number(route.query.id);
-      await ProductAttrService.updateProductAttr(
-        id,
-        productAttr as ProductAttr,
-      );
+      await productAttrStore.updateAttr(id, productAttr);
       ElMessage.success('修改成功');
       router.back();
     } else {
       // 添加模式
-      await ProductAttrService.createProductAttr(productAttr as ProductAttr);
+      await productAttrStore.createAttr(productAttr);
       ElMessage.success('提交成功');
       resetForm();
     }
@@ -246,8 +241,8 @@ const loadProductAttr = async () => {
     }
 
     try {
-      const response = await ProductAttrService.getProductAttr(id);
-      Object.assign(productAttr, response.data);
+      const data = await productAttrStore.getAttrItem(id);
+      Object.assign(productAttr, data);
       // 将逗号分隔的列表转换为换行格式
       inputListFormat.value = productAttr.inputList
         ? productAttr.inputList.replace(/,/g, '\n')

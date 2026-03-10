@@ -10,6 +10,8 @@
 
 /**
  * 默认收货地址：0->否；1->是
+ * @minimum 0
+ * @maximum 1
  */
 export type UpdateCompanyAddressDtoReceiveStatus =
   (typeof UpdateCompanyAddressDtoReceiveStatus)[keyof typeof UpdateCompanyAddressDtoReceiveStatus];

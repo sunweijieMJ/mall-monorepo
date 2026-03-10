@@ -29,6 +29,4 @@ export interface CreateProductCategoryDto {
   keywords?: string;
   /** 描述 */
   description?: string;
-  /** 筛选属性ID列表 */
-  productAttributeIdList?: number[];
 }

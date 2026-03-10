@@ -14,8 +14,15 @@ export interface UpdateAdminRoleDto {
   name?: string;
   /** 描述 */
   description?: string;
-  /** 启用状态：0->禁用；1->启用 */
+  /**
+   * 启用状态：0->禁用；1->启用
+   * @minimum 0
+   * @maximum 1
+   */
   status?: UpdateAdminRoleDtoStatus;
-  /** 排序 */
+  /**
+   * 排序
+   * @minimum 0
+   */
   sort?: number;
 }

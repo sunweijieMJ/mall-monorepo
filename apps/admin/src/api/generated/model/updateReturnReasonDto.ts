@@ -12,8 +12,15 @@ import type { UpdateReturnReasonDtoStatus } from './updateReturnReasonDtoStatus'
 export interface UpdateReturnReasonDto {
   /** 退货原因名称 */
   name?: string;
-  /** 排序 */
+  /**
+   * 排序
+   * @minimum 0
+   */
   sort?: number;
-  /** 状态：0->不可用；1->可用 */
+  /**
+   * 状态：0->不可用；1->可用
+   * @minimum 0
+   * @maximum 1
+   */
   status?: UpdateReturnReasonDtoStatus;
 }

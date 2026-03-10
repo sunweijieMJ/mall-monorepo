@@ -5,7 +5,11 @@
 
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import { AdminService } from '@/api/modules';
+import {
+  adminAuthControllerLoginV1,
+  adminAuthControllerGetInfoV1,
+  adminAuthControllerLogoutV1,
+} from '@/api';
 import type { UserInfo, MenuItem } from '@/interface';
 import { getMallToken, setMallToken, removeMallToken } from '@/utils/mallAuth';
 
@@ -27,8 +31,10 @@ export const useMallUserStore = defineStore(
      * 登录
      */
     const loginAction = async (username: string, password: string) => {
-      const response = await AdminService.login(username.trim(), password);
-      const data = response.data;
+      const data = await adminAuthControllerLoginV1({
+        username: username.trim(),
+        password,
+      });
       if (data) {
         const tokenStr = data.tokenHead + data.token;
         setMallToken(tokenStr);
@@ -40,8 +46,7 @@ export const useMallUserStore = defineStore(
      * 获取用户信息
      */
     const getInfoAction = async (): Promise<UserInfo> => {
-      const response = await AdminService.getInfo();
-      const data = response.data;
+      const data = await adminAuthControllerGetInfoV1();
       if (data) {
         // 验证返回的roles是否是一个非空数组
         if (data.roles && data.roles.length > 0) {
@@ -51,16 +56,16 @@ export const useMallUserStore = defineStore(
         }
         name.value = data.username;
         avatar.value = data.icon || '';
-        menus.value = data.menus || [];
+        menus.value = (data.menus || []) as unknown as MenuItem[];
       }
-      return data as UserInfo;
+      return data as unknown as UserInfo;
     };
 
     /**
      * 登出
      */
     const logoutAction = async () => {
-      await AdminService.logout();
+      await adminAuthControllerLogoutV1();
       token.value = '';
       roles.value = [];
       menus.value = [];

@@ -7,7 +7,6 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
-import type { SkuStockVoDeletedAt } from './skuStockVoDeletedAt';
 
 export interface SkuStockVo {
   /** 主键ID */
@@ -16,8 +15,11 @@ export interface SkuStockVo {
   createdAt: string;
   /** 更新时间 */
   updatedAt: string;
-  /** 删除时间 */
-  deletedAt?: SkuStockVoDeletedAt;
+  /**
+   * 删除时间
+   * @nullable
+   */
+  deletedAt?: string | null;
   /** 商品ID */
   productId: number;
   /** sku编码 */
@@ -32,8 +34,11 @@ export interface SkuStockVo {
   pic?: string;
   /** 销量 */
   sale: number;
-  /** 促销价格 */
-  promotionPrice?: number;
+  /**
+   * 促销价格
+   * @nullable
+   */
+  promotionPrice?: number | null;
   /** 规格数据，JSON格式 */
   spData?: string;
 }

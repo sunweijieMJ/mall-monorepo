@@ -7,6 +7,7 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
+import type { CouponEntity } from './couponEntity';
 
 export interface CouponProductCategoryRelationVo {
   /** 主键ID */
@@ -19,4 +20,5 @@ export interface CouponProductCategoryRelationVo {
   productCategoryName?: string;
   /** 父分类名称 */
   parentCategoryName?: string;
+  coupon: CouponEntity;
 }

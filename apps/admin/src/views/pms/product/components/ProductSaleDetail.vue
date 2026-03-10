@@ -190,7 +190,9 @@
       </el-form-item>
       <el-form-item style="text-align: center">
         <el-button size="default" @click="handlePrev"
-          >上一步，填写商品信息</el-button
+        >
+          上一步，填写商品信息
+        </el-button
         >
         <el-button type="primary" size="default" @click="handleNext">
           下一步，填写商品属性
@@ -203,13 +205,23 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus';
 import { computed, onMounted, ref, watch } from 'vue';
-import { MemberLevelService } from '@/api/modules';
-import type {
-  ProductParam,
-  MemberPrice,
-  ProductLadder,
-  ProductFullReduction,
-} from '@/interface';
+import type { ProductParam } from '@/interface';
+import { useMemberLevelStore } from '@/store';
+
+interface MemberPrice {
+  memberLevelId?: number;
+  memberLevelName?: string;
+  memberPrice?: number;
+}
+interface ProductLadder {
+  count?: number;
+  discount?: number;
+  price?: number;
+}
+interface ProductFullReduction {
+  fullPrice?: number;
+  reducePrice?: number;
+}
 
 interface Props {
   modelValue: ProductParam;
@@ -324,17 +336,21 @@ const handleNext = () => {
   emit('nextStep');
 };
 
+const memberLevelStore = useMemberLevelStore();
+
 // 初始化
 onMounted(async () => {
   if (!props.isEdit) {
     // 新增模式，获取会员等级列表
     try {
-      const response = await MemberLevelService.fetchList({ defaultStatus: 0 });
-      const memberPriceList: MemberPrice[] = response.data.map((item) => ({
-        memberLevelId: item.id,
-        memberLevelName: item.name,
-        memberPrice: 0,
-      }));
+      await memberLevelStore.getList({ defaultStatus: 0 });
+      const memberPriceList: MemberPrice[] = memberLevelStore.list.map(
+        (item: any) => ({
+          memberLevelId: item.id,
+          memberLevelName: item.name,
+          memberPrice: 0,
+        }),
+      );
       if (localValue.value.memberPriceList) {
         localValue.value.memberPriceList = memberPriceList;
       }

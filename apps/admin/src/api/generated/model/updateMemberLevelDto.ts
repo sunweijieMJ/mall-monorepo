@@ -11,7 +11,10 @@
 export interface UpdateMemberLevelDto {
   /** 等级名称 */
   name?: string;
-  /** 成长值 */
+  /**
+   * 成长值
+   * @minimum 0
+   */
   growthPoint?: number;
   /** 是否为默认等级：0→否 1→是 */
   defaultStatus?: number;

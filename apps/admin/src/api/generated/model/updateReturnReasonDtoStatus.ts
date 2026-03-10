@@ -10,6 +10,8 @@
 
 /**
  * 状态：0->不可用；1->可用
+ * @minimum 0
+ * @maximum 1
  */
 export type UpdateReturnReasonDtoStatus =
   (typeof UpdateReturnReasonDtoStatus)[keyof typeof UpdateReturnReasonDtoStatus];

@@ -40,7 +40,7 @@ import { Upload } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import type { UploadProps, UploadUserFile } from 'element-plus';
 import { ref, computed } from 'vue';
-import { OssService } from '@/api/modules';
+import { ossControllerGetPolicyV1 } from '@/api';
 
 interface Props {
   color?: string;
@@ -162,12 +162,11 @@ const beforeUpload: UploadProps['beforeUpload'] = async (file) => {
 
   // 使用 OSS，需要获取上传策略
   try {
-    const response = await OssService.policy();
-    if (!response || !response.data) {
+    const policy = await ossControllerGetPolicyV1();
+    if (!policy) {
       ElMessage.error('获取上传策略失败：响应数据为空');
       return false;
     }
-    const policy = response.data;
     dataObj.value = {
       policy: policy.policy,
       signature: policy.signature,

@@ -42,9 +42,11 @@
           </template>
         </el-table-column>
         <el-table-column label="添加时间" width="180" align="center">
-          <template #default="{ row }">{{
-            formatCreateTime(row.createTime)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatCreateTime(row.createTime)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="操作" width="160" align="center">
           <template #default="{ row, $index }">
@@ -128,11 +130,12 @@
 import { Tickets } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox, type ElTable } from 'element-plus';
 import { ref, reactive, onMounted } from 'vue';
-import { ReturnReasonService } from '@/api/modules';
-import type { ReturnReason } from '@/interface';
+import type { ReturnReasonVo } from '@/api';
+import { useReturnReasonStore } from '@/store';
 
 // 表格引用
 const returnReasonTableRef = ref<InstanceType<typeof ElTable>>();
+const returnReasonStore = useReturnReasonStore();
 
 // 默认查询参数
 const defaultListQuery = {
@@ -141,7 +144,7 @@ const defaultListQuery = {
 };
 
 // 默认退货原因
-const defaultReturnReason: Partial<ReturnReason> = {
+const defaultReturnReason: Partial<ReturnReasonVo> = {
   name: '',
   sort: 0,
   status: 1,
@@ -149,14 +152,14 @@ const defaultReturnReason: Partial<ReturnReason> = {
 };
 
 // 状态
-const list = ref<ReturnReason[]>([]);
+const list = ref<ReturnReasonVo[]>([]);
 const total = ref(0);
-const multipleSelection = ref<ReturnReason[]>([]);
+const multipleSelection = ref<ReturnReasonVo[]>([]);
 const listLoading = ref(false);
 const listQuery = reactive({ ...defaultListQuery });
 const operateType = ref<number | null>(null);
 const dialogVisible = ref(false);
-const returnReason = reactive<Partial<ReturnReason>>({
+const returnReason = reactive<Partial<ReturnReasonVo>>({
   ...defaultReturnReason,
 });
 const operateReasonId = ref<number | null>(null);
@@ -186,14 +189,14 @@ const handleAdd = () => {
 };
 
 // 选择变化
-const handleSelectionChange = (val: ReturnReason[]) => {
+const handleSelectionChange = (val: ReturnReasonVo[]) => {
   multipleSelection.value = val;
 };
 
 // 状态变化
-const handleStatusChange = async (_index: number, row: ReturnReason) => {
+const handleStatusChange = async (_index: number, row: ReturnReasonVo) => {
   try {
-    await ReturnReasonService.updateStatus(row.id!, { status: row.status });
+    await returnReasonStore.updateStatus([row.id!], row.status!);
     ElMessage.success('修改成功');
   } catch (error) {
     console.error('修改状态失败:', error);
@@ -203,19 +206,19 @@ const handleStatusChange = async (_index: number, row: ReturnReason) => {
 };
 
 // 编辑
-const handleUpdate = async (_index: number, row: ReturnReason) => {
+const handleUpdate = async (_index: number, row: ReturnReasonVo) => {
   dialogVisible.value = true;
   operateReasonId.value = row.id!;
   try {
-    const response = await ReturnReasonService.getReasonDetail(row.id!);
-    Object.assign(returnReason, response.data);
+    const data = await returnReasonStore.getItem(row.id!);
+    if (data) Object.assign(returnReason, data);
   } catch (error) {
     console.error('获取详情失败:', error);
   }
 };
 
 // 删除
-const handleDelete = async (_index: number, row: ReturnReason) => {
+const handleDelete = async (_index: number, row: ReturnReasonVo) => {
   try {
     await ElMessageBox.confirm('是否要删除该退货原因?', '提示', {
       confirmButtonText: '确定',
@@ -223,7 +226,7 @@ const handleDelete = async (_index: number, row: ReturnReason) => {
       type: 'warning',
     });
 
-    await ReturnReasonService.deleteReason([row.id!]);
+    await returnReasonStore.batchDelete([row.id!]);
     ElMessage.success('删除成功');
     await getList();
   } catch (error) {
@@ -249,7 +252,7 @@ const handleBatchOperate = async () => {
       });
 
       const ids = multipleSelection.value.map((item) => item.id!);
-      await ReturnReasonService.deleteReason(ids);
+      await returnReasonStore.batchDelete(ids);
       ElMessage.success('删除成功');
       await getList();
     } catch (error) {
@@ -278,14 +281,14 @@ const handleConfirm = async () => {
   try {
     if (operateReasonId.value) {
       // 编辑
-      await ReturnReasonService.updateReason(
+      await returnReasonStore.update(
         operateReasonId.value,
-        returnReason as ReturnReason,
+        returnReason as ReturnReasonVo,
       );
       ElMessage.success('修改成功');
     } else {
       // 添加
-      await ReturnReasonService.addReason(returnReason as ReturnReason);
+      await returnReasonStore.create(returnReason as ReturnReasonVo);
       ElMessage.success('添加成功');
     }
     dialogVisible.value = false;
@@ -300,9 +303,9 @@ const handleConfirm = async () => {
 const getList = async () => {
   listLoading.value = true;
   try {
-    const response = await ReturnReasonService.fetchList(listQuery);
-    list.value = response.data.list;
-    total.value = response.data.total;
+    await returnReasonStore.getList(listQuery);
+    list.value = returnReasonStore.list;
+    total.value = returnReasonStore.total;
   } catch (error) {
     console.error('获取列表失败:', error);
     ElMessage.error('获取列表失败');

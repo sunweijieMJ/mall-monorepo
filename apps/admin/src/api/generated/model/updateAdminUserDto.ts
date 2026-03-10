@@ -20,6 +20,10 @@ export interface UpdateAdminUserDto {
   nickName?: string;
   /** 备注 */
   note?: string;
-  /** 帐号启用状态：0->禁用；1->启用 */
+  /**
+   * 帐号启用状态：0->禁用；1->启用
+   * @minimum 0
+   * @maximum 1
+   */
   status?: UpdateAdminUserDtoStatus;
 }

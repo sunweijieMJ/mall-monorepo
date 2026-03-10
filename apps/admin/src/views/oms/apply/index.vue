@@ -124,10 +124,11 @@ import { Search, Tickets } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { ReturnApplyService } from '@/api/modules';
-import type { ReturnApply } from '@/interface';
+import type { ReturnApplyVo } from '@/api';
+import { useReturnApplyStore } from '@/store';
 
 const router = useRouter();
+const returnApplyStore = useReturnApplyStore();
 
 const defaultListQuery = {
   pageNum: 1,
@@ -139,7 +140,7 @@ const defaultListQuery = {
 };
 
 const listQuery = reactive({ ...defaultListQuery });
-const list = ref<ReturnApply[]>([]);
+const list = ref<ReturnApplyVo[]>([]);
 const total = ref(0);
 const listLoading = ref(false);
 
@@ -169,7 +170,7 @@ const handleSearchList = () => {
   getList();
 };
 
-const handleViewDetail = (row: ReturnApply) => {
+const handleViewDetail = (row: ReturnApplyVo) => {
   router.push({
     path: '/mall/oms/apply/applyDetail',
     query: { id: String(row.id) },
@@ -190,9 +191,9 @@ const handleCurrentChange = (val: number) => {
 const getList = async () => {
   listLoading.value = true;
   try {
-    const response = await ReturnApplyService.fetchList(listQuery);
-    list.value = response.data.list;
-    total.value = response.data.total;
+    await returnApplyStore.getList(listQuery);
+    list.value = returnApplyStore.list;
+    total.value = returnApplyStore.total;
   } catch (error) {
     console.error('获取退货申请列表失败:', error);
     ElMessage.error('获取列表失败');

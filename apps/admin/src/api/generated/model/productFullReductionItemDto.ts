@@ -11,8 +11,14 @@
 export interface ProductFullReductionItemDto {
   /** 满减 ID */
   id?: number;
-  /** 满足金额 */
+  /**
+   * 满足金额
+   * @minimum 0
+   */
   fullPrice?: number;
-  /** 减免金额 */
+  /**
+   * 减免金额
+   * @minimum 0
+   */
   reducePrice?: number;
 }

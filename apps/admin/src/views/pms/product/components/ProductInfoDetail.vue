@@ -80,8 +80,8 @@
 <script setup lang="ts">
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus';
 import { ref, computed, watch, onMounted } from 'vue';
-import { ProductCateService, BrandService } from '@/api/modules';
-import type { ProductParam, ProductCategory, Brand } from '@/interface';
+import type { ProductParam } from '@/interface';
+import { useProductCateStore, useBrandStore } from '@/store';
 
 interface Props {
   modelValue: ProductParam;
@@ -102,6 +102,9 @@ interface CascaderOption {
 const props = withDefaults(defineProps<Props>(), {
   isEdit: false,
 });
+
+const productCateStore = useProductCateStore();
+const brandStore = useBrandStore();
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: ProductParam): void;
@@ -190,19 +193,17 @@ const handleEditCreated = () => {
 // 获取商品分类列表
 const getProductCateList = async () => {
   try {
-    const response = await ProductCateService.fetchListWithChildren();
-    const list = response.data;
-    productCateOptions.value = list.map(
-      (item: ProductCategory & { children?: ProductCategory[] }) => ({
-        label: item.name,
-        value: item.id,
-        children:
-          item.children?.map((child: ProductCategory) => ({
-            label: child.name,
-            value: child.id,
-          })) || [],
-      }),
-    );
+    const data = await productCateStore.getListWithChildren();
+    const list = (data as any) || [];
+    productCateOptions.value = list.map((item: any) => ({
+      label: item.name,
+      value: item.id,
+      children:
+        item.children?.map((child: any) => ({
+          label: child.name,
+          value: child.id,
+        })) || [],
+    }));
   } catch (error) {
     console.error('获取分类列表失败:', error);
   }
@@ -211,11 +212,8 @@ const getProductCateList = async () => {
 // 获取品牌列表
 const getBrandList = async () => {
   try {
-    const response = await BrandService.fetchList({
-      pageNum: 1,
-      pageSize: 100,
-    });
-    brandOptions.value = response.data.list.map((item: Brand) => ({
+    await brandStore.getList({ pageNum: 1, pageSize: 100 });
+    brandOptions.value = brandStore.list.map((item: any) => ({
       label: item.name,
       value: item.id,
     }));

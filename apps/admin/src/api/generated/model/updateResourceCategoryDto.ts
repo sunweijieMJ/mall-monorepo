@@ -11,6 +11,9 @@
 export interface UpdateResourceCategoryDto {
   /** 分类名称 */
   name?: string;
-  /** 排序 */
+  /**
+   * 排序
+   * @minimum 0
+   */
   sort?: number;
 }

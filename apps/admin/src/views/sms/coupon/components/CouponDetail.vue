@@ -146,8 +146,13 @@
             :value="item.productId"
           >
             <span style="float: left">{{ item.productName }}</span>
-            <span style="float: right; color: #8492a6; font-size: 13px"
-              >NO.{{ item.productSn }}</span
+            <span
+              style="
+                float: right;
+                color: var(--colorTextDescription);
+                font-size: 13px;
+              "
+            >NO.{{ item.productSn }}</span
             >
           </el-option>
         </el-select>
@@ -202,10 +207,8 @@ import {
 } from 'element-plus';
 import { ref, reactive, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import CouponService from '@/api/modules/coupon';
-import ProductService from '@/api/modules/product';
-import ProductCateService from '@/api/modules/productCate';
-import type { Coupon } from '@/interface';
+import type { CouponVo } from '@/api';
+import { useCouponStore, useProductStore, useProductCateStore } from '@/store';
 
 interface Props {
   isEdit?: boolean;
@@ -223,7 +226,7 @@ interface ProductCategoryRelation {
   parentCategoryName: string;
 }
 
-interface CouponWithRelations extends Partial<Coupon> {
+interface CouponWithRelations extends Partial<CouponVo> {
   productRelationList: ProductRelation[];
   productCategoryRelationList: ProductCategoryRelation[];
 }
@@ -240,6 +243,9 @@ const props = withDefaults(defineProps<Props>(), {
 
 const route = useRoute();
 const router = useRouter();
+const couponStore = useCouponStore();
+const productStore = useProductStore();
+const productCateStore = useProductCateStore();
 const couponFormRef = ref<InstanceType<typeof ElForm>>();
 const productCateRelationTableRef = ref<InstanceType<typeof ElTable>>();
 const productRelationTableRef = ref<InstanceType<typeof ElTable>>();
@@ -315,8 +321,7 @@ const productCateOptions = ref<CascaderOption[]>([]);
 // 获取商品分类列表
 const getProductCateList = async () => {
   try {
-    const response = await ProductCateService.fetchListWithChildren();
-    const list = response.data;
+    const list = (await productCateStore.getListWithChildren()) as any[];
     productCateOptions.value = [];
 
     for (const item of list) {
@@ -342,8 +347,8 @@ const searchProductMethod = async (query: string) => {
   if (query !== '') {
     selectProductLoading.value = true;
     try {
-      const response = await ProductService.fetchSimpleList({ keyword: query });
-      const productList = response.data;
+      await productStore.getList({ keyword: query });
+      const productList = productStore.list;
       selectProductOptions.value = productList.map((item) => ({
         productId: item.id,
         productName: item.name,
@@ -451,10 +456,10 @@ const onSubmit = async () => {
 
     if (props.isEdit) {
       const id = Number(route.query.id);
-      await CouponService.updateCoupon(id, coupon as Coupon);
+      await couponStore.update(id, coupon as any);
       ElMessage.success('修改成功');
     } else {
-      await CouponService.createCoupon(coupon as Coupon);
+      await couponStore.create(coupon as any);
       ElMessage.success('提交成功');
     }
 
@@ -477,8 +482,8 @@ onMounted(async () => {
   if (props.isEdit) {
     try {
       const id = Number(route.query.id);
-      const response = await CouponService.getCoupon(id);
-      Object.assign(coupon, response.data);
+      const data = await couponStore.getItem(id);
+      Object.assign(coupon, data);
     } catch (error) {
       console.error('获取优惠券详情失败:', error);
       ElMessage.error('获取优惠券详情失败');

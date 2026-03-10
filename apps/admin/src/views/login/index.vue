@@ -149,7 +149,7 @@ onMounted(() => {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background: #f0f2f5;
+  background: var(--colorBgLayout);
 }
 
 .login-form-layout {
@@ -159,7 +159,7 @@ onMounted(() => {
   left: 50%;
   width: 360px;
   transform: translateX(-50%);
-  border-top: 10px solid #409eff;
+  border-top: 10px solid var(--colorPrimary);
 
   :deep(.el-card__body) {
     padding: 40px 30px;
@@ -173,20 +173,20 @@ onMounted(() => {
   .icon {
     width: 56px;
     height: 56px;
-    color: #409eff;
+    color: var(--colorPrimary);
   }
 }
 
 .login-title {
   margin: 0 0 30px;
-  color: #409eff;
+  color: var(--colorPrimary);
   font-size: 24px;
   font-weight: 600;
   text-align: center;
 }
 
 .input-icon {
-  color: #409eff;
+  color: var(--colorPrimary);
 
   &.clickable {
     cursor: pointer;
@@ -215,6 +215,6 @@ onMounted(() => {
   width: 100%;
   max-width: 100%;
   height: auto;
-  background: #409eff;
+  background: var(--colorPrimary);
 }
 </style>

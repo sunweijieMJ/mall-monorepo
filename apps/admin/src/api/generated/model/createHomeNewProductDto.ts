@@ -15,6 +15,9 @@ export interface CreateHomeNewProductDto {
   productName: string;
   /** 推荐状态：0-不推荐 1-推荐 */
   recommendStatus?: number;
-  /** 排序 */
+  /**
+   * 排序
+   * @minimum 0
+   */
   sort?: number;
 }

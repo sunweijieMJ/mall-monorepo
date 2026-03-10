@@ -16,19 +16,27 @@
       </el-row>
       <el-row>
         <el-col :span="4" class="table-cell">{{ coupon.name }}</el-col>
-        <el-col :span="4" class="table-cell">{{
-          formatType(coupon.type)
-        }}</el-col>
-        <el-col :span="4" class="table-cell">{{
-          formatUseType(coupon.useType)
-        }}</el-col>
+        <el-col :span="4" class="table-cell">
+          {{
+            formatType(coupon.type)
+          }}
+        </el-col>
+        <el-col :span="4" class="table-cell">
+          {{
+            formatUseType(coupon.useType)
+          }}
+        </el-col>
         <el-col :span="4" class="table-cell"
-          >满{{ coupon.minPoint }}元可用</el-col
+        >
+          满{{ coupon.minPoint }}元可用
+        </el-col
         >
         <el-col :span="4" class="table-cell">{{ coupon.amount }}元</el-col>
-        <el-col :span="4" class="table-cell">{{
-          formatStatus(coupon.endTime)
-        }}</el-col>
+        <el-col :span="4" class="table-cell">
+          {{
+            formatStatus(coupon.endTime)
+          }}
+        </el-col>
       </el-row>
       <el-row>
         <el-col :span="4" class="table-cell-title">有效期</el-col>
@@ -44,13 +52,17 @@
         </el-col>
         <el-col :span="4" class="table-cell">{{ coupon.publishCount }}</el-col>
         <el-col :span="4" class="table-cell">{{ coupon.receiveCount }}</el-col>
-        <el-col :span="4" class="table-cell">{{
-          (coupon.publishCount || 0) - (coupon.receiveCount || 0)
-        }}</el-col>
+        <el-col :span="4" class="table-cell">
+          {{
+            (coupon.publishCount || 0) - (coupon.receiveCount || 0)
+          }}
+        </el-col>
         <el-col :span="4" class="table-cell">{{ coupon.useCount }}</el-col>
-        <el-col :span="4" class="table-cell">{{
-          (coupon.publishCount || 0) - (coupon.useCount || 0)
-        }}</el-col>
+        <el-col :span="4" class="table-cell">
+          {{
+            (coupon.publishCount || 0) - (coupon.useCount || 0)
+          }}
+        </el-col>
       </el-row>
     </div>
 
@@ -117,27 +129,35 @@
           <template #default="{ row }">{{ row.memberNickname }}</template>
         </el-table-column>
         <el-table-column label="领取方式" width="100" align="center">
-          <template #default="{ row }">{{
-            formatGetType(row.getType)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatGetType(row.getType)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="领取时间" width="160" align="center">
-          <template #default="{ row }">{{
-            formatTime(row.createTime)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatTime(row.createTime)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="当前状态" width="140" align="center">
-          <template #default="{ row }">{{
-            formatCouponHistoryUseType(row.useStatus)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatCouponHistoryUseType(row.useStatus)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="使用时间" width="160" align="center">
           <template #default="{ row }">{{ formatTime(row.useTime) }}</template>
         </el-table-column>
         <el-table-column label="订单编号" align="center">
-          <template #default="{ row }">{{
-            row.orderSn === null ? 'N/A' : row.orderSn
-          }}</template>
+          <template #default="{ row }">
+            {{
+              row.orderSn === null ? 'N/A' : row.orderSn
+            }}
+          </template>
         </el-table-column>
       </el-table>
     </div>
@@ -161,13 +181,14 @@
 <script setup lang="ts">
 import { Search } from '@element-plus/icons-vue';
 import { ElMessage, type ElTable } from 'element-plus';
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { CouponService, CouponHistoryService } from '@/api/modules';
-import type { Coupon, CouponHistory } from '@/interface';
+import type { CouponVo, CouponHistoryVo } from '@/api';
+import { useCouponStore } from '@/store';
 import { formatDate as formatDateUtil } from '@/utils/date';
 
 const route = useRoute();
+const couponStore = useCouponStore();
 const couponHistoryTableRef = ref<InstanceType<typeof ElTable>>();
 
 // 优惠券类型选项
@@ -193,11 +214,11 @@ const defaultListQuery = {
   couponId: null as number | null,
 };
 
-const coupon = ref<Partial<Coupon>>({});
+const coupon = ref<Partial<CouponVo>>({});
 const listQuery = reactive({ ...defaultListQuery });
-const list = ref<CouponHistory[]>([]);
-const total = ref(0);
-const listLoading = ref(false);
+const list = computed(() => couponStore.historyList);
+const total = computed(() => couponStore.historyTotal);
+const listLoading = computed(() => couponStore.loading);
 
 // 格式化方法
 const formatType = (type?: number) => {
@@ -250,8 +271,8 @@ const getCouponInfo = async () => {
       ElMessage.error('缺少优惠券ID');
       return;
     }
-    const response = await CouponService.getCoupon(id);
-    coupon.value = response.data;
+    const data = await couponStore.getItem(id);
+    coupon.value = data as any;
   } catch (error) {
     console.error('获取优惠券信息失败:', error);
     ElMessage.error('获取优惠券信息失败');
@@ -260,16 +281,11 @@ const getCouponInfo = async () => {
 
 // 获取列表
 const getList = async () => {
-  listLoading.value = true;
   try {
-    const response = await CouponHistoryService.fetchList(listQuery);
-    list.value = response.data.list;
-    total.value = response.data.total;
+    await couponStore.getHistoryList(listQuery);
   } catch (error) {
     console.error('获取列表失败:', error);
     ElMessage.error('获取列表失败');
-  } finally {
-    listLoading.value = false;
   }
 };
 
@@ -325,17 +341,17 @@ onMounted(() => {
 
 .table-layout {
   margin-top: 20px;
-  border-top: 1px solid #dcdfe6;
-  border-left: 1px solid #dcdfe6;
+  border-top: 1px solid var(--colorBorder);
+  border-left: 1px solid var(--colorBorder);
 }
 
 .table-cell {
   height: 60px;
   padding: 10px;
   overflow: hidden;
-  border-right: 1px solid #dcdfe6;
-  border-bottom: 1px solid #dcdfe6;
-  color: #606266;
+  border-right: 1px solid var(--colorBorder);
+  border-bottom: 1px solid var(--colorBorder);
+  color: var(--colorTextSecondary);
   font-size: 14px;
   line-height: 40px;
   text-align: center;
@@ -345,10 +361,10 @@ onMounted(() => {
   height: 60px;
   padding: 10px;
   overflow: hidden;
-  border-right: 1px solid #dcdfe6;
-  border-bottom: 1px solid #dcdfe6;
-  background: #f2f6fc;
-  color: #303133;
+  border-right: 1px solid var(--colorBorder);
+  border-bottom: 1px solid var(--colorBorder);
+  background: var(--colorBgLayout);
+  color: var(--colorTextHeading);
   font-size: 14px;
   font-weight: bold;
   line-height: 40px;

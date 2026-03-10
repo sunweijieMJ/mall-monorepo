@@ -23,9 +23,11 @@
           <template #default="{ row }">{{ row.name }}</template>
         </el-table-column>
         <el-table-column label="每日开始时间" align="center">
-          <template #default="{ row }">{{
-            formatTime(row.startTime)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatTime(row.startTime)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="每日结束时间" align="center">
           <template #default="{ row }">{{ formatTime(row.endTime) }}</template>
@@ -49,20 +51,16 @@
 import { type ElTable } from 'element-plus';
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import FlashSessionService from '@/api/modules/flashSession';
-import type { FlashPromotionSession } from '@/interface';
+import type { FlashSessionWithCountVo } from '@/api';
+import { useFlashPromotionStore } from '@/store';
 import { formatDate } from '@/utils/date';
-
-// 扩展接口以包含 productCount
-interface FlashSessionWithCount extends FlashPromotionSession {
-  productCount?: number;
-}
 
 const route = useRoute();
 const router = useRouter();
 const selectSessionTableRef = ref<InstanceType<typeof ElTable>>();
+const flashPromotionStore = useFlashPromotionStore();
 
-const list = ref<FlashSessionWithCount[]>([]);
+const list = ref<FlashSessionWithCountVo[]>([]);
 const listLoading = ref(false);
 
 // 格式化时间
@@ -73,7 +71,7 @@ const formatTime = (time?: string | null) => {
 };
 
 // 查看商品列表
-const handleShowRelation = (row: FlashSessionWithCount) => {
+const handleShowRelation = (row: FlashSessionWithCountVo) => {
   router.push({
     path: '/sms/flashProductRelation',
     query: {
@@ -88,10 +86,8 @@ const getList = async () => {
   listLoading.value = true;
   try {
     const flashPromotionId = Number(route.query.flashPromotionId);
-    const response = await FlashSessionService.fetchSelectList({
-      flashPromotionId,
-    });
-    list.value = response.data;
+    await flashPromotionStore.getSelectableSessions({ flashPromotionId });
+    list.value = flashPromotionStore.sessionSelectList;
   } catch (error) {
     console.error('获取秒杀时段列表失败:', error);
   } finally {

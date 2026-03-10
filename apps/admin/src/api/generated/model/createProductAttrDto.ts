@@ -26,7 +26,10 @@ export interface CreateProductAttrDto {
   inputType?: CreateProductAttrDtoInputType;
   /** 可选值列表，以逗号隔开 */
   inputList?: string;
-  /** 排序 */
+  /**
+   * 排序
+   * @minimum 0
+   */
   sort?: number;
   /** 分类筛选样式：0-普通 1-颜色 */
   filterType?: CreateProductAttrDtoFilterType;

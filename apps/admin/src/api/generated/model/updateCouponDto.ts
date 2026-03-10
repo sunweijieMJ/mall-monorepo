@@ -22,7 +22,10 @@ export interface UpdateCouponDto {
   platform?: UpdateCouponDtoPlatform;
   /** 优惠金额 */
   amount?: number;
-  /** 每人限领张数 */
+  /**
+   * 每人限领张数
+   * @minimum 0
+   */
   perLimit?: number;
   /** 使用门槛；0 表示无门槛 */
   minPoint?: number;
@@ -34,7 +37,10 @@ export interface UpdateCouponDto {
   useType?: UpdateCouponDtoUseType;
   /** 使用说明 */
   note?: string;
-  /** 发行数量 */
+  /**
+   * 发行数量
+   * @minimum 0
+   */
   publishCount?: number;
   /** 可以领取的日期 */
   enableTime?: string;

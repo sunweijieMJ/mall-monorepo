@@ -66,14 +66,18 @@
           <template #default="{ row }">{{ row.email }}</template>
         </el-table-column>
         <el-table-column label="添加时间" width="160" align="center">
-          <template #default="{ row }">{{
-            formatDateTime(row.createTime)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatDateTime(row.createTime)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="最后登录" width="160" align="center">
-          <template #default="{ row }">{{
-            formatDateTime(row.loginTime)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatDateTime(row.loginTime)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="是否启用" width="140" align="center">
           <template #default="{ row, $index }">
@@ -173,7 +177,9 @@
       <template #footer>
         <el-button @click="allocDialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="handleAllocDialogConfirm"
-          >确 定</el-button
+        >
+          确 定
+        </el-button
         >
       </template>
     </el-dialog>
@@ -189,8 +195,12 @@ import {
   type FormInstance,
 } from 'element-plus';
 import { ref, reactive, onMounted } from 'vue';
-import { AdminService, RoleService } from '@/api/modules';
-import type { Admin, Role } from '@/interface';
+import type { AdminUserVo, AdminRoleVo } from '@/api';
+import { useAdminUserStore } from '@/store/modules/adminUser';
+import { useRoleStore } from '@/store/modules/role';
+
+const adminUserStore = useAdminUserStore();
+const roleStore = useRoleStore();
 
 const adminTableRef = ref<InstanceType<typeof ElTable>>();
 const adminFormRef = ref<FormInstance>();
@@ -201,26 +211,28 @@ const defaultListQuery = {
   keyword: null as string | null,
 };
 
-const defaultAdmin: Partial<Admin> = {
+const defaultAdmin: Partial<AdminUserVo> & { password?: string } = {
   id: undefined,
   username: '',
   password: '',
   nickName: '',
   email: '',
   note: '',
-  status: 1,
+  status: 1 as any,
 };
 
 const listQuery = reactive({ ...defaultListQuery });
-const list = ref<Admin[]>([]);
+const list = ref<AdminUserVo[]>([]);
 const total = ref(0);
 const listLoading = ref(false);
 const dialogVisible = ref(false);
-const admin = reactive<Partial<Admin>>({ ...defaultAdmin });
+const admin = reactive<Partial<AdminUserVo> & { password?: string }>({
+  ...defaultAdmin,
+});
 const isEdit = ref(false);
 const allocDialogVisible = ref(false);
 const allocRoleIds = ref<number[]>([]);
-const allRoleList = ref<Role[]>([]);
+const allRoleList = ref<AdminRoleVo[]>([]);
 const allocAdminId = ref<number>();
 
 const formatDateTime = (time?: string) => {
@@ -262,7 +274,7 @@ const handleAdd = () => {
   Object.assign(admin, defaultAdmin);
 };
 
-const handleStatusChange = async (_index: number, row: Admin) => {
+const handleStatusChange = async (_index: number, row: AdminUserVo) => {
   try {
     await ElMessageBox.confirm('是否要修改该状态?', '提示', {
       confirmButtonText: '确定',
@@ -270,12 +282,12 @@ const handleStatusChange = async (_index: number, row: Admin) => {
       type: 'warning',
     });
 
-    await AdminService.updateStatus(row.id!, { status: row.status });
+    await adminUserStore.updateStatus(row.id!, { status: row.status });
     ElMessage.success('修改成功');
   } catch (error) {
     if (error !== 'cancel') {
       console.error('修改状态失败:', error);
-      row.status = row.status === 0 ? 1 : 0;
+      row.status = (row.status === 0 ? 1 : 0) as any;
       ElMessage.error('修改失败');
     } else {
       await getList();
@@ -283,7 +295,7 @@ const handleStatusChange = async (_index: number, row: Admin) => {
   }
 };
 
-const handleDelete = async (_index: number, row: Admin) => {
+const handleDelete = async (_index: number, row: AdminUserVo) => {
   try {
     await ElMessageBox.confirm('是否要删除该用户?', '提示', {
       confirmButtonText: '确定',
@@ -291,7 +303,7 @@ const handleDelete = async (_index: number, row: Admin) => {
       type: 'warning',
     });
 
-    await AdminService.deleteAdmin(row.id!);
+    await adminUserStore.deleteItem(row.id!);
     ElMessage.success('删除成功');
     await getList();
   } catch (error) {
@@ -302,7 +314,7 @@ const handleDelete = async (_index: number, row: Admin) => {
   }
 };
 
-const handleUpdate = (_index: number, row: Admin) => {
+const handleUpdate = (_index: number, row: AdminUserVo) => {
   dialogVisible.value = true;
   isEdit.value = true;
   Object.assign(admin, row);
@@ -317,10 +329,10 @@ const handleDialogConfirm = async () => {
     });
 
     if (isEdit.value) {
-      await AdminService.updateAdmin(admin.id!, admin as Admin);
+      await adminUserStore.update(admin.id!, admin as any);
       ElMessage.success('修改成功');
     } else {
-      await AdminService.createAdmin(admin as Admin);
+      await adminUserStore.register(admin as any);
       ElMessage.success('添加成功');
     }
 
@@ -342,8 +354,7 @@ const handleAllocDialogConfirm = async () => {
       type: 'warning',
     });
 
-    await AdminService.allocRole({
-      adminId: allocAdminId.value!,
+    await adminUserStore.assignRoles(allocAdminId.value!, {
       roleIds: allocRoleIds.value,
     });
     ElMessage.success('分配成功');
@@ -356,7 +367,7 @@ const handleAllocDialogConfirm = async () => {
   }
 };
 
-const handleSelectRole = async (_index: number, row: Admin) => {
+const handleSelectRole = async (_index: number, row: AdminUserVo) => {
   allocAdminId.value = row.id;
   allocDialogVisible.value = true;
   await getRoleListByAdmin(row.id!);
@@ -365,9 +376,9 @@ const handleSelectRole = async (_index: number, row: Admin) => {
 const getList = async () => {
   listLoading.value = true;
   try {
-    const response = await AdminService.fetchList(listQuery);
-    list.value = response.data.list;
-    total.value = response.data.total;
+    await adminUserStore.getList(listQuery);
+    list.value = adminUserStore.list;
+    total.value = adminUserStore.total;
   } catch (error) {
     console.error('获取列表失败:', error);
     ElMessage.error('获取列表失败');
@@ -378,8 +389,8 @@ const getList = async () => {
 
 const getAllRoleList = async () => {
   try {
-    const response = await RoleService.fetchAllRoleList();
-    allRoleList.value = response.data;
+    await roleStore.getAllList();
+    allRoleList.value = roleStore.allRoles;
   } catch (error) {
     console.error('获取角色列表失败:', error);
   }
@@ -387,11 +398,10 @@ const getAllRoleList = async () => {
 
 const getRoleListByAdmin = async (adminId: number) => {
   try {
-    const response = await AdminService.getRoleByAdmin(adminId);
-    const allocRoleList = response.data;
+    const allocRoleList = (await adminUserStore.getRoles(adminId)) as any;
     allocRoleIds.value = [];
     if (allocRoleList && allocRoleList.length > 0) {
-      allocRoleIds.value = allocRoleList.map((item) => item.id!);
+      allocRoleIds.value = allocRoleList.map((item: any) => item.id!);
     }
   } catch (error) {
     console.error('获取管理员角色失败:', error);

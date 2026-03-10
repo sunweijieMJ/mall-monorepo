@@ -7,7 +7,6 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
-import type { AdminMenuTreeNodeVoDeletedAt } from './adminMenuTreeNodeVoDeletedAt';
 import type { AdminMenuTreeNodeVoHidden } from './adminMenuTreeNodeVoHidden';
 
 export interface AdminMenuTreeNodeVo {
@@ -17,8 +16,11 @@ export interface AdminMenuTreeNodeVo {
   createdAt: string;
   /** 更新时间 */
   updatedAt: string;
-  /** 删除时间 */
-  deletedAt?: AdminMenuTreeNodeVoDeletedAt;
+  /**
+   * 删除时间
+   * @nullable
+   */
+  deletedAt?: string | null;
   /** 父级ID */
   parentId?: number;
   /** 菜单级数 */

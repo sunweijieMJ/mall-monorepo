@@ -17,9 +17,9 @@
     <div class="table-container">
       <el-table
         ref="productCateTableRef"
-        v-loading="listLoading"
+        v-loading="productCateStore.loading"
         style="width: 100%"
-        :data="list"
+        :data="productCateStore.list"
         border
       >
         <el-table-column label="编号" width="100" align="center">
@@ -92,7 +92,7 @@
         background
         layout="total, sizes, prev, pager, next, jumper"
         :page-sizes="[5, 10, 15]"
-        :total="total"
+        :total="productCateStore.total"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
       />
@@ -105,12 +105,13 @@ import { Tickets } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox, type ElTable } from 'element-plus';
 import { ref, reactive, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { ProductCateService } from '@/api/modules';
-import type { ProductCate } from '@/interface';
+import { useProductCateStore } from '@/store';
 
 // Router
 const router = useRouter();
 const route = useRoute();
+
+const productCateStore = useProductCateStore();
 
 // 表格引用
 const productCateTableRef = ref<InstanceType<typeof ElTable>>();
@@ -122,9 +123,6 @@ const listQuery = reactive({
 });
 
 // 状态
-const list = ref<ProductCate[]>([]);
-const total = ref(0);
-const listLoading = ref(false);
 const parentId = ref(0);
 
 // 级别过滤器
@@ -155,19 +153,11 @@ const resetParentId = () => {
 
 // 获取分类列表
 const getList = async () => {
-  listLoading.value = true;
   try {
-    const response = await ProductCateService.fetchList(
-      parentId.value,
-      listQuery,
-    );
-    list.value = response.data.list;
-    total.value = response.data.total;
+    await productCateStore.getList(parentId.value, listQuery);
   } catch (error) {
     console.error('获取分类列表失败:', error);
     ElMessage.error('获取分类列表失败');
-  } finally {
-    listLoading.value = false;
   }
 };
 
@@ -190,12 +180,9 @@ const handleCurrentChange = (val: number) => {
 };
 
 // 修改导航栏状态
-const handleNavStatusChange = async (_index: number, row: ProductCate) => {
+const handleNavStatusChange = async (_index: number, row: any) => {
   try {
-    await ProductCateService.updateNavStatus({
-      ids: [row.id!],
-      navStatus: row.navStatus,
-    });
+    await productCateStore.updateNavStatus([row.id!], row.navStatus);
     ElMessage.success('修改成功');
   } catch (error) {
     console.error('修改导航栏状态失败:', error);
@@ -206,12 +193,9 @@ const handleNavStatusChange = async (_index: number, row: ProductCate) => {
 };
 
 // 修改显示状态
-const handleShowStatusChange = async (_index: number, row: ProductCate) => {
+const handleShowStatusChange = async (_index: number, row: any) => {
   try {
-    await ProductCateService.updateShowStatus({
-      ids: [row.id!],
-      showStatus: row.showStatus,
-    });
+    await productCateStore.updateShowStatus([row.id!], row.showStatus);
     ElMessage.success('修改成功');
   } catch (error) {
     console.error('修改显示状态失败:', error);
@@ -222,7 +206,7 @@ const handleShowStatusChange = async (_index: number, row: ProductCate) => {
 };
 
 // 查看下级分类
-const handleShowNextLevel = (_index: number, row: ProductCate) => {
+const handleShowNextLevel = (_index: number, row: any) => {
   router.push({
     path: '/mall/pms/productCate',
     query: { parentId: String(row.id) },
@@ -230,13 +214,13 @@ const handleShowNextLevel = (_index: number, row: ProductCate) => {
 };
 
 // 转移商品（待实现）
-const handleTransferProduct = (_index: number, row: ProductCate) => {
+const handleTransferProduct = (_index: number, row: any) => {
   console.log('转移商品:', row);
   ElMessage.info('此功能待实现');
 };
 
 // 编辑分类
-const handleUpdate = (_index: number, row: ProductCate) => {
+const handleUpdate = (_index: number, row: any) => {
   router.push({
     path: '/mall/pms/productCate/update',
     query: { id: String(row.id) },
@@ -244,7 +228,7 @@ const handleUpdate = (_index: number, row: ProductCate) => {
 };
 
 // 删除分类
-const handleDelete = async (_index: number, row: ProductCate) => {
+const handleDelete = async (_index: number, row: any) => {
   try {
     await ElMessageBox.confirm('是否要删除该分类', '提示', {
       confirmButtonText: '确定',
@@ -252,7 +236,7 @@ const handleDelete = async (_index: number, row: ProductCate) => {
       type: 'warning',
     });
 
-    await ProductCateService.deleteProductCate(row.id!);
+    await productCateStore.deleteItem(row.id!);
     ElMessage.success('删除成功');
     await getList();
   } catch (error) {

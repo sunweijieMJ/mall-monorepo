@@ -9,7 +9,10 @@
  */
 
 export interface AdminOrderCloseDto {
-  /** 订单ID列表 */
+  /**
+   * 订单ID列表
+   * @minItems 1
+   */
   ids: number[];
   /** 关闭备注 */
   note: string;

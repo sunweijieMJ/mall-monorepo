@@ -51,52 +51,106 @@ export interface ProductVo {
   sale: number;
   /** 价格 */
   price: number;
-  /** 促销价格 */
-  promotionPrice?: number;
+  /**
+   * 促销价格
+   * @nullable
+   */
+  promotionPrice?: number | null;
   /** 赠送的成长值 */
   giftGrowth: number;
   /** 赠送的积分 */
   giftPoint: number;
-  /** 限制使用的积分数 */
-  usePointLimit?: number;
-  /** 副标题 */
-  subTitle?: string;
-  /** 商品描述 */
-  description?: string;
-  /** 市场价 */
-  originalPrice?: number;
+  /**
+   * 限制使用的积分数
+   * @nullable
+   */
+  usePointLimit?: number | null;
+  /**
+   * 副标题
+   * @nullable
+   */
+  subTitle?: string | null;
+  /**
+   * 商品描述
+   * @nullable
+   */
+  description?: string | null;
+  /**
+   * 市场价
+   * @nullable
+   */
+  originalPrice?: number | null;
   /** 库存 */
   stock: number;
   /** 库存预警值 */
   lowStock: number;
-  /** 单位 */
-  unit?: string;
-  /** 商品重量（克） */
-  weight?: number;
+  /**
+   * 单位
+   * @nullable
+   */
+  unit?: string | null;
+  /**
+   * 商品重量（克）
+   * @nullable
+   */
+  weight?: number | null;
   /** 是否为预告商品 */
   previewStatus: number;
-  /** 产品服务：1-无忧退货；2-快速退款；3-免费包邮 */
-  serviceIds?: string;
-  /** 关键字 */
-  keywords?: string;
-  /** 备注 */
-  note?: string;
-  /** 画册图片，连产品图片限制为5张，以逗号分割 */
-  albumPics?: string;
-  /** 详情标题 */
-  detailTitle?: string;
-  /** 详情描述 */
-  detailDesc?: string;
-  /** 产品详情网页内容 */
-  detailHtml?: string;
-  /** 移动端网页详情 */
-  detailMobileHtml?: string;
-  /** 促销开始时间 */
-  promotionStartTime?: string;
-  /** 促销结束时间 */
-  promotionEndTime?: string;
-  /** 活动限购数量 */
-  promotionPerLimit?: number;
+  /**
+   * 产品服务：1-无忧退货；2-快速退款；3-免费包邮
+   * @nullable
+   */
+  serviceIds?: string | null;
+  /**
+   * 关键字
+   * @nullable
+   */
+  keywords?: string | null;
+  /**
+   * 备注
+   * @nullable
+   */
+  note?: string | null;
+  /**
+   * 画册图片，连产品图片限制为5张，以逗号分割
+   * @nullable
+   */
+  albumPics?: string | null;
+  /**
+   * 详情标题
+   * @nullable
+   */
+  detailTitle?: string | null;
+  /**
+   * 详情描述
+   * @nullable
+   */
+  detailDesc?: string | null;
+  /**
+   * 产品详情网页内容
+   * @nullable
+   */
+  detailHtml?: string | null;
+  /**
+   * 移动端网页详情
+   * @nullable
+   */
+  detailMobileHtml?: string | null;
+  /**
+   * 促销开始时间
+   * @nullable
+   */
+  promotionStartTime?: string | null;
+  /**
+   * 促销结束时间
+   * @nullable
+   */
+  promotionEndTime?: string | null;
+  /**
+   * 活动限购数量
+   * @nullable
+   */
+  promotionPerLimit?: number | null;
   /** 促销类型：0-无优惠；1-特惠；2-会员价；3-阶梯价；4-满减 */
   promotionType: ProductVoPromotionType;
   /** 创建时间 */

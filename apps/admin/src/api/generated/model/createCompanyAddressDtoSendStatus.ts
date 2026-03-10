@@ -10,6 +10,8 @@
 
 /**
  * 默认发货地址：0->否；1->是
+ * @minimum 0
+ * @maximum 1
  */
 export type CreateCompanyAddressDtoSendStatus =
   (typeof CreateCompanyAddressDtoSendStatus)[keyof typeof CreateCompanyAddressDtoSendStatus];

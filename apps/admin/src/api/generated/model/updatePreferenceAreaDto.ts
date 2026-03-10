@@ -14,7 +14,10 @@ export interface UpdatePreferenceAreaDto {
   name?: string;
   /** 副标题 */
   subTitle?: string;
-  /** 排序 */
+  /**
+   * 排序
+   * @minimum 0
+   */
   sort?: number;
   /** 显示状态：0-不显示 1-显示 */
   showStatus?: UpdatePreferenceAreaDtoShowStatus;

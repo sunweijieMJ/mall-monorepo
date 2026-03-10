@@ -1,0 +1,76 @@
+# 源码（已编译进 dist/）
+src
+public
+scripts
+config
+typings
+tests
+
+# Node.js
+node_modules
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 配置文件（运行时不需要）
+*.config.ts
+*.config.mjs
+tsconfig*.json
+package.json
+package.sh
+orval.config.ts
+
+# 环境变量（Vite 已在构建时内联，不应进入镜像）
+.env
+.env.*
+
+# 类型声明（构建产物）
+auto-imports.d.ts
+components.d.ts
+
+# 构建临时文件
+node_build_info.sh
+.vite
+*.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# CI/CD
+.gitlab-ci.yml
+.github
+ci
+
+# 文档
+*.md
+docs
+
+# 测试
+coverage
+.nyc_output
+*.lcov
+
+# 日志和临时文件
+*.log
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.yml
+
+# 归档
+*.tar.gz
+*.war
+*.zip

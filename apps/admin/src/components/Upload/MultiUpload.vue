@@ -30,7 +30,7 @@ import { Plus } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import type { UploadProps, UploadUserFile, UploadFile } from 'element-plus';
 import { ref, computed } from 'vue';
-import { OssService } from '@/api/modules';
+import { ossControllerGetPolicyV1 } from '@/api';
 
 interface Props {
   modelValue?: string[];
@@ -113,8 +113,7 @@ const beforeUpload: UploadProps['beforeUpload'] = async (file) => {
 
   // 使用 OSS，需要获取上传策略
   try {
-    const response = await OssService.policy();
-    const policy = response.data;
+    const policy = await ossControllerGetPolicyV1();
     dataObj.value = {
       policy: policy.policy,
       signature: policy.signature,

@@ -7,7 +7,6 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
-import type { AdminRoleVoDeletedAt } from './adminRoleVoDeletedAt';
 import type { AdminRoleVoStatus } from './adminRoleVoStatus';
 
 export interface AdminRoleVo {
@@ -17,8 +16,11 @@ export interface AdminRoleVo {
   createdAt: string;
   /** 更新时间 */
   updatedAt: string;
-  /** 删除时间 */
-  deletedAt?: AdminRoleVoDeletedAt;
+  /**
+   * 删除时间
+   * @nullable
+   */
+  deletedAt?: string | null;
   /** 名称 */
   name: string;
   /** 描述 */

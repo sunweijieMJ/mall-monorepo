@@ -25,9 +25,11 @@
           <template #default="{ row }">{{ row.name }}</template>
         </el-table-column>
         <el-table-column label="每日开始时间" align="center">
-          <template #default="{ row }">{{
-            formatTime(row.startTime)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatTime(row.startTime)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="每日结束时间" align="center">
           <template #default="{ row }">{{ formatTime(row.endTime) }}</template>
@@ -92,7 +94,7 @@
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">取 消</el-button>
           <el-button type="primary" @click="handleDialogConfirm"
-            >确 定</el-button
+          >确 定</el-button
           >
         </span>
       </template>
@@ -109,14 +111,15 @@ import {
   type ElForm,
 } from 'element-plus';
 import { ref, reactive, onMounted } from 'vue';
-import { FlashSessionService } from '@/api/modules';
-import type { FlashSession } from '@/interface';
+import type { FlashSessionVo } from '@/api';
+import { useFlashPromotionStore } from '@/store';
 import { formatDate } from '@/utils/date';
 
+const flashPromotionStore = useFlashPromotionStore();
 const flashSessionTableRef = ref<InstanceType<typeof ElTable>>();
 const flashSessionFormRef = ref<InstanceType<typeof ElForm>>();
 
-const list = ref<FlashSession[]>([]);
+const list = ref<FlashSessionVo[]>([]);
 const listLoading = ref(false);
 const dialogVisible = ref(false);
 const isEdit = ref(false);
@@ -128,7 +131,7 @@ const defaultFlashSession = {
   status: 0,
 };
 
-const flashSession = reactive<Partial<FlashSession>>({
+const flashSession = reactive<Partial<FlashSessionVo>>({
   ...defaultFlashSession,
 });
 
@@ -143,8 +146,7 @@ const formatTime = (time?: string | number) => {
 const getList = async () => {
   listLoading.value = true;
   try {
-    const response = await FlashSessionService.fetchList({});
-    list.value = response.data;
+    list.value = await flashPromotionStore.getSessionList();
   } catch (error) {
     console.error('获取列表失败:', error);
     ElMessage.error('获取列表失败');
@@ -161,7 +163,7 @@ const handleAdd = () => {
 };
 
 // 状态切换
-const handleStatusChange = async (_index: number, row: FlashSession) => {
+const handleStatusChange = async (_index: number, row: FlashSessionVo) => {
   try {
     await ElMessageBox.confirm('是否要修改该状态?', '提示', {
       confirmButtonText: '确定',
@@ -169,7 +171,9 @@ const handleStatusChange = async (_index: number, row: FlashSession) => {
       type: 'warning',
     });
 
-    await FlashSessionService.updateStatus(row.id!, { status: row.status });
+    await flashPromotionStore.updateSessionStatus(row.id!, {
+      status: row.status,
+    });
     ElMessage.success('修改成功');
   } catch (error: any) {
     if (error !== 'cancel') {
@@ -182,7 +186,7 @@ const handleStatusChange = async (_index: number, row: FlashSession) => {
 };
 
 // 编辑
-const handleUpdate = (_index: number, row: FlashSession) => {
+const handleUpdate = (_index: number, row: FlashSessionVo) => {
   dialogVisible.value = true;
   isEdit.value = true;
   Object.assign(flashSession, row);
@@ -191,7 +195,7 @@ const handleUpdate = (_index: number, row: FlashSession) => {
 };
 
 // 删除
-const handleDelete = async (_index: number, row: FlashSession) => {
+const handleDelete = async (_index: number, row: FlashSessionVo) => {
   try {
     await ElMessageBox.confirm('是否要删除该时间段?', '提示', {
       confirmButtonText: '确定',
@@ -199,7 +203,7 @@ const handleDelete = async (_index: number, row: FlashSession) => {
       type: 'warning',
     });
 
-    await FlashSessionService.deleteSession(row.id!);
+    await flashPromotionStore.deleteSession(row.id!);
     ElMessage.success('删除成功');
     await getList();
   } catch (error: any) {
@@ -220,13 +224,13 @@ const handleDialogConfirm = async () => {
     });
 
     if (isEdit.value) {
-      await FlashSessionService.updateSession(
+      await flashPromotionStore.updateSession(
         flashSession.id!,
-        flashSession as FlashSession,
+        flashSession as any,
       );
       ElMessage.success('修改成功');
     } else {
-      await FlashSessionService.createSession(flashSession as FlashSession);
+      await flashPromotionStore.createSession(flashSession as any);
       ElMessage.success('添加成功');
     }
 

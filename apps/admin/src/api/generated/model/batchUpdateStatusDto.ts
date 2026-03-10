@@ -9,7 +9,10 @@
  */
 
 export interface BatchUpdateStatusDto {
-  /** ID 数组 */
+  /**
+   * ID 数组
+   * @minItems 1
+   */
   ids: number[];
   /** 状态值 */
   status: number;

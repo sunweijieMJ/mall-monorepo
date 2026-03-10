@@ -18,6 +18,7 @@ export type CouponHistoryControllerListV1Params = {
   /**
    * 每页数量
    * @minimum 1
+   * @maximum 100
    */
   pageSize?: number;
   /**

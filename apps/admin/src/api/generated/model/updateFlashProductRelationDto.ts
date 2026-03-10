@@ -17,10 +17,19 @@ export interface UpdateFlashProductRelationDto {
   productId?: number;
   /** 秒杀价格 */
   flashPromotionPrice?: number;
-  /** 秒杀数量 */
+  /**
+   * 秒杀数量
+   * @minimum 0
+   */
   flashPromotionCount?: number;
-  /** 每人限购数量 */
+  /**
+   * 每人限购数量
+   * @minimum 0
+   */
   flashPromotionLimit?: number;
-  /** 排序 */
+  /**
+   * 排序
+   * @minimum 0
+   */
   sort?: number;
 }

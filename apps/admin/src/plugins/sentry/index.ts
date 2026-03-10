@@ -46,11 +46,7 @@ export async function initSentry(
 
   // 如果没有DSN，在开发环境下给出警告，在生产环境下直接返回
   if (!finalConfig.dsn) {
-    if (import.meta.env.DEV) {
-      console.warn(
-        'Sentry DSN not configured. Sentry will not be initialized.',
-      );
-    }
+    console.warn('Sentry DSN not configured. Sentry will not be initialized.');
     return null;
   }
 
@@ -134,11 +130,9 @@ export async function initSentry(
     // 错误处理回调
     beforeSend(event, hint) {
       // 在开发环境下，同时在控制台输出错误
-      if (import.meta.env.DEV) {
-        console.group('🔴 Sentry Error Event');
-        console.error('Original error:', hint.originalException);
-        console.groupEnd();
-      }
+      console.group('🔴 Sentry Error Event');
+      console.error('Original error:', hint.originalException);
+      console.groupEnd();
 
       // 过滤掉一些不重要的错误
       if (event.exception) {
@@ -418,8 +412,6 @@ export const isSentryInitialized = async (): Promise<boolean> => {
     return false;
   }
 };
-
-// getSentryConfigSummary 移动到 sentryConfig.ts 中
 
 /**
  * Vue插件形式的Sentry初始化（动态加载版本）

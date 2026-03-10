@@ -63,11 +63,13 @@
 import { ElMessage, ElMessageBox, type ElTable } from 'element-plus';
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import OrderService, { type DeliveryOrderItem } from '@/api/modules/order';
+import type { AdminOrderDeliveryDto } from '@/api';
 import type { Order } from '@/interface';
+import { useOrderStore } from '@/store';
 
 const route = useRoute();
 const router = useRouter();
+const orderStore = useOrderStore();
 const deliverOrderTableRef = ref<InstanceType<typeof ElTable>>();
 
 const defaultLogisticsCompanies = [
@@ -106,13 +108,13 @@ const confirm = async () => {
     });
 
     // 构建发货数据
-    const deliveryData: DeliveryOrderItem[] = list.value.map((item) => ({
-      orderId: item.id,
+    const deliveryData: AdminOrderDeliveryDto[] = list.value.map((item) => ({
+      orderId: item.id!,
       deliveryCompany: item.deliveryCompany || '',
       deliverySn: item.deliverySn || '',
     }));
 
-    await OrderService.deliveryOrder(deliveryData);
+    await orderStore.delivery(deliveryData);
     ElMessage.success('发货成功!');
     router.back();
   } catch (error: any) {

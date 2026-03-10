@@ -7,7 +7,6 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
-import type { AttrCategoryWithAttrVoDeletedAt } from './attrCategoryWithAttrVoDeletedAt';
 import type { ProductAttrVo } from './productAttrVo';
 
 export interface AttrCategoryWithAttrVo {
@@ -17,8 +16,11 @@ export interface AttrCategoryWithAttrVo {
   createdAt: string;
   /** 更新时间 */
   updatedAt: string;
-  /** 删除时间 */
-  deletedAt?: AttrCategoryWithAttrVoDeletedAt;
+  /**
+   * 删除时间
+   * @nullable
+   */
+  deletedAt?: string | null;
   /** 分类名称 */
   name: string;
   /** 属性数量 */

@@ -44,8 +44,8 @@ import ProductAttrDetail from './ProductAttrDetail.vue';
 import ProductInfoDetail from './ProductInfoDetail.vue';
 import ProductRelationDetail from './ProductRelationDetail.vue';
 import ProductSaleDetail from './ProductSaleDetail.vue';
-import { ProductService } from '@/api/modules';
 import type { ProductParam } from '@/interface';
+import { useProductStore } from '@/store';
 
 interface Props {
   isEdit?: boolean;
@@ -57,6 +57,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const route = useRoute();
 const router = useRouter();
+const productStore = useProductStore();
 
 // 当前激活的步骤
 const active = ref(0);
@@ -144,14 +145,11 @@ const finishCommit = async (isEditMode: boolean) => {
     let result;
     if (isEditMode) {
       // 编辑商品
-      result = await ProductService.updateProduct(
-        productParam.id!,
-        productParam,
-      );
+      result = await productStore.update(productParam.id!, productParam);
       ElMessage.success('修改成功');
     } else {
       // 创建商品
-      result = await ProductService.createProduct(productParam);
+      result = await productStore.create(productParam);
       ElMessage.success('创建成功');
     }
     // 返回商品列表页
@@ -165,8 +163,8 @@ const finishCommit = async (isEditMode: boolean) => {
 // 获取商品详情
 const getProduct = async (id: number) => {
   try {
-    const response = await ProductService.getProduct(id);
-    Object.assign(productParam, response.data);
+    const data = await productStore.getDetail(id);
+    Object.assign(productParam, data);
   } catch (error) {
     console.error('获取商品详情失败:', error);
     ElMessage.error('获取商品详情失败');

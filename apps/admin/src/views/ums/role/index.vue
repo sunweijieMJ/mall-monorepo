@@ -66,9 +66,11 @@
           <template #default="{ row }">{{ row.adminCount }}</template>
         </el-table-column>
         <el-table-column label="添加时间" width="160" align="center">
-          <template #default="{ row }">{{
-            formatDateTime(row.createTime)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatDateTime(row.createTime)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="是否启用" width="140" align="center">
           <template #default="{ row, $index }">
@@ -156,10 +158,11 @@ import {
 } from 'element-plus';
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { RoleService } from '@/api/modules';
-import type { Role } from '@/interface';
+import type { AdminRoleVo } from '@/api';
+import { useRoleStore } from '@/store/modules/role';
 
 const router = useRouter();
+const roleStore = useRoleStore();
 const roleTableRef = ref<InstanceType<typeof ElTable>>();
 const roleFormRef = ref<FormInstance>();
 
@@ -169,20 +172,20 @@ const defaultListQuery = {
   keyword: null as string | null,
 };
 
-const defaultRole: Partial<Role> = {
+const defaultRole: Partial<AdminRoleVo> = {
   id: undefined,
   name: '',
   description: '',
   adminCount: 0,
-  status: 1,
+  status: 1 as any,
 };
 
 const listQuery = reactive({ ...defaultListQuery });
-const list = ref<Role[]>([]);
+const list = ref<AdminRoleVo[]>([]);
 const total = ref(0);
 const listLoading = ref(false);
 const dialogVisible = ref(false);
-const role = reactive<Partial<Role>>({ ...defaultRole });
+const role = reactive<Partial<AdminRoleVo>>({ ...defaultRole });
 const isEdit = ref(false);
 
 const formatDateTime = (time?: string) => {
@@ -224,7 +227,7 @@ const handleAdd = () => {
   Object.assign(role, defaultRole);
 };
 
-const handleStatusChange = async (_index: number, row: Role) => {
+const handleStatusChange = async (_index: number, row: AdminRoleVo) => {
   try {
     await ElMessageBox.confirm('是否要修改该状态?', '提示', {
       confirmButtonText: '确定',
@@ -232,12 +235,12 @@ const handleStatusChange = async (_index: number, row: Role) => {
       type: 'warning',
     });
 
-    await RoleService.updateStatus(row.id!, { status: row.status });
+    await roleStore.updateStatus(row.id!, { status: row.status });
     ElMessage.success('修改成功');
   } catch (error) {
     if (error !== 'cancel') {
       console.error('修改状态失败:', error);
-      row.status = row.status === 0 ? 1 : 0;
+      row.status = (row.status === 0 ? 1 : 0) as any;
       ElMessage.error('修改失败');
     } else {
       await getList();
@@ -245,7 +248,7 @@ const handleStatusChange = async (_index: number, row: Role) => {
   }
 };
 
-const handleDelete = async (_index: number, row: Role) => {
+const handleDelete = async (_index: number, row: AdminRoleVo) => {
   try {
     await ElMessageBox.confirm('是否要删除该角色?', '提示', {
       confirmButtonText: '确定',
@@ -253,7 +256,7 @@ const handleDelete = async (_index: number, row: Role) => {
       type: 'warning',
     });
 
-    await RoleService.deleteRole([row.id!]);
+    await roleStore.batchDelete([row.id!]);
     ElMessage.success('删除成功');
     await getList();
   } catch (error) {
@@ -264,7 +267,7 @@ const handleDelete = async (_index: number, row: Role) => {
   }
 };
 
-const handleUpdate = (_index: number, row: Role) => {
+const handleUpdate = (_index: number, row: AdminRoleVo) => {
   dialogVisible.value = true;
   isEdit.value = true;
   Object.assign(role, row);
@@ -279,10 +282,10 @@ const handleDialogConfirm = async () => {
     });
 
     if (isEdit.value) {
-      await RoleService.updateRole(role.id!, role as Role);
+      await roleStore.update(role.id!, role as any);
       ElMessage.success('修改成功');
     } else {
-      await RoleService.createRole(role as Role);
+      await roleStore.create(role as any);
       ElMessage.success('添加成功');
     }
 
@@ -296,14 +299,14 @@ const handleDialogConfirm = async () => {
   }
 };
 
-const handleSelectMenu = (_index: number, row: Role) => {
+const handleSelectMenu = (_index: number, row: AdminRoleVo) => {
   router.push({
     path: '/ums/allocMenu',
     query: { roleId: String(row.id) },
   });
 };
 
-const handleSelectResource = (_index: number, row: Role) => {
+const handleSelectResource = (_index: number, row: AdminRoleVo) => {
   router.push({
     path: '/ums/allocResource',
     query: { roleId: String(row.id) },
@@ -313,9 +316,9 @@ const handleSelectResource = (_index: number, row: Role) => {
 const getList = async () => {
   listLoading.value = true;
   try {
-    const response = await RoleService.fetchList(listQuery);
-    list.value = response.data.list;
-    total.value = response.data.total;
+    await roleStore.getList(listQuery);
+    list.value = roleStore.list;
+    total.value = roleStore.total;
   } catch (error) {
     console.error('获取列表失败:', error);
     ElMessage.error('获取列表失败');

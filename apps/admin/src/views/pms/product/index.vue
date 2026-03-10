@@ -99,8 +99,8 @@
     <div class="table-container">
       <el-table
         ref="productTableRef"
-        v-loading="listLoading"
-        :data="list"
+        v-loading="productStore.loading"
+        :data="productStore.list"
         style="width: 100%"
         border
         @selection-change="handleSelectionChange"
@@ -237,7 +237,7 @@
         background
         layout="total, sizes, prev, pager, next, jumper"
         :page-sizes="[5, 10, 15]"
-        :total="total"
+        :total="productStore.total"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
       />
@@ -315,18 +315,11 @@ import { ElMessage, ElMessageBox, type ElTable } from 'element-plus';
 import { ref, reactive, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import {
-  ProductService,
-  BrandService,
-  ProductCateService,
-  SkuStockService,
-  ProductAttrService,
-} from '@/api/modules';
-import type {
-  Product,
-  ProductCategory,
-  ProductAttribute,
-  SkuStock,
-} from '@/interface';
+  useProductStore,
+  useBrandStore,
+  useProductCateStore,
+  useProductAttrStore,
+} from '@/store';
 
 // 类型定义
 interface SelectOption {
@@ -350,12 +343,16 @@ interface EditSkuInfo {
   productId: number | null;
   productSn: string;
   productAttributeCategoryId: number | null;
-  stockList: SkuStock[];
-  productAttr: ProductAttribute[];
+  stockList: any[];
+  productAttr: any[];
   keyword: string | null;
 }
 
 const router = useRouter();
+const productStore = useProductStore();
+const brandStore = useBrandStore();
+const productCateStore = useProductCateStore();
+const productAttrStore = useProductAttrStore();
 const productTableRef = ref<InstanceType<typeof ElTable>>();
 
 // 查询参数
@@ -371,10 +368,7 @@ const defaultListQuery = {
 };
 
 const listQuery = reactive({ ...defaultListQuery });
-const list = ref<Product[]>([]);
-const total = ref(0);
-const multipleSelection = ref<Product[]>([]);
-const listLoading = ref(false);
+const multipleSelection = ref<any[]>([]);
 
 // 筛选选项
 const selectProductCateValue = ref<number[]>([]);
@@ -430,7 +424,7 @@ const getVerifyStatusLabel = (status: number) => {
 };
 
 // 获取SKU规格参数
-const getProductSkuSp = (row: SkuStock, index: number) => {
+const getProductSkuSp = (row: any, index: number) => {
   if (!row.spData) return null;
   try {
     const spData = JSON.parse(row.spData);
@@ -444,28 +438,13 @@ const getProductSkuSp = (row: SkuStock, index: number) => {
 };
 
 // 获取商品列表
-const getList = async () => {
-  listLoading.value = true;
-  try {
-    const response = await ProductService.fetchList(listQuery);
-    list.value = response.data.list;
-    total.value = response.data.total;
-  } catch (error) {
-    console.error('获取列表失败:', error);
-    ElMessage.error('获取列表失败');
-  } finally {
-    listLoading.value = false;
-  }
-};
+const getList = () => productStore.getList(listQuery);
 
 // 获取品牌列表
 const getBrandList = async () => {
   try {
-    const response = await BrandService.fetchList({
-      pageNum: 1,
-      pageSize: 100,
-    });
-    brandOptions.value = response.data.list.map((item) => ({
+    await brandStore.getList({ pageNum: 1, pageSize: 100 });
+    brandOptions.value = brandStore.list.map((item: any) => ({
       label: item.name,
       value: item.id,
     }));
@@ -477,19 +456,17 @@ const getBrandList = async () => {
 // 获取商品分类列表（含子分类）
 const getProductCateList = async () => {
   try {
-    const response = await ProductCateService.fetchListWithChildren();
-    const list = response.data;
-    productCateOptions.value = list.map(
-      (item: ProductCategory & { children?: ProductCategory[] }) => ({
-        label: item.name,
-        value: item.id,
-        children:
-          item.children?.map((child: ProductCategory) => ({
-            label: child.name,
-            value: child.id,
-          })) || [],
-      }),
-    );
+    const data = await productCateStore.getListWithChildren();
+    const list = (data as any) || [];
+    productCateOptions.value = list.map((item: any) => ({
+      label: item.name,
+      value: item.id,
+      children:
+        item.children?.map((child: any) => ({
+          label: child.name,
+          value: child.id,
+        })) || [],
+    }));
   } catch (error) {
     console.error('获取分类列表失败:', error);
   }
@@ -508,7 +485,7 @@ const handleResetSearch = () => {
 };
 
 // 表格选择变化
-const handleSelectionChange = (val: Product[]) => {
+const handleSelectionChange = (val: any[]) => {
   multipleSelection.value = val;
 };
 
@@ -525,12 +502,9 @@ const handleCurrentChange = (val: number) => {
 };
 
 // 上架状态切换
-const handlePublishStatusChange = async (_index: number, row: Product) => {
+const handlePublishStatusChange = async (_index: number, row: any) => {
   try {
-    await ProductService.updatePublishStatus({
-      ids: [row.id!],
-      publishStatus: row.publishStatus,
-    });
+    await productStore.updatePublishStatus([row.id!], row.publishStatus);
     ElMessage.success('修改成功');
   } catch (error) {
     console.error('修改失败:', error);
@@ -540,12 +514,9 @@ const handlePublishStatusChange = async (_index: number, row: Product) => {
 };
 
 // 新品状态切换
-const handleNewStatusChange = async (_index: number, row: Product) => {
+const handleNewStatusChange = async (_index: number, row: any) => {
   try {
-    await ProductService.updateNewStatus({
-      ids: [row.id!],
-      newStatus: row.newStatus,
-    });
+    await productStore.updateNewStatus([row.id!], row.newStatus);
     ElMessage.success('修改成功');
   } catch (error) {
     console.error('修改失败:', error);
@@ -555,12 +526,9 @@ const handleNewStatusChange = async (_index: number, row: Product) => {
 };
 
 // 推荐状态切换
-const handleRecommendStatusChange = async (_index: number, row: Product) => {
+const handleRecommendStatusChange = async (_index: number, row: any) => {
   try {
-    await ProductService.updateRecommendStatus({
-      ids: [row.id!],
-      recommendStatus: row.recommendStatus,
-    });
+    await productStore.updateRecommendStatus([row.id!], row.recommendStatus);
     ElMessage.success('修改成功');
   } catch (error) {
     console.error('修改失败:', error);
@@ -593,28 +561,28 @@ const handleBatchOperate = async () => {
     // 根据操作类型执行对应操作
     switch (operateType.value) {
       case 'publishOn':
-        await ProductService.updatePublishStatus({ ids, publishStatus: 1 });
+        await productStore.updatePublishStatus(ids, 1);
         break;
       case 'publishOff':
-        await ProductService.updatePublishStatus({ ids, publishStatus: 0 });
+        await productStore.updatePublishStatus(ids, 0);
         break;
       case 'recommendOn':
-        await ProductService.updateRecommendStatus({ ids, recommendStatus: 1 });
+        await productStore.updateRecommendStatus(ids, 1);
         break;
       case 'recommendOff':
-        await ProductService.updateRecommendStatus({ ids, recommendStatus: 0 });
+        await productStore.updateRecommendStatus(ids, 0);
         break;
       case 'newOn':
-        await ProductService.updateNewStatus({ ids, newStatus: 1 });
+        await productStore.updateNewStatus(ids, 1);
         break;
       case 'newOff':
-        await ProductService.updateNewStatus({ ids, newStatus: 0 });
+        await productStore.updateNewStatus(ids, 0);
         break;
       case 'transferCategory':
         ElMessage.info('转移到分类功能开发中');
         return;
       case 'recycle':
-        await ProductService.deleteProduct(ids);
+        await productStore.batchDelete(ids);
         break;
       default:
         break;
@@ -631,7 +599,7 @@ const handleBatchOperate = async () => {
 };
 
 // SKU库存管理
-const handleShowSkuEditDialog = async (_index: number, row: Product) => {
+const handleShowSkuEditDialog = async (_index: number, row: any) => {
   editSkuInfo.dialogVisible = true;
   editSkuInfo.productId = row.id;
   editSkuInfo.productSn = row.productSn;
@@ -640,18 +608,17 @@ const handleShowSkuEditDialog = async (_index: number, row: Product) => {
 
   try {
     // 获取SKU库存列表
-    const stockResponse = await SkuStockService.fetchList(row.id, {
+    const stockData = await productStore.getSkuList(row.id, {
       keyword: editSkuInfo.keyword || undefined,
     });
-    editSkuInfo.stockList = stockResponse.result;
+    editSkuInfo.stockList = (stockData as any) || [];
 
     // 获取商品属性列表
     if (row.productAttributeCategoryId) {
-      const attrResponse = await ProductAttrService.fetchList(
-        row.productAttributeCategoryId,
-        { type: 0 },
-      );
-      editSkuInfo.productAttr = attrResponse.result.list;
+      await productAttrStore.getAttrList(row.productAttributeCategoryId, {
+        type: 0,
+      });
+      editSkuInfo.productAttr = productAttrStore.attrList;
     }
   } catch (error) {
     console.error('获取SKU信息失败:', error);
@@ -663,10 +630,10 @@ const handleSearchEditSku = async () => {
   if (!editSkuInfo.productId) return;
 
   try {
-    const response = await SkuStockService.fetchList(editSkuInfo.productId, {
+    const data = await productStore.getSkuList(editSkuInfo.productId, {
       keyword: editSkuInfo.keyword || undefined,
     });
-    editSkuInfo.stockList = response.data;
+    editSkuInfo.stockList = (data as any) || [];
   } catch (error) {
     console.error('搜索SKU失败:', error);
     ElMessage.error('搜索失败');
@@ -688,7 +655,7 @@ const handleEditSkuConfirm = async () => {
       type: 'warning',
     });
 
-    await SkuStockService.update(editSkuInfo.productId, editSkuInfo.stockList);
+    await productStore.updateSku(editSkuInfo.productId, editSkuInfo.stockList);
     ElMessage.success('修改成功');
     editSkuInfo.dialogVisible = false;
   } catch (error) {
@@ -704,29 +671,29 @@ const handleAddProduct = () => {
   router.push({ path: '/pms/addProduct' });
 };
 
-const handleUpdate = (_index: number, row: Product) => {
+const handleUpdate = (_index: number, row: any) => {
   router.push({
     path: '/pms/updateProduct',
     query: { id: String(row.id) },
   });
 };
 
-const handleShowProduct = (_index: number, row: Product) => {
+const handleShowProduct = (_index: number, row: any) => {
   console.log('查看商品:', row);
   ElMessage.info('查看商品功能开发中');
 };
 
-const handleShowVerifyDetail = (_index: number, row: Product) => {
+const handleShowVerifyDetail = (_index: number, row: any) => {
   console.log('审核详情:', row);
   ElMessage.info('审核详情功能开发中');
 };
 
-const handleShowLog = (_index: number, row: Product) => {
+const handleShowLog = (_index: number, row: any) => {
   console.log('操作日志:', row);
   ElMessage.info('操作日志功能开发中');
 };
 
-const handleDelete = async (_index: number, row: Product) => {
+const handleDelete = async (_index: number, row: any) => {
   try {
     await ElMessageBox.confirm('是否要删除该商品?', '提示', {
       confirmButtonText: '确定',
@@ -734,7 +701,7 @@ const handleDelete = async (_index: number, row: Product) => {
       type: 'warning',
     });
 
-    await ProductService.deleteProduct([row.id!]);
+    await productStore.batchDelete([row.id!]);
     ElMessage.success('删除成功');
     await getList();
   } catch (error) {

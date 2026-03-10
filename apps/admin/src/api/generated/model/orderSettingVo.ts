@@ -7,7 +7,6 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
-import type { OrderSettingVoDeletedAt } from './orderSettingVoDeletedAt';
 
 export interface OrderSettingVo {
   /** 主键ID */
@@ -16,8 +15,11 @@ export interface OrderSettingVo {
   createdAt: string;
   /** 更新时间 */
   updatedAt: string;
-  /** 删除时间 */
-  deletedAt?: OrderSettingVoDeletedAt;
+  /**
+   * 删除时间
+   * @nullable
+   */
+  deletedAt?: string | null;
   /** 秒杀订单超时关闭时间(分) */
   flashOrderOvertime: number;
   /** 正常订单超时时间(分) */

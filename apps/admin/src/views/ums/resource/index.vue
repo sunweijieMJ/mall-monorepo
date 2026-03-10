@@ -94,9 +94,11 @@
           <template #default="{ row }">{{ row.description }}</template>
         </el-table-column>
         <el-table-column label="添加时间" width="160" align="center">
-          <template #default="{ row }">{{
-            formatDateTime(row.createTime)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatDateTime(row.createTime)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="操作" width="140" align="center">
           <template #default="{ row, $index }">
@@ -166,7 +168,7 @@
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">取 消</el-button>
           <el-button type="primary" @click="handleDialogConfirm"
-            >确 定</el-button
+          >确 定</el-button
           >
         </span>
       </template>
@@ -183,11 +185,11 @@ import {
 } from 'element-plus';
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { ResourceService, ResourceCategoryService } from '@/api/modules';
-import type { Resource } from '@/interface';
-import { formatDate } from '@/utils/date';
+import type { AdminResourceVo } from '@/api';
+import { useResourceStore } from '@/store/modules/resource';
 
 const router = useRouter();
+const resourceStore = useResourceStore();
 const resourceTableRef = ref<InstanceType<typeof ElTable>>();
 const resourceFormRef = ref<InstanceType<typeof ElForm>>();
 
@@ -208,11 +210,11 @@ const defaultResource = {
 };
 
 const listQuery = reactive({ ...defaultListQuery });
-const list = ref<Resource[]>([]);
+const list = ref<AdminResourceVo[]>([]);
 const total = ref(0);
 const listLoading = ref(false);
 const dialogVisible = ref(false);
-const resource = reactive<Partial<Resource>>({ ...defaultResource });
+const resource = reactive<Partial<AdminResourceVo>>({ ...defaultResource });
 const isEdit = ref(false);
 const categoryOptions = ref<Array<{ label: string; value: number }>>([]);
 const defaultCategoryId = ref<number | null>(null);
@@ -221,16 +223,23 @@ const defaultCategoryId = ref<number | null>(null);
 const formatDateTime = (time?: string | number) => {
   if (!time) return 'N/A';
   const date = new Date(time);
-  return formatDate(date, 'yyyy-MM-dd hh:mm:ss');
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
 };
 
 // 获取列表
 const getList = async () => {
   listLoading.value = true;
   try {
-    const response = await ResourceService.fetchList(listQuery);
-    list.value = response.data.list;
-    total.value = response.data.total;
+    await resourceStore.getList(listQuery);
+    list.value = resourceStore.list;
+    total.value = resourceStore.total;
   } catch (error) {
     console.error('获取列表失败:', error);
     ElMessage.error('获取列表失败');
@@ -242,8 +251,8 @@ const getList = async () => {
 // 获取分类列表
 const getCateList = async () => {
   try {
-    const response = await ResourceCategoryService.listAllCate();
-    const cateList = response.data;
+    await resourceStore.getAllCategories();
+    const cateList = resourceStore.allCategories;
     categoryOptions.value = cateList.map((cate: any) => ({
       label: cate.name,
       value: cate.id,
@@ -283,7 +292,7 @@ const handleAdd = () => {
   resource.categoryId = defaultCategoryId.value;
 };
 
-const handleDelete = async (_index: number, row: Resource) => {
+const handleDelete = async (_index: number, row: AdminResourceVo) => {
   try {
     await ElMessageBox.confirm('是否要删除该资源?', '提示', {
       confirmButtonText: '确定',
@@ -291,7 +300,7 @@ const handleDelete = async (_index: number, row: Resource) => {
       type: 'warning',
     });
 
-    await ResourceService.deleteResource(row.id!);
+    await resourceStore.deleteItem(row.id!);
     ElMessage.success('删除成功');
     await getList();
   } catch (error: any) {
@@ -302,7 +311,7 @@ const handleDelete = async (_index: number, row: Resource) => {
   }
 };
 
-const handleUpdate = (_index: number, row: Resource) => {
+const handleUpdate = (_index: number, row: AdminResourceVo) => {
   dialogVisible.value = true;
   isEdit.value = true;
   Object.assign(resource, row);
@@ -317,10 +326,10 @@ const handleDialogConfirm = async () => {
     });
 
     if (isEdit.value) {
-      await ResourceService.updateResource(resource.id!, resource as Resource);
+      await resourceStore.update(resource.id!, resource as any);
       ElMessage.success('修改成功');
     } else {
-      await ResourceService.createResource(resource as Resource);
+      await resourceStore.create(resource as any);
       ElMessage.success('添加成功');
     }
 

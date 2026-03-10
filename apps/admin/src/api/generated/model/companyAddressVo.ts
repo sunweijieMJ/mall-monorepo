@@ -7,7 +7,6 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
-import type { CompanyAddressVoDeletedAt } from './companyAddressVoDeletedAt';
 import type { CompanyAddressVoReceiveStatus } from './companyAddressVoReceiveStatus';
 import type { CompanyAddressVoSendStatus } from './companyAddressVoSendStatus';
 
@@ -18,8 +17,11 @@ export interface CompanyAddressVo {
   createdAt: string;
   /** 更新时间 */
   updatedAt: string;
-  /** 删除时间 */
-  deletedAt?: CompanyAddressVoDeletedAt;
+  /**
+   * 删除时间
+   * @nullable
+   */
+  deletedAt?: string | null;
   /** 地址名称 */
   addressName: string;
   /** 默认发货地址：0->否；1->是 */

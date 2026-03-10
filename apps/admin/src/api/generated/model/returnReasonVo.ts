@@ -7,7 +7,6 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
-import type { ReturnReasonVoDeletedAt } from './returnReasonVoDeletedAt';
 import type { ReturnReasonVoStatus } from './returnReasonVoStatus';
 
 export interface ReturnReasonVo {
@@ -17,8 +16,11 @@ export interface ReturnReasonVo {
   createdAt: string;
   /** 更新时间 */
   updatedAt: string;
-  /** 删除时间 */
-  deletedAt?: ReturnReasonVoDeletedAt;
+  /**
+   * 删除时间
+   * @nullable
+   */
+  deletedAt?: string | null;
   /** 退货原因名称 */
   name: string;
   /** 排序 */

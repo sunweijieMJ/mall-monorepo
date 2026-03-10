@@ -30,7 +30,9 @@
       </el-form-item>
       <el-form-item style="text-align: center">
         <el-button size="default" @click="handlePrev"
-          >上一步，填写商品属性</el-button
+        >
+          上一步，填写商品属性
+        </el-button
         >
         <el-button type="primary" size="default" @click="handleFinishCommit">
           完成，提交商品
@@ -42,8 +44,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { SubjectService, PrefrenceAreaService } from '@/api/modules';
-import type { ProductParam, Subject, PrefrenceArea } from '@/interface';
+import type { ProductParam } from '@/interface';
+import { useSubjectStore, usePreferenceAreaStore } from '@/store';
 
 interface Props {
   modelValue: ProductParam;
@@ -58,6 +60,9 @@ interface TransferData {
 const props = withDefaults(defineProps<Props>(), {
   isEdit: false,
 });
+
+const subjectStore = useSubjectStore();
+const preferenceAreaStore = usePreferenceAreaStore();
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: ProductParam): void;
@@ -121,9 +126,8 @@ const filterMethod = (query: string, item: TransferData): boolean => {
 // 获取专题列表
 const getSubjectList = async () => {
   try {
-    const response = await SubjectService.fetchListAll();
-    const list = response.data;
-    subjectList.value = list.map((item: Subject) => ({
+    await subjectStore.getList({ pageNum: 1, pageSize: 100 });
+    subjectList.value = subjectStore.list.map((item: any) => ({
       label: item.title,
       key: item.id,
     }));
@@ -135,9 +139,8 @@ const getSubjectList = async () => {
 // 获取优选列表
 const getPrefrenceAreaList = async () => {
   try {
-    const response = await PrefrenceAreaService.fetchList();
-    const list = response.data;
-    prefrenceAreaList.value = list.map((item: PrefrenceArea) => ({
+    await preferenceAreaStore.getList();
+    prefrenceAreaList.value = preferenceAreaStore.list.map((item: any) => ({
       label: item.name,
       key: item.id,
     }));

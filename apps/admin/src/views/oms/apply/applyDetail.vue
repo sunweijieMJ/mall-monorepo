@@ -50,19 +50,15 @@
       <span class="font-title-medium">服务单信息</span>
       <div class="form-container-border">
         <el-row>
-          <el-col :span="6" class="form-border form-left-bg font-small"
-          >
+          <el-col :span="6" class="form-border form-left-bg font-small">
             服务单号
           </el-col
           ><el-col class="form-border font-small" :span="18">
-            {{
-              orderReturnApply.id
-            }}
+            {{ orderReturnApply.id }}
           </el-col>
         </el-row>
         <el-row>
-          <el-col class="form-border form-left-bg font-small" :span="6"
-          >
+          <el-col class="form-border form-left-bg font-small" :span="6">
             申请状态
           </el-col
           ><el-col class="form-border font-small" :span="18">
@@ -87,8 +83,7 @@
           </el-col>
         </el-row>
         <el-row>
-          <el-col class="form-border form-left-bg font-small" :span="6"
-          >
+          <el-col class="form-border form-left-bg font-small" :span="6">
             申请时间
           </el-col
           ><el-col class="form-border font-small" :span="18">
@@ -96,58 +91,43 @@
           </el-col>
         </el-row>
         <el-row>
-          <el-col class="form-border form-left-bg font-small" :span="6"
-          >
+          <el-col class="form-border form-left-bg font-small" :span="6">
             用户账号
           </el-col
           ><el-col class="form-border font-small" :span="18">
-            {{
-              orderReturnApply.memberUsername
-            }}
+            {{ orderReturnApply.memberUsername }}
           </el-col>
         </el-row>
         <el-row>
-          <el-col class="form-border form-left-bg font-small" :span="6"
-          >
+          <el-col class="form-border form-left-bg font-small" :span="6">
             联系人
           </el-col
           ><el-col class="form-border font-small" :span="18">
-            {{
-              orderReturnApply.returnName
-            }}
+            {{ orderReturnApply.returnName }}
           </el-col>
         </el-row>
         <el-row>
-          <el-col class="form-border form-left-bg font-small" :span="6"
-          >
+          <el-col class="form-border form-left-bg font-small" :span="6">
             联系电话
           </el-col
           ><el-col class="form-border font-small" :span="18">
-            {{
-              orderReturnApply.returnPhone
-            }}
+            {{ orderReturnApply.returnPhone }}
           </el-col>
         </el-row>
         <el-row>
-          <el-col class="form-border form-left-bg font-small" :span="6"
-          >
+          <el-col class="form-border form-left-bg font-small" :span="6">
             退货原因
           </el-col
           ><el-col class="form-border font-small" :span="18">
-            {{
-              orderReturnApply.reason
-            }}
+            {{ orderReturnApply.reason }}
           </el-col>
         </el-row>
         <el-row>
-          <el-col class="form-border form-left-bg font-small" :span="6"
-          >
+          <el-col class="form-border form-left-bg font-small" :span="6">
             问题描述
           </el-col
           ><el-col class="form-border font-small" :span="18">
-            {{
-              orderReturnApply.description
-            }}
+            {{ orderReturnApply.description }}
           </el-col>
         </el-row>
         <el-row>
@@ -174,15 +154,12 @@
       </div>
       <div class="form-container-border">
         <el-row>
-          <el-col class="form-border form-left-bg font-small" :span="6"
-          >
+          <el-col class="form-border form-left-bg font-small" :span="6">
             订单金额
           </el-col
-          ><el-col class="form-border font-small" :span="18"
-          >
+          ><el-col class="form-border font-small" :span="18">
             ￥{{ totalAmount }}
-          </el-col
-          >
+          </el-col>
         </el-row>
         <el-row>
           <el-col
@@ -233,66 +210,50 @@
             </el-col>
           </el-row>
           <el-row>
-            <el-col class="form-border form-left-bg font-small" :span="6"
-            >
+            <el-col class="form-border form-left-bg font-small" :span="6">
               收货人姓名
             </el-col
             ><el-col class="form-border font-small" :span="18">
-              {{
-                currentAddress.name
-              }}
+              {{ currentAddress.name }}
             </el-col>
           </el-row>
           <el-row>
-            <el-col class="form-border form-left-bg font-small" :span="6"
-            >
+            <el-col class="form-border form-left-bg font-small" :span="6">
               所在区域
             </el-col
             ><el-col class="form-border font-small" :span="18">
-              {{
-                formatRegion(currentAddress)
-              }}
+              {{ formatRegion(currentAddress) }}
             </el-col>
           </el-row>
           <el-row>
-            <el-col class="form-border form-left-bg font-small" :span="6"
-            >
+            <el-col class="form-border form-left-bg font-small" :span="6">
               详细地址
             </el-col
             ><el-col class="form-border font-small" :span="18">
-              {{
-                currentAddress.detailAddress
-              }}
+              {{ currentAddress.detailAddress }}
             </el-col>
           </el-row>
           <el-row>
-            <el-col class="form-border form-left-bg font-small" :span="6"
-            >
+            <el-col class="form-border form-left-bg font-small" :span="6">
               联系电话
             </el-col
             ><el-col class="form-border font-small" :span="18">
-              {{
-                currentAddress.phone
-              }}
+              {{ currentAddress.phone }}
             </el-col>
           </el-row>
         </div>
       </div>
       <div v-show="orderReturnApply.status !== 0" class="form-container-border">
         <el-row>
-          <el-col class="form-border form-left-bg font-small" :span="6"
-          >
+          <el-col class="form-border form-left-bg font-small" :span="6">
             处理人员
           </el-col
           ><el-col class="form-border font-small" :span="18">
-            {{
-              orderReturnApply.handleMan
-            }}
+            {{ orderReturnApply.handleMan }}
           </el-col>
         </el-row>
         <el-row>
-          <el-col class="form-border form-left-bg font-small" :span="6"
-          >
+          <el-col class="form-border form-left-bg font-small" :span="6">
             处理时间
           </el-col
           ><el-col class="form-border font-small" :span="18">
@@ -300,32 +261,25 @@
           </el-col>
         </el-row>
         <el-row>
-          <el-col class="form-border form-left-bg font-small" :span="6"
-          >
+          <el-col class="form-border form-left-bg font-small" :span="6">
             处理备注
           </el-col
           ><el-col class="form-border font-small" :span="18">
-            {{
-              orderReturnApply.handleNote
-            }}
+            {{ orderReturnApply.handleNote }}
           </el-col>
         </el-row>
       </div>
       <div v-show="orderReturnApply.status === 2" class="form-container-border">
         <el-row>
-          <el-col class="form-border form-left-bg font-small" :span="6"
-          >
+          <el-col class="form-border form-left-bg font-small" :span="6">
             收货人员
           </el-col
           ><el-col class="form-border font-small" :span="18">
-            {{
-              orderReturnApply.receiveMan
-            }}
+            {{ orderReturnApply.receiveMan }}
           </el-col>
         </el-row>
         <el-row>
-          <el-col class="form-border form-left-bg font-small" :span="6"
-          >
+          <el-col class="form-border form-left-bg font-small" :span="6">
             收货时间
           </el-col
           ><el-col class="form-border font-small" :span="18">
@@ -333,14 +287,11 @@
           </el-col>
         </el-row>
         <el-row>
-          <el-col class="form-border form-left-bg font-small" :span="6"
-          >
+          <el-col class="form-border form-left-bg font-small" :span="6">
             收货备注
           </el-col
           ><el-col class="form-border font-small" :span="18">
-            {{
-              orderReturnApply.receiveNote
-            }}
+            {{ orderReturnApply.receiveNote }}
           </el-col>
         </el-row>
       </div>
@@ -382,26 +333,20 @@
         v-show="orderReturnApply.status === 0"
         style="margin-top: 15px; text-align: center"
       >
-        <el-button type="primary" @click="handleUpdateStatus(1)"
-        >
+        <el-button type="primary" @click="handleUpdateStatus(1)">
           确认退货
-        </el-button
-        >
-        <el-button type="danger" @click="handleUpdateStatus(3)"
-        >
+        </el-button>
+        <el-button type="danger" @click="handleUpdateStatus(3)">
           拒绝退货
-        </el-button
-        >
+        </el-button>
       </div>
       <div
         v-show="orderReturnApply.status === 1"
         style="margin-top: 15px; text-align: center"
       >
-        <el-button type="primary" @click="handleUpdateStatus(2)"
-        >
+        <el-button type="primary" @click="handleUpdateStatus(2)">
           确认收货
-        </el-button
-        >
+        </el-button>
       </div>
     </el-card>
   </div>
@@ -571,7 +516,7 @@ onMounted(() => {
 }
 
 .form-left-bg {
-  background: #f2f6fc;
+  background: var(--colorBgLayout);
 }
 
 .font-title-medium {
@@ -584,6 +529,6 @@ onMounted(() => {
 }
 
 .color-danger {
-  color: #f56c6c;
+  color: var(--colorError);
 }
 </style>

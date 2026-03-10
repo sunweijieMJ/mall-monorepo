@@ -79,9 +79,8 @@ import {
 } from 'element-plus';
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { BrandService } from '@/api/modules';
 import { SingleUpload } from '@/components';
-import type { Brand } from '@/interface';
+import { useBrandStore } from '@/store';
 
 // Props
 interface Props {
@@ -95,12 +94,13 @@ const props = withDefaults(defineProps<Props>(), {
 // Router
 const router = useRouter();
 const route = useRoute();
+const brandStore = useBrandStore();
 
 // 表单引用
 const brandFormRef = ref<FormInstance>();
 
 // 默认品牌数据
-const defaultBrand: Partial<Brand> = {
+const defaultBrand: Record<string, any> = {
   bigPic: '',
   brandStory: '',
   factoryStatus: 0,
@@ -112,7 +112,7 @@ const defaultBrand: Partial<Brand> = {
 };
 
 // 品牌数据
-const brand = reactive<Partial<Brand>>({ ...defaultBrand });
+const brand = reactive<Record<string, any>>({ ...defaultBrand });
 
 // 表单验证规则
 const rules: FormRules = {
@@ -144,12 +144,12 @@ const onSubmit = async () => {
     if (props.isEdit) {
       // 编辑模式
       const id = Number(route.query.id);
-      await BrandService.updateBrand(id, brand as Brand);
+      await brandStore.update(id, brand as any);
       ElMessage.success('修改成功');
       router.back();
     } else {
       // 添加模式
-      await BrandService.createBrand(brand as Brand);
+      await brandStore.create(brand as any);
       ElMessage.success('提交成功');
       resetForm();
     }
@@ -183,8 +183,8 @@ const loadBrand = async () => {
     }
 
     try {
-      const response = await BrandService.getBrand(id);
-      Object.assign(brand, response.data);
+      const data = await brandStore.getItem(id);
+      Object.assign(brand, data);
     } catch (error) {
       console.error('加载品牌数据失败:', error);
       ElMessage.error('加载品牌数据失败');

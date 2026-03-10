@@ -10,7 +10,11 @@
 import type { HandleReturnApplyDtoStatus } from './handleReturnApplyDtoStatus';
 
 export interface HandleReturnApplyDto {
-  /** 申请状态：0->待处理；1->退货中；2->已完成；3->已拒绝 */
+  /**
+   * 申请状态：0->待处理；1->退货中；2->已完成；3->已拒绝
+   * @minimum 0
+   * @maximum 3
+   */
   status: HandleReturnApplyDtoStatus;
   /** 处理备注 */
   handleNote?: string;

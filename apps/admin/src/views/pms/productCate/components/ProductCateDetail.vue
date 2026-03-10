@@ -116,13 +116,8 @@ import {
 } from 'element-plus';
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import {
-  ProductCateService,
-  ProductAttrCateService,
-  ProductAttrService,
-} from '@/api/modules';
 import { SingleUpload } from '@/components';
-import type { ProductCate } from '@/interface';
+import { useProductCateStore, useProductAttrStore } from '@/store';
 
 // Props
 interface Props {
@@ -137,11 +132,14 @@ const props = withDefaults(defineProps<Props>(), {
 const router = useRouter();
 const route = useRoute();
 
+const productCateStore = useProductCateStore();
+const productAttrStore = useProductAttrStore();
+
 // 表单引用
 const productCateFormRef = ref<FormInstance>();
 
 // 默认分类数据
-const defaultProductCate: Partial<ProductCate> = {
+const defaultProductCate: Record<string, any> = {
   description: '',
   icon: '',
   keywords: '',
@@ -155,10 +153,10 @@ const defaultProductCate: Partial<ProductCate> = {
 };
 
 // 分类数据
-const productCate = reactive<Partial<ProductCate>>({ ...defaultProductCate });
+const productCate = reactive<Record<string, any>>({ ...defaultProductCate });
 
 // 上级分类列表
-const selectProductCateList = ref<ProductCate[]>([]);
+const selectProductCateList = ref<any[]>([]);
 
 // 表单验证规则
 const rules: FormRules = {
@@ -193,15 +191,12 @@ const filterLabelFilter = (index: number) => {
 // 获取上级分类列表
 const getSelectProductCateList = async () => {
   try {
-    const response = await ProductCateService.fetchList(0, {
-      pageSize: 100,
-      pageNum: 1,
-    });
-    selectProductCateList.value = response.data.list;
+    await productCateStore.getList(0, { pageSize: 100, pageNum: 1 });
+    selectProductCateList.value = [...productCateStore.list];
     selectProductCateList.value.unshift({
       id: 0,
       name: '无上级分类',
-    } as ProductCate);
+    } as any);
   } catch (error) {
     console.error('获取分类列表失败:', error);
   }
@@ -210,16 +205,16 @@ const getSelectProductCateList = async () => {
 // 获取商品属性分类列表（用于筛选属性）
 const getProductAttrCateList = async () => {
   try {
-    const response = await ProductAttrCateService.fetchListWithAttr();
-    const list = response.data;
+    const data = await productAttrStore.getCateWithAttr();
+    const list = (data as any) || [];
 
-    filterAttrs.value = list.map((productAttrCate) => {
+    filterAttrs.value = list.map((productAttrCate: any) => {
       const children: FilterAttrOption[] = [];
       if (
         productAttrCate.productAttributeList &&
         productAttrCate.productAttributeList.length > 0
       ) {
-        productAttrCate.productAttributeList.forEach((attr) => {
+        productAttrCate.productAttributeList.forEach((attr: any) => {
           children.push({
             label: attr.name!,
             value: attr.id!,
@@ -271,15 +266,12 @@ const onSubmit = async () => {
     if (props.isEdit) {
       // 编辑模式
       const id = Number(route.query.id);
-      await ProductCateService.updateProductCate(
-        id,
-        productCate as ProductCate,
-      );
+      await productCateStore.update(id, productCate);
       ElMessage.success('修改成功');
       router.back();
     } else {
       // 添加模式
-      await ProductCateService.createProductCate(productCate as ProductCate);
+      await productCateStore.create(productCate);
       ElMessage.success('提交成功');
       resetForm();
     }
@@ -340,14 +332,14 @@ const loadProductCate = async () => {
 
     try {
       // 加载分类基本信息
-      const response = await ProductCateService.getProductCate(id);
-      Object.assign(productCate, response.data);
+      const data = await productCateStore.getItem(id);
+      Object.assign(productCate, data);
 
-      // 加载分类的筛选属性
-      const attrResponse = await ProductAttrService.getProductAttrInfo(id);
-      if (attrResponse.result && attrResponse.result.length > 0) {
+      // TODO: 加载分类的筛选属性（需要后端提供对应 API）
+      const attrResult: any[] = [];
+      if (Array.isArray(attrResult) && attrResult.length > 0) {
         filterProductAttrList.value = [];
-        attrResponse.result.forEach((attr, index) => {
+        attrResult.forEach((attr: any, index: number) => {
           filterProductAttrList.value.push({
             key: Date.now() + index,
             value: [attr.attributeCategoryId!, attr.attributeId!],

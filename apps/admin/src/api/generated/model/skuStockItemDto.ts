@@ -17,17 +17,29 @@ export interface SkuStockItemDto {
   skuCode: string;
   /** 价格 */
   price: number;
-  /** 库存 */
+  /**
+   * 库存
+   * @minimum 0
+   */
   stock: number;
-  /** 预警库存 */
+  /**
+   * 预警库存
+   * @minimum 0
+   */
   lowStock?: number;
   /** SKU 图片 */
   pic?: string;
-  /** 销量 */
+  /**
+   * 销量
+   * @minimum 0
+   */
   sale?: number;
   /** 促销价格 */
   promotionPrice?: number;
-  /** 锁定库存 */
+  /**
+   * 锁定库存
+   * @minimum 0
+   */
   lockStock?: number;
   /** 规格数据（JSON 格式） */
   spData?: string;

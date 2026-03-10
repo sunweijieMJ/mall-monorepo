@@ -205,7 +205,9 @@
       </el-form-item>
       <el-form-item style="text-align: center">
         <el-button size="default" @click="handlePrev"
-          >上一步，填写商品促销</el-button
+        >
+          上一步，填写商品促销
+        </el-button
         >
         <el-button type="primary" size="default" @click="handleNext">
           下一步，选择商品关联
@@ -217,17 +219,11 @@
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { ref, computed, watch, onMounted } from 'vue';
-import { ProductAttrCateService, ProductAttrService } from '@/api/modules';
 import Tinymce from '@/components/Tinymce/index.vue';
 import MultiUpload from '@/components/Upload/MultiUpload.vue';
 import SingleUpload from '@/components/Upload/SingleUpload.vue';
-import type {
-  ProductParam,
-  ProductAttributeCategory,
-  ProductAttribute,
-  ProductAttributeValue,
-  SkuStock,
-} from '@/interface';
+import type { ProductParam } from '@/interface';
+import { useProductAttrStore } from '@/store';
 
 interface Props {
   modelValue: ProductParam;
@@ -264,6 +260,8 @@ interface AttrPic {
 const props = withDefaults(defineProps<Props>(), {
   isEdit: false,
 });
+
+const productAttrStore = useProductAttrStore();
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: ProductParam): void;
@@ -357,14 +355,13 @@ const handleEditCreated = () => {
 // 获取商品属性分类列表
 const getProductAttrCateList = async () => {
   try {
-    const response = await ProductAttrCateService.fetchList({
-      pageNum: 1,
-      pageSize: 100,
-    });
-    productAttributeCategoryOptions.value = response.data.list.map((item) => ({
-      label: item.name,
-      value: item.id,
-    }));
+    await productAttrStore.getCateList({ pageNum: 1, pageSize: 100 });
+    productAttributeCategoryOptions.value = productAttrStore.cateList.map(
+      (item: any) => ({
+        label: item.name,
+        value: item.id,
+      }),
+    );
   } catch (error) {
     console.error('获取属性分类失败:', error);
   }
@@ -373,12 +370,12 @@ const getProductAttrCateList = async () => {
 // 获取商品属性列表
 const getProductAttrList = async (type: number, cid: number) => {
   try {
-    const response = await ProductAttrService.fetchList(cid, {
+    await productAttrStore.getAttrList(cid, {
       pageNum: 1,
       pageSize: 100,
       type,
     });
-    const list = response.data.list;
+    const list = productAttrStore.attrList;
 
     if (type === 0) {
       // 规格属性
@@ -502,7 +499,7 @@ const handleRemoveProductAttrValue = (idx: number, index: number) => {
 };
 
 // 获取产品SKU规格数据
-const getProductSkuSp = (row: SkuStock, index: number): string => {
+const getProductSkuSp = (row: any, index: number): string => {
   if (!row.spData) return '';
   try {
     const spData = JSON.parse(row.spData);
@@ -724,7 +721,7 @@ const mergeProductAttrPics = () => {
 };
 
 // 删除SKU
-const handleRemoveProductSku = (index: number, row: SkuStock) => {
+const handleRemoveProductSku = (index: number, row: any) => {
   const list = localValue.value.skuStockList || [];
   if (list.length === 1) {
     list.splice(0, 1);
@@ -780,6 +777,6 @@ onMounted(() => {
 }
 
 .card-bg {
-  background: #f8f9fc;
+  background: var(--colorBgLayout);
 }
 </style>

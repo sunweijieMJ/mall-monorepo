@@ -27,6 +27,9 @@ export interface CreateHomeAdvertiseDto {
   url?: string;
   /** 备注 */
   note?: string;
-  /** 排序 */
+  /**
+   * 排序
+   * @minimum 0
+   */
   sort?: number;
 }

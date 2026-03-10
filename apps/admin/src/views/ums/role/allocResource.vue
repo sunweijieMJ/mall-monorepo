@@ -9,7 +9,7 @@
       :key="'cate' + cate.id"
       :class="index === 0 ? 'top-line' : null"
     >
-      <el-row class="table-layout" style="background: #f2f6fc">
+      <el-row class="table-layout" style="background: var(--colorBgLayout)">
         <el-checkbox
           v-model="cate.checked"
           :indeterminate="isIndeterminate(cate.id)"
@@ -45,16 +45,18 @@
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import ResourceService from '@/api/modules/resource';
-import ResourceCategoryService from '@/api/modules/resourceCategory';
-import RoleService from '@/api/modules/role';
-import type { Resource, ResourceCategory } from '@/interface';
+import type { AdminResourceVo, AdminResourceCategoryVo } from '@/api';
+import { useResourceStore } from '@/store/modules/resource';
+import { useRoleStore } from '@/store/modules/role';
 
-interface ResourceWithChecked extends Resource {
+const resourceStore = useResourceStore();
+const roleStore = useRoleStore();
+
+interface ResourceWithChecked extends AdminResourceVo {
   checked: boolean;
 }
 
-interface ResourceCategoryWithChecked extends ResourceCategory {
+interface ResourceCategoryWithChecked extends AdminResourceCategoryVo {
   checked: boolean;
 }
 
@@ -68,8 +70,8 @@ const allResourceCate = ref<ResourceCategoryWithChecked[]>([]);
 // 获取所有资源列表
 const getAllResourceList = async () => {
   try {
-    const response = await ResourceService.fetchAllResourceList();
-    allResource.value = response.data.map((item) => ({
+    const data = (await resourceStore.getAllList()) as any;
+    allResource.value = (data || []).map((item: any) => ({
       ...item,
       checked: false,
     }));
@@ -83,8 +85,8 @@ const getAllResourceList = async () => {
 // 获取所有资源分类列表
 const getAllResourceCateList = async () => {
   try {
-    const response = await ResourceCategoryService.listAllCate();
-    allResourceCate.value = response.data.map((item) => ({
+    const data = (await resourceStore.getAllCategories()) as any;
+    allResourceCate.value = (data || []).map((item: any) => ({
       ...item,
       checked: false,
     }));
@@ -106,8 +108,7 @@ const getResourceByCate = (categoryId: number) => {
 // 获取角色已分配的资源
 const getResourceByRole = async (id: number) => {
   try {
-    const response = await RoleService.listResourceByRole(id);
-    const allocResource = response.data;
+    const allocResource = (await roleStore.getResourceList(id)) as any;
 
     allResource.value.forEach((item) => {
       item.checked = getResourceChecked(item.id, allocResource);
@@ -123,7 +124,10 @@ const getResourceByRole = async (id: number) => {
 };
 
 // 检查资源是否被选中
-const getResourceChecked = (resourceId: number, allocResource: Resource[]) => {
+const getResourceChecked = (
+  resourceId: number,
+  allocResource: AdminResourceVo[],
+) => {
   if (!allocResource || allocResource.length === 0) return false;
   return allocResource.some((item) => item.id === resourceId);
 };
@@ -166,8 +170,7 @@ const handleSave = async () => {
       });
     }
 
-    await RoleService.allocResource({
-      roleId: roleId.value,
+    await roleStore.assignResources(roleId.value, {
       resourceIds: Array.from(checkedResourceIds),
     });
 

@@ -89,9 +89,11 @@
           <template #default="{ row }">{{ row.sort }}</template>
         </el-table-column>
         <el-table-column label="状态" width="160" align="center">
-          <template #default="{ row }">{{
-            formatRecommendStatus(row.recommendStatus)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatRecommendStatus(row.recommendStatus)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="操作" width="180" align="center">
           <template #default="{ row, $index }">
@@ -184,7 +186,9 @@
       <template #footer>
         <el-button @click="selectDialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="handleSelectDialogConfirm"
-          >确 定</el-button
+        >
+          确 定
+        </el-button
         >
       </template>
     </el-dialog>
@@ -211,10 +215,12 @@
 <script setup lang="ts">
 import { Search, Tickets } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox, type ElTable } from 'element-plus';
-import { ref, reactive, onMounted } from 'vue';
-import { HomeBrandService, BrandService } from '@/api/modules';
-import type { HomeBrand, Brand } from '@/interface';
+import { ref, reactive, computed, onMounted } from 'vue';
+import type { HomeBrandVo, BrandVo } from '@/api';
+import { useHomeBrandStore, useBrandStore } from '@/store';
 
+const homeBrandStore = useHomeBrandStore();
+const brandStore = useBrandStore();
 const homeBrandTableRef = ref<InstanceType<typeof ElTable>>();
 
 const defaultListQuery = {
@@ -225,10 +231,11 @@ const defaultListQuery = {
 };
 
 const listQuery = reactive({ ...defaultListQuery });
-const list = ref<HomeBrand[]>([]);
-const total = ref(0);
-const multipleSelection = ref<HomeBrand[]>([]);
-const listLoading = ref(false);
+const multipleSelection = ref<HomeBrandVo[]>([]);
+
+const list = computed(() => homeBrandStore.list);
+const total = computed(() => homeBrandStore.total);
+const listLoading = computed(() => homeBrandStore.loading);
 
 const recommendOptions = [
   { label: '未推荐', value: 0 },
@@ -245,9 +252,9 @@ const operateType = ref<number | null>(null);
 
 const selectDialogVisible = ref(false);
 const dialogData = reactive({
-  list: [] as Brand[],
+  list: [] as BrandVo[],
   total: 0,
-  multipleSelection: [] as Brand[],
+  multipleSelection: [] as BrandVo[],
   listQuery: {
     keyword: null as string | null,
     showStatus: 1,
@@ -272,7 +279,7 @@ const handleSearchList = () => {
   getList();
 };
 
-const handleSelectionChange = (val: HomeBrand[]) => {
+const handleSelectionChange = (val: HomeBrandVo[]) => {
   multipleSelection.value = val;
 };
 
@@ -287,7 +294,10 @@ const handleCurrentChange = (val: number) => {
   getList();
 };
 
-const handleRecommendStatusChange = async (_index: number, row: HomeBrand) => {
+const handleRecommendStatusChange = async (
+  _index: number,
+  row: HomeBrandVo,
+) => {
   try {
     await ElMessageBox.confirm('是否要修改推荐状态?', '提示', {
       confirmButtonText: '确定',
@@ -295,7 +305,7 @@ const handleRecommendStatusChange = async (_index: number, row: HomeBrand) => {
       type: 'warning',
     });
 
-    await HomeBrandService.updateRecommendStatus({
+    await homeBrandStore.updateStatus({
       ids: [row.id!],
       recommendStatus: row.recommendStatus,
     });
@@ -312,7 +322,7 @@ const handleRecommendStatusChange = async (_index: number, row: HomeBrand) => {
   }
 };
 
-const handleDelete = async (_index: number, row: HomeBrand) => {
+const handleDelete = async (_index: number, row: HomeBrandVo) => {
   try {
     await ElMessageBox.confirm('是否要删除该推荐?', '提示', {
       confirmButtonText: '确定',
@@ -320,7 +330,7 @@ const handleDelete = async (_index: number, row: HomeBrand) => {
       type: 'warning',
     });
 
-    await HomeBrandService.deleteHomeBrand([row.id!]);
+    await homeBrandStore.batchDelete([row.id!]);
     ElMessage.success('删除成功');
     await getList();
   } catch (error) {
@@ -347,7 +357,7 @@ const handleBatchOperate = async () => {
         cancelButtonText: '取消',
         type: 'warning',
       });
-      await HomeBrandService.updateRecommendStatus({ ids, recommendStatus: 1 });
+      await homeBrandStore.updateStatus({ ids, recommendStatus: 1 });
       ElMessage.success('修改成功');
       await getList();
     } else if (operateType.value === 1) {
@@ -357,7 +367,7 @@ const handleBatchOperate = async () => {
         cancelButtonText: '取消',
         type: 'warning',
       });
-      await HomeBrandService.updateRecommendStatus({ ids, recommendStatus: 0 });
+      await homeBrandStore.updateStatus({ ids, recommendStatus: 0 });
       ElMessage.success('修改成功');
       await getList();
     } else if (operateType.value === 2) {
@@ -367,7 +377,7 @@ const handleBatchOperate = async () => {
         cancelButtonText: '取消',
         type: 'warning',
       });
-      await HomeBrandService.deleteHomeBrand(ids);
+      await homeBrandStore.batchDelete(ids);
       ElMessage.success('删除成功');
       await getList();
     } else {
@@ -402,7 +412,7 @@ const handleDialogCurrentChange = (val: number) => {
   getDialogList();
 };
 
-const handleDialogSelectionChange = (val: Brand[]) => {
+const handleDialogSelectionChange = (val: BrandVo[]) => {
   dialogData.multipleSelection = val;
 };
 
@@ -424,7 +434,7 @@ const handleSelectDialogConfirm = async () => {
       brandName: item.name,
     }));
 
-    await HomeBrandService.createHomeBrand(selectBrands);
+    await homeBrandStore.batchCreate(selectBrands);
     selectDialogVisible.value = false;
     dialogData.multipleSelection = [];
     ElMessage.success('添加成功');
@@ -437,7 +447,7 @@ const handleSelectDialogConfirm = async () => {
   }
 };
 
-const handleEditSort = (_index: number, row: HomeBrand) => {
+const handleEditSort = (_index: number, row: HomeBrandVo) => {
   sortDialogVisible.value = true;
   sortDialogData.sort = row.sort || 0;
   sortDialogData.id = row.id!;
@@ -451,7 +461,7 @@ const handleUpdateSort = async () => {
       type: 'warning',
     });
 
-    await HomeBrandService.updateHomeBrandSort(sortDialogData.id!, {
+    await homeBrandStore.updateSort(sortDialogData.id!, {
       sort: sortDialogData.sort,
     });
     sortDialogVisible.value = false;
@@ -466,24 +476,19 @@ const handleUpdateSort = async () => {
 };
 
 const getList = async () => {
-  listLoading.value = true;
   try {
-    const response = await HomeBrandService.fetchList(listQuery);
-    list.value = response.data.list;
-    total.value = response.data.total;
+    await homeBrandStore.getList(listQuery);
   } catch (error) {
     console.error('获取列表失败:', error);
     ElMessage.error('获取列表失败');
-  } finally {
-    listLoading.value = false;
   }
 };
 
 const getDialogList = async () => {
   try {
-    const response = await BrandService.fetchList(dialogData.listQuery);
-    dialogData.list = response.data.list;
-    dialogData.total = response.data.total;
+    await brandStore.getList(dialogData.listQuery);
+    dialogData.list = brandStore.list;
+    dialogData.total = brandStore.total;
   } catch (error) {
     console.error('获取品牌列表失败:', error);
     ElMessage.error('获取品牌列表失败');
@@ -537,6 +542,6 @@ onMounted(() => {
 }
 
 .color-main {
-  color: #409eff;
+  color: var(--colorPrimary);
 }
 </style>

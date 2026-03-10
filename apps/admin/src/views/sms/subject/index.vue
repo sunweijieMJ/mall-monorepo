@@ -89,9 +89,11 @@
           <template #default="{ row }">{{ row.sort }}</template>
         </el-table-column>
         <el-table-column label="状态" width="160" align="center">
-          <template #default="{ row }">{{
-            formatRecommendStatus(row.recommendStatus)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatRecommendStatus(row.recommendStatus)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="操作" width="180" align="center">
           <template #default="{ row, $index }">
@@ -165,9 +167,11 @@
           <template #default="{ row }">{{ row.categoryName }}</template>
         </el-table-column>
         <el-table-column label="添加时间" width="160" align="center">
-          <template #default="{ row }">{{
-            formatTime(row.createTime)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatTime(row.createTime)
+            }}
+          </template>
         </el-table-column>
       </el-table>
       <div class="pagination-container">
@@ -186,7 +190,9 @@
       <template #footer>
         <el-button @click="selectDialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="handleSelectDialogConfirm"
-          >确 定</el-button
+        >
+          确 定
+        </el-button
         >
       </template>
     </el-dialog>
@@ -213,10 +219,12 @@
 <script setup lang="ts">
 import { Search, Tickets } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox, type ElTable } from 'element-plus';
-import { ref, reactive, onMounted } from 'vue';
-import { HomeSubjectService, SubjectService } from '@/api/modules';
-import type { HomeSubject, Subject } from '@/interface';
+import { ref, reactive, computed, onMounted } from 'vue';
+import type { HomeSubjectVo, SubjectVo } from '@/api';
+import { useHomeSubjectStore, useSubjectStore } from '@/store';
 
+const homeSubjectStore = useHomeSubjectStore();
+const subjectStore = useSubjectStore();
 const homeSubjectTableRef = ref<InstanceType<typeof ElTable>>();
 
 const defaultListQuery = {
@@ -227,10 +235,10 @@ const defaultListQuery = {
 };
 
 const listQuery = reactive({ ...defaultListQuery });
-const list = ref<HomeSubject[]>([]);
-const total = ref(0);
-const multipleSelection = ref<HomeSubject[]>([]);
-const listLoading = ref(false);
+const list = computed(() => homeSubjectStore.list);
+const total = computed(() => homeSubjectStore.total);
+const multipleSelection = ref<HomeSubjectVo[]>([]);
+const listLoading = computed(() => homeSubjectStore.loading);
 
 const recommendOptions = [
   { label: '未推荐', value: 0 },
@@ -247,9 +255,9 @@ const operateType = ref<number | null>(null);
 
 const selectDialogVisible = ref(false);
 const dialogData = reactive({
-  list: [] as Subject[],
+  list: [] as SubjectVo[],
   total: 0,
-  multipleSelection: [] as Subject[],
+  multipleSelection: [] as SubjectVo[],
   listQuery: {
     keyword: null as string | null,
     pageNum: 1,
@@ -286,7 +294,7 @@ const handleSearchList = () => {
   getList();
 };
 
-const handleSelectionChange = (val: HomeSubject[]) => {
+const handleSelectionChange = (val: HomeSubjectVo[]) => {
   multipleSelection.value = val;
 };
 
@@ -303,7 +311,7 @@ const handleCurrentChange = (val: number) => {
 
 const handleRecommendStatusChange = async (
   _index: number,
-  row: HomeSubject,
+  row: HomeSubjectVo,
 ) => {
   try {
     await ElMessageBox.confirm('是否要修改推荐状态?', '提示', {
@@ -312,7 +320,7 @@ const handleRecommendStatusChange = async (
       type: 'warning',
     });
 
-    await HomeSubjectService.updateRecommendStatus({
+    await homeSubjectStore.updateStatus({
       ids: [row.id!],
       recommendStatus: row.recommendStatus,
     });
@@ -329,7 +337,7 @@ const handleRecommendStatusChange = async (
   }
 };
 
-const handleDelete = async (_index: number, row: HomeSubject) => {
+const handleDelete = async (_index: number, row: HomeSubjectVo) => {
   try {
     await ElMessageBox.confirm('是否要删除该推荐?', '提示', {
       confirmButtonText: '确定',
@@ -337,7 +345,7 @@ const handleDelete = async (_index: number, row: HomeSubject) => {
       type: 'warning',
     });
 
-    await HomeSubjectService.deleteHomeSubject([row.id!]);
+    await homeSubjectStore.batchDelete([row.id!]);
     ElMessage.success('删除成功');
     await getList();
   } catch (error) {
@@ -363,7 +371,7 @@ const handleBatchOperate = async () => {
         cancelButtonText: '取消',
         type: 'warning',
       });
-      await HomeSubjectService.updateRecommendStatus({
+      await homeSubjectStore.updateStatus({
         ids,
         recommendStatus: 1,
       });
@@ -375,7 +383,7 @@ const handleBatchOperate = async () => {
         cancelButtonText: '取消',
         type: 'warning',
       });
-      await HomeSubjectService.updateRecommendStatus({
+      await homeSubjectStore.updateStatus({
         ids,
         recommendStatus: 0,
       });
@@ -387,7 +395,7 @@ const handleBatchOperate = async () => {
         cancelButtonText: '取消',
         type: 'warning',
       });
-      await HomeSubjectService.deleteHomeSubject(ids);
+      await homeSubjectStore.batchDelete(ids);
       ElMessage.success('删除成功');
       await getList();
     } else {
@@ -423,7 +431,7 @@ const handleDialogCurrentChange = (val: number) => {
   getDialogList();
 };
 
-const handleDialogSelectionChange = (val: Subject[]) => {
+const handleDialogSelectionChange = (val: SubjectVo[]) => {
   dialogData.multipleSelection = val;
 };
 
@@ -445,7 +453,7 @@ const handleSelectDialogConfirm = async () => {
       subjectName: item.title,
     }));
 
-    await HomeSubjectService.createHomeSubject(selectSubjects);
+    await homeSubjectStore.batchCreate(selectSubjects);
     selectDialogVisible.value = false;
     dialogData.multipleSelection = [];
     ElMessage.success('添加成功');
@@ -458,7 +466,7 @@ const handleSelectDialogConfirm = async () => {
   }
 };
 
-const handleEditSort = (_index: number, row: HomeSubject) => {
+const handleEditSort = (_index: number, row: HomeSubjectVo) => {
   sortDialogVisible.value = true;
   sortDialogData.sort = row.sort || 0;
   sortDialogData.id = row.id!;
@@ -472,7 +480,7 @@ const handleUpdateSort = async () => {
       type: 'warning',
     });
 
-    await HomeSubjectService.updateHomeSubjectSort(sortDialogData.id!, {
+    await homeSubjectStore.updateSort(sortDialogData.id!, {
       sort: sortDialogData.sort,
     });
     sortDialogVisible.value = false;
@@ -487,24 +495,19 @@ const handleUpdateSort = async () => {
 };
 
 const getList = async () => {
-  listLoading.value = true;
   try {
-    const response = await HomeSubjectService.fetchList(listQuery);
-    list.value = response.data.list;
-    total.value = response.data.total;
+    await homeSubjectStore.getList(listQuery);
   } catch (error) {
     console.error('获取列表失败:', error);
     ElMessage.error('获取列表失败');
-  } finally {
-    listLoading.value = false;
   }
 };
 
 const getDialogList = async () => {
   try {
-    const response = await SubjectService.fetchList(dialogData.listQuery);
-    dialogData.list = response.data.list;
-    dialogData.total = response.data.total;
+    await subjectStore.getList(dialogData.listQuery);
+    dialogData.list = subjectStore.list;
+    dialogData.total = subjectStore.total;
   } catch (error) {
     console.error('获取专题列表失败:', error);
     ElMessage.error('获取专题列表失败');

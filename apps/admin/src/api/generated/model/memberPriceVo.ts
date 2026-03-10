@@ -7,6 +7,7 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
+import type { ProductEntity } from './productEntity';
 
 export interface MemberPriceVo {
   /** 主键ID */
@@ -15,8 +16,12 @@ export interface MemberPriceVo {
   productId?: number;
   /** 会员等级ID */
   memberLevelId?: number;
-  /** 会员价格 */
-  memberPrice?: number;
+  /**
+   * 会员价格
+   * @nullable
+   */
+  memberPrice?: number | null;
   /** 会员等级名称 */
   memberLevelName?: string;
+  product: ProductEntity;
 }

@@ -15,7 +15,10 @@ export interface UpdateBrandDto {
   name?: string;
   /** 品牌首字母 */
   firstLetter?: string;
-  /** 排序权重 */
+  /**
+   * 排序权重
+   * @minimum 0
+   */
   sort?: number;
   /** 是否为品牌制造商：0-否 1-是 */
   factoryStatus?: UpdateBrandDtoFactoryStatus;

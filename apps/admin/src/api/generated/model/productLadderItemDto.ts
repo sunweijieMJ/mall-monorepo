@@ -11,10 +11,19 @@
 export interface ProductLadderItemDto {
   /** 阶梯价 ID */
   id?: number;
-  /** 满足数量 */
+  /**
+   * 满足数量
+   * @minimum 1
+   */
   count?: number;
-  /** 折扣 */
+  /**
+   * 折扣
+   * @minimum 0
+   */
   discount?: number;
-  /** 折后价格 */
+  /**
+   * 折后价格
+   * @minimum 0
+   */
   price?: number;
 }

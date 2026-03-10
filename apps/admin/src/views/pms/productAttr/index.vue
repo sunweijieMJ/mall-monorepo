@@ -15,9 +15,9 @@
     <div class="table-container">
       <el-table
         ref="productAttrCateTableRef"
-        v-loading="listLoading"
+        v-loading="productAttrStore.loading"
         style="width: 100%"
-        :data="list"
+        :data="productAttrStore.cateList"
         border
       >
         <el-table-column label="编号" width="100" align="center">
@@ -61,7 +61,7 @@
         background
         layout="total, sizes, prev, pager, next, jumper"
         :page-sizes="[5, 10, 15]"
-        :total="total"
+        :total="productAttrStore.cateTotal"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
       />
@@ -105,11 +105,12 @@ import {
 } from 'element-plus';
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { ProductAttrCateService } from '@/api/modules';
-import type { ProductAttrCate } from '@/interface';
+import { useProductAttrStore } from '@/store';
 
 // Router
 const router = useRouter();
+
+const productAttrStore = useProductAttrStore();
 
 // 表格引用
 const productAttrCateTableRef = ref<InstanceType<typeof ElTable>>();
@@ -122,9 +123,6 @@ const listQuery = reactive({
 });
 
 // 状态
-const list = ref<ProductAttrCate[]>([]);
-const total = ref(0);
-const listLoading = ref(false);
 const dialogVisible = ref(false);
 const dialogTitle = ref('');
 
@@ -141,16 +139,11 @@ const rules: FormRules = {
 
 // 获取列表
 const getList = async () => {
-  listLoading.value = true;
   try {
-    const response = await ProductAttrCateService.fetchList(listQuery);
-    list.value = response.data.list;
-    total.value = response.data.total;
+    await productAttrStore.getCateList(listQuery);
   } catch (error) {
     console.error('获取属性类型列表失败:', error);
     ElMessage.error('获取列表失败');
-  } finally {
-    listLoading.value = false;
   }
 };
 
@@ -176,7 +169,7 @@ const handleCurrentChange = (val: number) => {
 };
 
 // 删除
-const handleDelete = async (_index: number, row: ProductAttrCate) => {
+const handleDelete = async (_index: number, row: any) => {
   try {
     await ElMessageBox.confirm('是否要删除该属性类型', '提示', {
       confirmButtonText: '确定',
@@ -184,7 +177,7 @@ const handleDelete = async (_index: number, row: ProductAttrCate) => {
       type: 'warning',
     });
 
-    await ProductAttrCateService.deleteProductAttrCate(row.id!);
+    await productAttrStore.deleteCate(row.id!);
     ElMessage.success('删除成功');
     await getList();
   } catch (error) {
@@ -195,7 +188,7 @@ const handleDelete = async (_index: number, row: ProductAttrCate) => {
 };
 
 // 编辑
-const handleUpdate = (_index: number, row: ProductAttrCate) => {
+const handleUpdate = (_index: number, row: any) => {
   dialogVisible.value = true;
   dialogTitle.value = '编辑类型';
   productAttrCate.name = row.name!;
@@ -203,7 +196,7 @@ const handleUpdate = (_index: number, row: ProductAttrCate) => {
 };
 
 // 查看属性列表
-const getAttrList = (_index: number, row: ProductAttrCate) => {
+const getAttrList = (_index: number, row: any) => {
   router.push({
     path: '/mall/pms/productAttr/productAttrList',
     query: { cid: String(row.id), cname: row.name, type: '0' },
@@ -211,7 +204,7 @@ const getAttrList = (_index: number, row: ProductAttrCate) => {
 };
 
 // 查看参数列表
-const getParamList = (_index: number, row: ProductAttrCate) => {
+const getParamList = (_index: number, row: any) => {
   router.push({
     path: '/mall/pms/productAttr/productAttrList',
     query: { cid: String(row.id), cname: row.name, type: '1' },
@@ -227,12 +220,12 @@ const handleConfirm = async () => {
     if (!valid) return false;
 
     if (dialogTitle.value === '添加类型') {
-      await ProductAttrCateService.createProductAttrCate({
+      await productAttrStore.createCate({
         name: productAttrCate.name,
       });
       ElMessage.success('添加成功');
     } else {
-      await ProductAttrCateService.updateProductAttrCate(productAttrCate.id!, {
+      await productAttrStore.updateCate(productAttrCate.id!, {
         name: productAttrCate.name,
       });
       ElMessage.success('修改成功');

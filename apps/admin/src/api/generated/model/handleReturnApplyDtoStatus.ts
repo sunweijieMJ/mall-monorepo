@@ -10,6 +10,8 @@
 
 /**
  * 申请状态：0->待处理；1->退货中；2->已完成；3->已拒绝
+ * @minimum 0
+ * @maximum 3
  */
 export type HandleReturnApplyDtoStatus =
   (typeof HandleReturnApplyDtoStatus)[keyof typeof HandleReturnApplyDtoStatus];

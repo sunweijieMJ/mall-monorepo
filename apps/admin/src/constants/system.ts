@@ -1,4 +1,12 @@
 /**
+ * API 响应状态码
+ */
+export const API_CODE = {
+  /** 成功 */
+  SUCCESS: 200,
+} as const;
+
+/**
  * 不同服务的代理前缀
  */
 export const PROXY_URI = {

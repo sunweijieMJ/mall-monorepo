@@ -75,14 +75,15 @@ import {
   type FormRules,
 } from 'element-plus';
 import { ref, reactive, onMounted } from 'vue';
-import { OrderSettingService } from '@/api/modules';
-import type { OrderSetting } from '@/interface';
+import type { OrderSettingVo } from '@/api';
+import { useOrderSettingStore } from '@/store';
 
 // 表单引用
 const orderSettingFormRef = ref<FormInstance>();
+const orderSettingStore = useOrderSettingStore();
 
 // 默认订单设置
-const defaultOrderSetting: Partial<OrderSetting> = {
+const defaultOrderSetting: Partial<OrderSettingVo> = {
   id: null,
   flashOrderOvertime: 0,
   normalOrderOvertime: 0,
@@ -92,7 +93,7 @@ const defaultOrderSetting: Partial<OrderSetting> = {
 };
 
 // 订单设置数据
-const orderSetting = reactive<Partial<OrderSetting>>({
+const orderSetting = reactive<Partial<OrderSettingVo>>({
   ...defaultOrderSetting,
 });
 
@@ -137,10 +138,7 @@ const confirm = async () => {
       type: 'warning',
     });
 
-    await OrderSettingService.updateOrderSetting(
-      1,
-      orderSetting as OrderSetting,
-    );
+    await orderSettingStore.updateSetting(1, orderSetting as OrderSettingVo);
     ElMessage.success('提交成功!');
   } catch (error) {
     if (error !== 'cancel') {
@@ -153,8 +151,8 @@ const confirm = async () => {
 // 获取订单设置详情
 const getDetail = async () => {
   try {
-    const response = await OrderSettingService.getOrderSetting(1);
-    Object.assign(orderSetting, response.data);
+    const data = await orderSettingStore.getSetting(1);
+    if (data) Object.assign(orderSetting, data);
   } catch (error) {
     console.error('获取订单设置失败:', error);
   }
@@ -177,7 +175,7 @@ onMounted(() => {
 
 .note-margin {
   margin-left: 15px;
-  color: #909399;
+  color: var(--colorTextDescription);
   font-size: 14px;
 }
 </style>

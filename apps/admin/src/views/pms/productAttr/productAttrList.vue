@@ -15,8 +15,8 @@
     <div class="table-container">
       <el-table
         ref="productAttrTableRef"
-        v-loading="listLoading"
-        :data="list"
+        v-loading="productAttrStore.loading"
+        :data="productAttrStore.attrList"
         style="width: 100%"
         border
         @selection-change="handleSelectionChange"
@@ -32,14 +32,18 @@
           <template #default>{{ route.query.cname }}</template>
         </el-table-column>
         <el-table-column label="属性是否可选" width="120" align="center">
-          <template #default="{ row }">{{
-            selectTypeFilter(row.selectType)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              selectTypeFilter(row.selectType)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="属性值的录入方式" width="150" align="center">
-          <template #default="{ row }">{{
-            inputTypeFilter(row.inputType)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              inputTypeFilter(row.inputType)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="可选值列表" align="center">
           <template #default="{ row }">{{ row.inputList }}</template>
@@ -89,7 +93,7 @@
         background
         layout="total, sizes, prev, pager, next, jumper"
         :page-sizes="[5, 10, 15]"
-        :total="total"
+        :total="productAttrStore.attrTotal"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
       />
@@ -102,12 +106,13 @@ import { Tickets } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox, type ElTable } from 'element-plus';
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { ProductAttrService } from '@/api/modules';
-import type { ProductAttr } from '@/interface';
+import { useProductAttrStore } from '@/store';
 
 // Router
 const router = useRouter();
 const route = useRoute();
+
+const productAttrStore = useProductAttrStore();
 
 // 表格引用
 const productAttrTableRef = ref<InstanceType<typeof ElTable>>();
@@ -120,10 +125,7 @@ const listQuery = reactive({
 });
 
 // 状态
-const list = ref<ProductAttr[]>([]);
-const total = ref(0);
-const listLoading = ref(false);
-const multipleSelection = ref<ProductAttr[]>([]);
+const multipleSelection = ref<any[]>([]);
 const operateType = ref<string>('');
 
 // 批量操作选项
@@ -154,17 +156,12 @@ const selectTypeFilter = (value?: number) => {
 
 // 获取列表
 const getList = async () => {
-  listLoading.value = true;
   try {
     const cid = Number(route.query.cid);
-    const response = await ProductAttrService.fetchList(cid, listQuery);
-    list.value = response.data.list;
-    total.value = response.data.total;
+    await productAttrStore.getAttrList(cid, listQuery);
   } catch (error) {
     console.error('获取属性列表失败:', error);
     ElMessage.error('获取列表失败');
-  } finally {
-    listLoading.value = false;
   }
 };
 
@@ -180,7 +177,7 @@ const addProductAttr = () => {
 };
 
 // 选择变化
-const handleSelectionChange = (val: ProductAttr[]) => {
+const handleSelectionChange = (val: any[]) => {
   multipleSelection.value = val;
 };
 
@@ -214,7 +211,7 @@ const handleCurrentChange = (val: number) => {
 };
 
 // 编辑属性
-const handleUpdate = (_index: number, row: ProductAttr) => {
+const handleUpdate = (_index: number, row: any) => {
   router.push({
     path: '/mall/pms/productAttr/updateProductAttr',
     query: { id: String(row.id) },
@@ -230,7 +227,7 @@ const handleDeleteProductAttr = async (ids: number[]) => {
       type: 'warning',
     });
 
-    await ProductAttrService.deleteProductAttr({ ids });
+    await productAttrStore.deleteAttr(ids);
     ElMessage.success('删除成功');
     await getList();
   } catch (error) {
@@ -241,7 +238,7 @@ const handleDeleteProductAttr = async (ids: number[]) => {
 };
 
 // 删除单个属性
-const handleDelete = (_index: number, row: ProductAttr) => {
+const handleDelete = (_index: number, row: any) => {
   handleDeleteProductAttr([row.id!]);
 };
 

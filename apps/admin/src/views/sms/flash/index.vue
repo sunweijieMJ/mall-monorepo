@@ -67,9 +67,11 @@
           <template #default="{ row }">{{ formatActiveStatus(row) }}</template>
         </el-table-column>
         <el-table-column label="开始时间" width="140" align="center">
-          <template #default="{ row }">{{
-            formatDate(row.startDate)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatDate(row.startDate)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="结束时间" width="140" align="center">
           <template #default="{ row }">{{ formatDate(row.endDate) }}</template>
@@ -157,12 +159,13 @@ import {
   type ElTable,
   type FormInstance,
 } from 'element-plus';
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { FlashPromotionService } from '@/api/modules';
-import type { FlashPromotion } from '@/interface';
+import type { FlashPromotionVo } from '@/api';
+import { useFlashPromotionStore } from '@/store';
 
 const router = useRouter();
+const flashPromotionStore = useFlashPromotionStore();
 const flashTableRef = ref<InstanceType<typeof ElTable>>();
 const flashPromotionFormRef = ref<FormInstance>();
 
@@ -172,7 +175,7 @@ const defaultListQuery = {
   keyword: null as string | null,
 };
 
-const defaultFlashPromotion: Partial<FlashPromotion> = {
+const defaultFlashPromotion: Partial<FlashPromotionVo> = {
   id: undefined,
   title: '',
   startDate: '',
@@ -181,16 +184,16 @@ const defaultFlashPromotion: Partial<FlashPromotion> = {
 };
 
 const listQuery = reactive({ ...defaultListQuery });
-const list = ref<FlashPromotion[]>([]);
-const total = ref(0);
-const listLoading = ref(false);
+const list = computed(() => flashPromotionStore.list);
+const total = computed(() => flashPromotionStore.total);
+const listLoading = computed(() => flashPromotionStore.loading);
 const dialogVisible = ref(false);
-const flashPromotion = reactive<Partial<FlashPromotion>>({
+const flashPromotion = reactive<Partial<FlashPromotionVo>>({
   ...defaultFlashPromotion,
 });
 const isEdit = ref(false);
 
-const formatActiveStatus = (row: FlashPromotion) => {
+const formatActiveStatus = (row: FlashPromotionVo) => {
   const nowDate = new Date().getTime();
   const startDate = new Date(row.startDate!).getTime();
   const endDate = new Date(row.endDate!).getTime();
@@ -239,7 +242,7 @@ const handleShowSessionList = () => {
   router.push({ path: '/mall/sms/flash/sessionList' });
 };
 
-const handleStatusChange = async (_index: number, row: FlashPromotion) => {
+const handleStatusChange = async (_index: number, row: FlashPromotionVo) => {
   try {
     await ElMessageBox.confirm('是否要修改该状态?', '提示', {
       confirmButtonText: '确定',
@@ -247,7 +250,7 @@ const handleStatusChange = async (_index: number, row: FlashPromotion) => {
       type: 'warning',
     });
 
-    await FlashPromotionService.updateStatus(row.id!, { status: row.status });
+    await flashPromotionStore.updateStatus(row.id!, { status: row.status });
     ElMessage.success('修改成功');
   } catch (error) {
     if (error !== 'cancel') {
@@ -260,7 +263,7 @@ const handleStatusChange = async (_index: number, row: FlashPromotion) => {
   }
 };
 
-const handleDelete = async (_index: number, row: FlashPromotion) => {
+const handleDelete = async (_index: number, row: FlashPromotionVo) => {
   try {
     await ElMessageBox.confirm('是否要删除该活动?', '提示', {
       confirmButtonText: '确定',
@@ -268,7 +271,7 @@ const handleDelete = async (_index: number, row: FlashPromotion) => {
       type: 'warning',
     });
 
-    await FlashPromotionService.deleteFlash(row.id!);
+    await flashPromotionStore.deleteItem(row.id!);
     ElMessage.success('删除成功');
     await getList();
   } catch (error) {
@@ -279,7 +282,7 @@ const handleDelete = async (_index: number, row: FlashPromotion) => {
   }
 };
 
-const handleUpdate = (_index: number, row: FlashPromotion) => {
+const handleUpdate = (_index: number, row: FlashPromotionVo) => {
   dialogVisible.value = true;
   isEdit.value = true;
   Object.assign(flashPromotion, row);
@@ -294,13 +297,13 @@ const handleDialogConfirm = async () => {
     });
 
     if (isEdit.value) {
-      await FlashPromotionService.updateFlash(
+      await flashPromotionStore.update(
         flashPromotion.id!,
-        flashPromotion as FlashPromotion,
+        flashPromotion as any,
       );
       ElMessage.success('修改成功');
     } else {
-      await FlashPromotionService.createFlash(flashPromotion as FlashPromotion);
+      await flashPromotionStore.create(flashPromotion as any);
       ElMessage.success('添加成功');
     }
 
@@ -314,7 +317,7 @@ const handleDialogConfirm = async () => {
   }
 };
 
-const handleSelectSession = (_index: number, row: FlashPromotion) => {
+const handleSelectSession = (_index: number, row: FlashPromotionVo) => {
   router.push({
     path: '/mall/sms/flash/selectSessionList',
     query: { flashPromotionId: String(row.id) },
@@ -322,16 +325,11 @@ const handleSelectSession = (_index: number, row: FlashPromotion) => {
 };
 
 const getList = async () => {
-  listLoading.value = true;
   try {
-    const response = await FlashPromotionService.fetchList(listQuery);
-    list.value = response.data.list;
-    total.value = response.data.total;
+    await flashPromotionStore.getList(listQuery);
   } catch (error) {
     console.error('获取列表失败:', error);
     ElMessage.error('获取列表失败');
-  } finally {
-    listLoading.value = false;
   }
 };
 

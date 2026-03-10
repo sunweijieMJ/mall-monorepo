@@ -37,8 +37,8 @@
     <div class="table-container">
       <el-table
         ref="brandTableRef"
-        v-loading="listLoading"
-        :data="list"
+        v-loading="brandStore.loading"
+        :data="brandStore.list"
         style="width: 100%"
         border
         @selection-change="handleSelectionChange"
@@ -134,7 +134,7 @@
         background
         layout="total, sizes, prev, pager, next, jumper"
         :page-sizes="[5, 10, 15]"
-        :total="total"
+        :total="brandStore.total"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
       />
@@ -147,11 +147,11 @@ import { Search, Tickets } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox, type ElTable } from 'element-plus';
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { BrandService } from '@/api/modules';
-import type { Brand } from '@/interface';
+import { useBrandStore } from '@/store';
 
 // Router
 const router = useRouter();
+const brandStore = useBrandStore();
 
 // 表格引用
 const brandTableRef = ref<InstanceType<typeof ElTable>>();
@@ -176,34 +176,19 @@ const listQuery = reactive({
 });
 
 // 状态
-const list = ref<Brand[]>([]);
-const total = ref(0);
-const listLoading = ref(false);
-const multipleSelection = ref<Brand[]>([]);
+const multipleSelection = ref<any[]>([]);
 const operateType = ref<string>('');
 
 // 获取品牌列表
-const getList = async () => {
-  listLoading.value = true;
-  try {
-    const response = await BrandService.fetchList(listQuery);
-    list.value = response.data.list;
-    total.value = response.data.total;
-  } catch (error) {
-    console.error('获取品牌列表失败:', error);
-    ElMessage.error('获取品牌列表失败');
-  } finally {
-    listLoading.value = false;
-  }
-};
+const getList = () => brandStore.getList(listQuery);
 
 // 处理选择变化
-const handleSelectionChange = (val: Brand[]) => {
+const handleSelectionChange = (val: any[]) => {
   multipleSelection.value = val;
 };
 
 // 编辑品牌
-const handleUpdate = (_index: number, row: Brand) => {
+const handleUpdate = (_index: number, row: any) => {
   router.push({
     path: '/mall/pms/brand/update',
     query: { id: String(row.id) },
@@ -211,7 +196,7 @@ const handleUpdate = (_index: number, row: Brand) => {
 };
 
 // 删除品牌
-const handleDelete = async (_index: number, row: Brand) => {
+const handleDelete = async (_index: number, row: any) => {
   try {
     await ElMessageBox.confirm('是否要删除该品牌', '提示', {
       confirmButtonText: '确定',
@@ -219,7 +204,7 @@ const handleDelete = async (_index: number, row: Brand) => {
       type: 'warning',
     });
 
-    await BrandService.deleteBrand(row.id!);
+    await brandStore.batchDelete([row.id!]);
     ElMessage.success('删除成功');
     await getList();
   } catch (error) {
@@ -230,44 +215,36 @@ const handleDelete = async (_index: number, row: Brand) => {
 };
 
 // 查看商品列表（待实现）
-const getProductList = (_index: number, row: Brand) => {
+const getProductList = (_index: number, row: any) => {
   console.log('查看品牌商品列表:', row);
   ElMessage.info('此功能待实现');
 };
 
 // 查看评价列表（待实现）
-const getProductCommentList = (_index: number, row: Brand) => {
+const getProductCommentList = (_index: number, row: any) => {
   console.log('查看品牌评价列表:', row);
   ElMessage.info('此功能待实现');
 };
 
 // 修改制造商状态
-const handleFactoryStatusChange = async (_index: number, row: Brand) => {
+const handleFactoryStatusChange = async (_index: number, row: any) => {
   try {
-    await BrandService.updateFactoryStatus({
-      ids: [row.id!],
-      factoryStatus: row.factoryStatus,
-    });
+    await brandStore.updateFactoryStatus([row.id!], row.factoryStatus);
     ElMessage.success('修改成功');
   } catch (error) {
     console.error('修改制造商状态失败:', error);
-    // 恢复原状态
     row.factoryStatus = row.factoryStatus === 0 ? 1 : 0;
     ElMessage.error('修改失败');
   }
 };
 
 // 修改显示状态
-const handleShowStatusChange = async (_index: number, row: Brand) => {
+const handleShowStatusChange = async (_index: number, row: any) => {
   try {
-    await BrandService.updateShowStatus({
-      ids: [row.id!],
-      showStatus: row.showStatus,
-    });
+    await brandStore.updateShowStatus([row.id!], row.showStatus);
     ElMessage.success('修改成功');
   } catch (error) {
     console.error('修改显示状态失败:', error);
-    // 恢复原状态
     row.showStatus = row.showStatus === 0 ? 1 : 0;
     ElMessage.error('修改失败');
   }
@@ -314,10 +291,7 @@ const handleBatchOperate = async () => {
   const ids = multipleSelection.value.map((item) => item.id!);
 
   try {
-    await BrandService.updateShowStatus({
-      ids,
-      showStatus,
-    });
+    await brandStore.updateShowStatus(ids, showStatus);
     await getList();
     ElMessage.success('修改成功');
   } catch (error) {

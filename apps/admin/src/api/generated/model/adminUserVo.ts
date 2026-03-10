@@ -7,7 +7,6 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
-import type { AdminUserVoDeletedAt } from './adminUserVoDeletedAt';
 import type { AdminUserVoStatus } from './adminUserVoStatus';
 
 export interface AdminUserVo {
@@ -17,8 +16,11 @@ export interface AdminUserVo {
   createdAt: string;
   /** 更新时间 */
   updatedAt: string;
-  /** 删除时间 */
-  deletedAt?: AdminUserVoDeletedAt;
+  /**
+   * 删除时间
+   * @nullable
+   */
+  deletedAt?: string | null;
   /** 用户名 */
   username: string;
   /** 头像 */

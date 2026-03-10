@@ -15,7 +15,7 @@ NC='\033[0m' # No Color
 # 配置变量
 CONTAINER_NAME="mall-admin-web"
 IMAGE_NAME="mall-admin-web:local"
-PORT="${PORT:-31180}"
+PORT="${PORT:-9091}"
 NGINX_PORT=80
 
 # 日志函数
@@ -238,11 +238,11 @@ ${GREEN}Commands:${NC}
   help        Show this help message
 
 ${GREEN}Environment Variables:${NC}
-  PORT        Host port to bind (default: 31180)
+  PORT        Host port to bind (default: 9091)
               Example: PORT=3000 $0 start
 
 ${GREEN}Examples:${NC}
-  $0 start              # Start container on port 31180
+  $0 start              # Start container on port 9091
   PORT=3000 $0 start    # Start container on port 3000
   $0 stop               # Stop container
   $0 restart            # Restart container

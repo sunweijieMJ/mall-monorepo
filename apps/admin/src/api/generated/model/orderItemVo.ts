@@ -7,6 +7,7 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
+import type { OrderEntity } from './orderEntity';
 
 export interface OrderItemVo {
   /** 主键 ID */
@@ -25,8 +26,11 @@ export interface OrderItemVo {
   productBrand?: string;
   /** 商品货号 */
   productSn?: string;
-  /** 销售价格 */
-  productPrice?: number;
+  /**
+   * 销售价格
+   * @nullable
+   */
+  productPrice?: number | null;
   /** 购买数量 */
   productQuantity?: number;
   /** 商品sku编号 */
@@ -37,18 +41,31 @@ export interface OrderItemVo {
   productCategoryId?: number;
   /** 商品促销名称 */
   promotionName?: string;
-  /** 商品促销分解金额 */
-  promotionAmount?: number;
-  /** 优惠券优惠分解金额 */
-  couponAmount?: number;
-  /** 积分优惠分解金额 */
-  integrationAmount?: number;
-  /** 该商品经过优惠后的分解金额 */
-  realAmount?: number;
+  /**
+   * 商品促销分解金额
+   * @nullable
+   */
+  promotionAmount?: number | null;
+  /**
+   * 优惠券优惠分解金额
+   * @nullable
+   */
+  couponAmount?: number | null;
+  /**
+   * 积分优惠分解金额
+   * @nullable
+   */
+  integrationAmount?: number | null;
+  /**
+   * 该商品经过优惠后的分解金额
+   * @nullable
+   */
+  realAmount?: number | null;
   /** 赠送积分 */
   giftIntegration?: number;
   /** 赠送成长值 */
   giftGrowth?: number;
   /** 商品销售属性 */
   productAttr?: string;
+  order: OrderEntity;
 }

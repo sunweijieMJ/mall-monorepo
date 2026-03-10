@@ -7,7 +7,6 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
-import type { ReturnApplyVoDeletedAt } from './returnApplyVoDeletedAt';
 import type { ReturnApplyVoStatus } from './returnApplyVoStatus';
 
 export interface ReturnApplyVo {
@@ -17,8 +16,11 @@ export interface ReturnApplyVo {
   createdAt: string;
   /** 更新时间 */
   updatedAt: string;
-  /** 删除时间 */
-  deletedAt?: ReturnApplyVoDeletedAt;
+  /**
+   * 删除时间
+   * @nullable
+   */
+  deletedAt?: string | null;
   /** 会员 ID */
   memberId?: number;
   /** 订单 ID */
@@ -51,10 +53,16 @@ export interface ReturnApplyVo {
   productAttr?: string;
   /** 商品数量 */
   productCount: number;
-  /** 商品单价 */
-  productPrice?: number;
-  /** 商品实际支付单价 */
-  productRealPrice?: number;
+  /**
+   * 商品单价
+   * @nullable
+   */
+  productPrice?: number | null;
+  /**
+   * 商品实际支付单价
+   * @nullable
+   */
+  productRealPrice?: number | null;
   /** 申请原因 */
   reason?: string;
   /** 描述 */

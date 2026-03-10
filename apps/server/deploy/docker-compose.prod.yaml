@@ -14,7 +14,7 @@ services:
     image: ${IMAGE_FULL_NAME:-mall-server:latest}
     container_name: mall-server-api
     ports:
-      - '${APP_PORT:-3001}:3001'
+      - '${HOST_PORT:-9090}:${APP_PORT:-3001}'
     volumes:
       - uploaded-files:/app/files
     env_file:

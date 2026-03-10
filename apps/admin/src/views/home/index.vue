@@ -12,7 +12,7 @@
             <div class="layout-title">学习教程</div>
             <div class="color-main address-content">
               <a href="https://www.macrozheng.com" target="_blank"
-                >mall学习教程</a
+              >mall学习教程</a
               >
             </div>
           </div>
@@ -35,7 +35,7 @@
             <div class="layout-title">点Star支持项目</div>
             <div class="color-main address-content">
               <a href="https://github.com/macrozheng/mall" target="_blank"
-                >mall项目</a
+              >mall项目</a
               >
             </div>
           </div>
@@ -100,7 +100,7 @@
             <div class="un-handle-item">
               <span class="font-medium">待付款订单</span>
               <span style="float: right" class="color-danger"
-                >({{ orderStats.pendingPayment }})</span
+              >({{ orderStats.pendingPayment }})</span
               >
             </div>
           </el-col>
@@ -108,7 +108,7 @@
             <div class="un-handle-item">
               <span class="font-medium">已完成订单</span>
               <span style="float: right" class="color-danger"
-                >({{ orderStats.completed }})</span
+              >({{ orderStats.completed }})</span
               >
             </div>
           </el-col>
@@ -116,7 +116,7 @@
             <div class="un-handle-item">
               <span class="font-medium">待确认收货订单</span>
               <span style="float: right" class="color-danger"
-                >({{ orderStats.pendingConfirm }})</span
+              >({{ orderStats.pendingConfirm }})</span
               >
             </div>
           </el-col>
@@ -126,7 +126,7 @@
             <div class="un-handle-item">
               <span class="font-medium">待发货订单</span>
               <span style="float: right" class="color-danger"
-                >({{ orderStats.pendingDelivery }})</span
+              >({{ orderStats.pendingDelivery }})</span
               >
             </div>
           </el-col>
@@ -134,7 +134,7 @@
             <div class="un-handle-item">
               <span class="font-medium">新缺货登记</span>
               <span style="float: right" class="color-danger"
-                >({{ orderStats.outOfStock }})</span
+              >({{ orderStats.outOfStock }})</span
               >
             </div>
           </el-col>
@@ -142,7 +142,7 @@
             <div class="un-handle-item">
               <span class="font-medium">待处理退款申请</span>
               <span style="float: right" class="color-danger"
-                >({{ orderStats.pendingRefund }})</span
+              >({{ orderStats.pendingRefund }})</span
               >
             </div>
           </el-col>
@@ -152,7 +152,7 @@
             <div class="un-handle-item">
               <span class="font-medium">已发货订单</span>
               <span style="float: right" class="color-danger"
-                >({{ orderStats.delivered }})</span
+              >({{ orderStats.delivered }})</span
               >
             </div>
           </el-col>
@@ -160,7 +160,7 @@
             <div class="un-handle-item">
               <span class="font-medium">待处理退货订单</span>
               <span style="float: right" class="color-danger"
-                >({{ orderStats.pendingReturn }})</span
+              >({{ orderStats.pendingReturn }})</span
               >
             </div>
           </el-col>
@@ -168,7 +168,7 @@
             <div class="un-handle-item">
               <span class="font-medium">广告位即将到期</span>
               <span style="float: right" class="color-danger"
-                >({{ orderStats.expiringSoon }})</span
+              >({{ orderStats.expiringSoon }})</span
               >
             </div>
           </el-col>
@@ -243,33 +243,33 @@
         <el-col :span="4">
           <div style="padding: 20px">
             <div>
-              <div style="color: #909399; font-size: 14px">本月订单总数</div>
-              <div style="padding: 10px 0; color: #606266; font-size: 24px">
+              <div class="stat-label">本月订单总数</div>
+              <div class="stat-value">
                 {{ statisticsData.monthOrders }}
               </div>
               <div>
                 <span class="color-success" style="font-size: 14px">+10%</span>
-                <span style="color: #c0c4cc; font-size: 14px">同比上月</span>
+                <span class="stat-compare">同比上月</span>
               </div>
             </div>
             <div style="margin-top: 20px">
-              <div style="color: #909399; font-size: 14px">本周订单总数</div>
-              <div style="padding: 10px 0; color: #606266; font-size: 24px">
+              <div class="stat-label">本周订单总数</div>
+              <div class="stat-value">
                 {{ statisticsData.weekOrders }}
               </div>
               <div>
                 <span class="color-danger" style="font-size: 14px">-10%</span>
-                <span style="color: #c0c4cc; font-size: 14px">同比上周</span>
+                <span class="stat-compare">同比上周</span>
               </div>
             </div>
             <div style="margin-top: 20px">
-              <div style="color: #909399; font-size: 14px">今日订单总数</div>
-              <div style="padding: 10px 0; color: #606266; font-size: 24px">
+              <div class="stat-label">今日订单总数</div>
+              <div class="stat-value">
                 {{ statisticsData.todayOrders }}
               </div>
               <div>
                 <span class="color-success" style="font-size: 14px">+5%</span>
-                <span style="color: #c0c4cc; font-size: 14px">同比昨日</span>
+                <span class="stat-compare">同比昨日</span>
               </div>
             </div>
           </div>
@@ -281,7 +281,7 @@
             </el-icon>
             <div class="placeholder-text">
               订单统计图表区域<br />
-              <span style="color: #909399; font-size: 12px">
+              <span class="placeholder-hint">
                 (需要安装 ECharts 或其他图表库来展示数据趋势)
               </span>
             </div>
@@ -349,19 +349,19 @@ const statisticsData = ref({
 
 .out-border {
   padding: 20px;
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--colorBorder);
   border-radius: 4px;
 }
 
 .layout-title {
   margin-bottom: 15px;
-  color: #303133;
+  color: var(--colorTextHeading);
   font-size: 16px;
   font-weight: 500;
 }
 
 .color-main {
-  color: #409eff;
+  color: var(--colorPrimary);
 }
 
 .address-content {
@@ -369,7 +369,7 @@ const statisticsData = ref({
   text-align: center;
 
   a {
-    color: #409eff;
+    color: var(--colorPrimary);
     text-decoration: none;
 
     &:hover {
@@ -385,9 +385,9 @@ const statisticsData = ref({
 .total-frame {
   padding: 30px 20px;
   transition: box-shadow 0.3s;
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--colorBorder);
   border-radius: 4px;
-  background: #fff;
+  background: var(--colorBgContainer);
   text-align: center;
 
   &:hover {
@@ -401,13 +401,13 @@ const statisticsData = ref({
 
 .total-title {
   margin-top: 15px;
-  color: #909399;
+  color: var(--colorTextDescription);
   font-size: 14px;
 }
 
 .total-value {
   margin-top: 10px;
-  color: #303133;
+  color: var(--colorTextHeading);
   font-size: 28px;
   font-weight: bold;
 }
@@ -420,7 +420,7 @@ const statisticsData = ref({
 .un-handle-layout {
   margin-top: 20px;
   padding: 20px;
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--colorBorder);
   border-radius: 4px;
 }
 
@@ -432,12 +432,12 @@ const statisticsData = ref({
   margin-bottom: 15px;
   padding: 15px 20px;
   transition: background 0.3s;
-  border: 1px solid #ebeef5;
+  border: 1px solid var(--colorBorderSecondary);
   border-radius: 4px;
-  background: #fafafa;
+  background: var(--colorBgLayout);
 
   &:hover {
-    background: #f5f7fa;
+    background: var(--colorFillQuaternary);
   }
 }
 
@@ -446,11 +446,11 @@ const statisticsData = ref({
 }
 
 .color-danger {
-  color: #f56c6c;
+  color: var(--colorDanger);
 }
 
 .color-success {
-  color: #67c23a;
+  color: var(--colorSuccess);
 }
 
 .overview-layout {
@@ -465,7 +465,7 @@ const statisticsData = ref({
 }
 
 .overview-item-title {
-  color: #606266;
+  color: var(--colorTextSecondary);
   font-size: 14px;
   text-align: center;
 }
@@ -473,8 +473,24 @@ const statisticsData = ref({
 .statistics-layout {
   margin-top: 20px;
   padding: 20px;
-  border: 1px solid #dcdfe6;
+  border: 1px solid var(--colorBorder);
   border-radius: 4px;
+}
+
+.stat-label {
+  color: var(--colorTextDescription);
+  font-size: 14px;
+}
+
+.stat-value {
+  padding: 10px 0;
+  color: var(--colorTextSecondary);
+  font-size: 24px;
+}
+
+.stat-compare {
+  color: var(--colorTextQuaternary);
+  font-size: 14px;
 }
 
 .chart-placeholder {
@@ -483,16 +499,21 @@ const statisticsData = ref({
   align-items: center;
   justify-content: center;
   height: 400px;
-  border: 2px dashed #dcdfe6;
+  border: 2px dashed var(--colorBorder);
   border-radius: 4px;
-  background: #fafafa;
+  background: var(--colorBgLayout);
 }
 
 .placeholder-text {
   margin-top: 20px;
-  color: #909399;
+  color: var(--colorTextDescription);
   font-size: 16px;
   line-height: 1.8;
   text-align: center;
+}
+
+.placeholder-hint {
+  color: var(--colorTextDescription);
+  font-size: 12px;
 }
 </style>

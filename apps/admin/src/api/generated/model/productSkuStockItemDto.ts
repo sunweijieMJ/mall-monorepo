@@ -13,11 +13,20 @@ export interface ProductSkuStockItemDto {
   id?: number;
   /** SKU 编码 */
   skuCode?: string;
-  /** 价格 */
+  /**
+   * 价格
+   * @minimum 0
+   */
   price?: number;
-  /** 库存 */
+  /**
+   * 库存
+   * @minimum 0
+   */
   stock?: number;
-  /** 锁定库存 */
+  /**
+   * 锁定库存
+   * @minimum 0
+   */
   lockStock?: number;
   /** 规格数据（JSON 格式） */
   spData?: string;
@@ -25,6 +34,9 @@ export interface ProductSkuStockItemDto {
   pic?: string;
   /** 销量 */
   sale?: number;
-  /** 促销价格 */
+  /**
+   * 促销价格
+   * @minimum 0
+   */
   promotionPrice?: number;
 }

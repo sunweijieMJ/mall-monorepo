@@ -120,9 +120,11 @@
           <template #default="{ row }">{{ row.orderSn }}</template>
         </el-table-column>
         <el-table-column label="提交时间" width="180" align="center">
-          <template #default="{ row }">{{
-            formatCreateTime(row.createTime)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatCreateTime(row.createTime)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="用户账号" align="center">
           <template #default="{ row }">{{ row.memberUsername }}</template>
@@ -131,14 +133,18 @@
           <template #default="{ row }">￥{{ row.totalAmount }}</template>
         </el-table-column>
         <el-table-column label="支付方式" width="120" align="center">
-          <template #default="{ row }">{{
-            formatPayType(row.payType)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatPayType(row.payType)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="订单来源" width="120" align="center">
-          <template #default="{ row }">{{
-            formatSourceType(row.sourceType)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatSourceType(row.sourceType)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="订单状态" width="120" align="center">
           <template #default="{ row }">{{ formatStatus(row.status) }}</template>
@@ -232,10 +238,10 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="closeOrderDialog.dialogVisible = false"
-            >取 消</el-button
+          >取 消</el-button
           >
           <el-button type="primary" @click="handleCloseOrderConfirm"
-            >确 定</el-button
+          >确 定</el-button
           >
         </span>
       </template>
@@ -248,11 +254,11 @@ import { Search, Tickets } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox, type ElTable } from 'element-plus';
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { OrderService } from '@/api/modules';
-import type { Order } from '@/interface';
+import { useOrderStore } from '@/store';
 
 // Router
 const router = useRouter();
+const orderStore = useOrderStore();
 
 // 表格引用
 const orderTableRef = ref<InstanceType<typeof ElTable>>();
@@ -274,9 +280,9 @@ const listQuery = reactive({ ...defaultListQuery });
 
 // 状态
 const listLoading = ref(false);
-const list = ref<Order[]>([]);
+const list = ref<any[]>([]);
 const total = ref(0);
-const multipleSelection = ref<Order[]>([]);
+const multipleSelection = ref<any[]>([]);
 const operateType = ref<number | null>(null);
 
 // 关闭订单对话框
@@ -359,12 +365,12 @@ const handleSearchList = () => {
 };
 
 // 选择变化
-const handleSelectionChange = (val: Order[]) => {
+const handleSelectionChange = (val: any[]) => {
   multipleSelection.value = val;
 };
 
 // 查看订单
-const handleViewOrder = (_index: number, row: Order) => {
+const handleViewOrder = (_index: number, row: any) => {
   router.push({
     path: '/mall/oms/order/orderDetail',
     query: { id: String(row.id) },
@@ -372,13 +378,13 @@ const handleViewOrder = (_index: number, row: Order) => {
 };
 
 // 关闭订单
-const handleCloseOrder = (_index: number, row: Order) => {
+const handleCloseOrder = (_index: number, row: any) => {
   closeOrderDialog.dialogVisible = true;
   closeOrderDialog.orderIds = [row.id!];
 };
 
 // 订单发货
-const handleDeliveryOrder = (_index: number, row: Order) => {
+const handleDeliveryOrder = (_index: number, row: any) => {
   const listItem = {
     orderId: row.id,
     orderSn: row.orderSn,
@@ -396,12 +402,12 @@ const handleDeliveryOrder = (_index: number, row: Order) => {
 };
 
 // 查看物流
-const handleViewLogistics = (_index: number, _row: Order) => {
+const handleViewLogistics = (_index: number, _row: any) => {
   ElMessage.info('物流跟踪功能待实现');
 };
 
 // 删除订单
-const handleDeleteOrder = async (_index: number, row: Order) => {
+const handleDeleteOrder = async (_index: number, row: any) => {
   await deleteOrder([row.id!]);
 };
 
@@ -468,7 +474,7 @@ const handleCloseOrderConfirm = async () => {
   }
 
   try {
-    await OrderService.closeOrder({
+    await orderStore.close({
       ids: closeOrderDialog.orderIds,
       note: closeOrderDialog.content,
     });
@@ -487,9 +493,9 @@ const handleCloseOrderConfirm = async () => {
 const getList = async () => {
   listLoading.value = true;
   try {
-    const response = await OrderService.fetchList(listQuery);
-    list.value = response.data.list;
-    total.value = response.data.total;
+    await orderStore.getList(listQuery);
+    list.value = orderStore.list;
+    total.value = orderStore.total;
   } catch (error) {
     console.error('获取订单列表失败:', error);
     ElMessage.error('获取列表失败');
@@ -507,7 +513,7 @@ const deleteOrder = async (ids: number[]) => {
       type: 'warning',
     });
 
-    await OrderService.deleteOrder({ ids });
+    await orderStore.batchDelete(ids);
     ElMessage.success('删除成功！');
     await getList();
   } catch (error) {

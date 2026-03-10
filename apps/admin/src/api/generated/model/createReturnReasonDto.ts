@@ -11,6 +11,9 @@
 export interface CreateReturnReasonDto {
   /** 退货原因名称 */
   name: string;
-  /** 排序 */
+  /**
+   * 排序
+   * @minimum 0
+   */
   sort?: number;
 }

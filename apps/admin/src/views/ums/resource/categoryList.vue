@@ -27,9 +27,11 @@
           <template #default="{ row }">{{ row.name }}</template>
         </el-table-column>
         <el-table-column label="创建时间" align="center">
-          <template #default="{ row }">{{
-            formatDateTime(row.createTime)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatDateTime(row.createTime)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="排序" align="center">
           <template #default="{ row }">{{ row.sort }}</template>
@@ -72,7 +74,7 @@
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">取 消</el-button>
           <el-button type="primary" @click="handleDialogConfirm"
-            >确 定</el-button
+          >确 定</el-button
           >
         </span>
       </template>
@@ -89,14 +91,15 @@ import {
   type ElForm,
 } from 'element-plus';
 import { ref, reactive, onMounted } from 'vue';
-import ResourceCategoryService from '@/api/modules/resourceCategory';
-import type { ResourceCategory } from '@/interface';
+import type { AdminResourceCategoryVo } from '@/api';
+import { useResourceStore } from '@/store';
 import { formatDate } from '@/utils/date';
 
 const resourceCategoryTableRef = ref<InstanceType<typeof ElTable>>();
 const resourceCategoryFormRef = ref<InstanceType<typeof ElForm>>();
+const resourceStore = useResourceStore();
 
-const list = ref<ResourceCategory[]>([]);
+const list = ref<AdminResourceCategoryVo[]>([]);
 const listLoading = ref(false);
 const dialogVisible = ref(false);
 const isEdit = ref(false);
@@ -106,7 +109,7 @@ const defaultResourceCategory = {
   sort: 0,
 };
 
-const resourceCategory = reactive<Partial<ResourceCategory>>({
+const resourceCategory = reactive<Partial<AdminResourceCategoryVo>>({
   ...defaultResourceCategory,
 });
 
@@ -121,8 +124,8 @@ const formatDateTime = (time?: string | number) => {
 const getList = async () => {
   listLoading.value = true;
   try {
-    const response = await ResourceCategoryService.listAllCate();
-    list.value = response.data;
+    await resourceStore.getAllCategories();
+    list.value = resourceStore.allCategories;
   } catch (error) {
     console.error('获取列表失败:', error);
     ElMessage.error('获取列表失败');
@@ -139,14 +142,14 @@ const handleAdd = () => {
 };
 
 // 编辑
-const handleUpdate = (_index: number, row: ResourceCategory) => {
+const handleUpdate = (_index: number, row: AdminResourceCategoryVo) => {
   dialogVisible.value = true;
   isEdit.value = true;
   Object.assign(resourceCategory, row);
 };
 
 // 删除
-const handleDelete = async (_index: number, row: ResourceCategory) => {
+const handleDelete = async (_index: number, row: AdminResourceCategoryVo) => {
   try {
     await ElMessageBox.confirm('是否要删除该分类?', '提示', {
       confirmButtonText: '确定',
@@ -154,7 +157,7 @@ const handleDelete = async (_index: number, row: ResourceCategory) => {
       type: 'warning',
     });
 
-    await ResourceCategoryService.deleteResourceCategory(row.id);
+    await resourceStore.deleteCategory(row.id);
     ElMessage.success('删除成功');
     await getList();
   } catch (error: any) {
@@ -175,15 +178,13 @@ const handleDialogConfirm = async () => {
     });
 
     if (isEdit.value) {
-      await ResourceCategoryService.updateResourceCategory(
+      await resourceStore.updateCategory(
         resourceCategory.id!,
-        resourceCategory as ResourceCategory,
+        resourceCategory,
       );
       ElMessage.success('修改成功');
     } else {
-      await ResourceCategoryService.createResourceCategory(
-        resourceCategory as ResourceCategory,
-      );
+      await resourceStore.createCategory(resourceCategory);
       ElMessage.success('添加成功');
     }
 

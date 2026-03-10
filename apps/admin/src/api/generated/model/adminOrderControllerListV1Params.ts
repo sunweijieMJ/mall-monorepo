@@ -20,6 +20,7 @@ export type AdminOrderControllerListV1Params = {
   /**
    * 每页数量
    * @minimum 1
+   * @maximum 100
    */
   pageSize?: number;
   /**
@@ -32,14 +33,20 @@ export type AdminOrderControllerListV1Params = {
   receiverKeyword?: string;
   /**
    * 订单状态：0->待付款；1->已付款；2->已发货；3->已完成；4->已取消；5->售后关闭
+   * @minimum 0
+   * @maximum 5
    */
   status?: AdminOrderControllerListV1Status;
   /**
    * 支付方式：0->未支付；1->支付宝；2->微信
+   * @minimum 0
+   * @maximum 2
    */
   payType?: AdminOrderControllerListV1PayType;
   /**
    * 订单来源：0->PC；1->app
+   * @minimum 0
+   * @maximum 1
    */
   sourceType?: AdminOrderControllerListV1SourceType;
   /**

@@ -163,12 +163,13 @@
 <script setup lang="ts">
 import { Search, Tickets } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox, type ElTable } from 'element-plus';
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { HomeAdvertiseService } from '@/api/modules';
-import type { HomeAdvertise } from '@/interface';
+import type { HomeAdvertiseVo } from '@/api';
+import { useAdvertiseStore } from '@/store';
 
 const router = useRouter();
+const advertiseStore = useAdvertiseStore();
 const homeAdvertiseTableRef = ref<InstanceType<typeof ElTable>>();
 
 const defaultListQuery = {
@@ -180,10 +181,11 @@ const defaultListQuery = {
 };
 
 const listQuery = reactive({ ...defaultListQuery });
-const list = ref<HomeAdvertise[]>([]);
-const total = ref(0);
-const multipleSelection = ref<HomeAdvertise[]>([]);
-const listLoading = ref(false);
+const multipleSelection = ref<HomeAdvertiseVo[]>([]);
+
+const list = computed(() => advertiseStore.list);
+const total = computed(() => advertiseStore.total);
+const listLoading = computed(() => advertiseStore.loading);
 
 const typeOptions = [
   { label: 'PC首页轮播', value: 0 },
@@ -220,7 +222,7 @@ const handleSearchList = () => {
   getList();
 };
 
-const handleSelectionChange = (val: HomeAdvertise[]) => {
+const handleSelectionChange = (val: HomeAdvertiseVo[]) => {
   multipleSelection.value = val;
 };
 
@@ -235,7 +237,7 @@ const handleCurrentChange = (val: number) => {
   getList();
 };
 
-const handleUpdateStatus = async (_index: number, row: HomeAdvertise) => {
+const handleUpdateStatus = async (_index: number, row: HomeAdvertiseVo) => {
   try {
     await ElMessageBox.confirm('是否要修改上线/下线状态?', '提示', {
       confirmButtonText: '确定',
@@ -243,7 +245,7 @@ const handleUpdateStatus = async (_index: number, row: HomeAdvertise) => {
       type: 'warning',
     });
 
-    await HomeAdvertiseService.updateStatus(row.id!, { status: row.status });
+    await advertiseStore.updateStatus(row.id!, { status: row.status });
     ElMessage.success('修改成功');
     await getList();
   } catch (error) {
@@ -257,7 +259,7 @@ const handleUpdateStatus = async (_index: number, row: HomeAdvertise) => {
   }
 };
 
-const handleDelete = async (_index: number, row: HomeAdvertise) => {
+const handleDelete = async (_index: number, row: HomeAdvertiseVo) => {
   try {
     await ElMessageBox.confirm('是否要删除该广告?', '提示', {
       confirmButtonText: '确定',
@@ -265,7 +267,7 @@ const handleDelete = async (_index: number, row: HomeAdvertise) => {
       type: 'warning',
     });
 
-    await HomeAdvertiseService.deleteHomeAdvertise([row.id!]);
+    await advertiseStore.batchDelete([row.id!]);
     ElMessage.success('删除成功');
     await getList();
   } catch (error) {
@@ -293,7 +295,7 @@ const handleBatchOperate = async () => {
         type: 'warning',
       });
 
-      await HomeAdvertiseService.deleteHomeAdvertise(ids);
+      await advertiseStore.batchDelete(ids);
       ElMessage.success('删除成功');
       await getList();
     } catch (error) {
@@ -311,7 +313,7 @@ const handleAdd = () => {
   router.push({ path: '/mall/sms/advertise/add' });
 };
 
-const handleUpdate = (_index: number, row: HomeAdvertise) => {
+const handleUpdate = (_index: number, row: HomeAdvertiseVo) => {
   router.push({
     path: '/mall/sms/advertise/update',
     query: { id: String(row.id) },
@@ -319,16 +321,11 @@ const handleUpdate = (_index: number, row: HomeAdvertise) => {
 };
 
 const getList = async () => {
-  listLoading.value = true;
   try {
-    const response = await HomeAdvertiseService.fetchList(listQuery);
-    list.value = response.data.list;
-    total.value = response.data.total;
+    await advertiseStore.getList(listQuery);
   } catch (error) {
     console.error('获取列表失败:', error);
     ElMessage.error('获取列表失败');
-  } finally {
-    listLoading.value = false;
   }
 };
 

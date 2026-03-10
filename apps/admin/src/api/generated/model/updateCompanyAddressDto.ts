@@ -13,9 +13,17 @@ import type { UpdateCompanyAddressDtoSendStatus } from './updateCompanyAddressDt
 export interface UpdateCompanyAddressDto {
   /** 地址名称 */
   addressName?: string;
-  /** 默认发货地址：0->否；1->是 */
+  /**
+   * 默认发货地址：0->否；1->是
+   * @minimum 0
+   * @maximum 1
+   */
   sendStatus?: UpdateCompanyAddressDtoSendStatus;
-  /** 默认收货地址：0->否；1->是 */
+  /**
+   * 默认收货地址：0->否；1->是
+   * @minimum 0
+   * @maximum 1
+   */
   receiveStatus?: UpdateCompanyAddressDtoReceiveStatus;
   /** 收发货人姓名 */
   name?: string;

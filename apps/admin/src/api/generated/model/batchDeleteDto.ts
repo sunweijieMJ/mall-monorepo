@@ -9,6 +9,9 @@
  */
 
 export interface BatchDeleteDto {
-  /** ID 数组 */
+  /**
+   * ID 数组
+   * @minItems 1
+   */
   ids: number[];
 }

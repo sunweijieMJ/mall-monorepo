@@ -77,9 +77,11 @@
           <template #default="{ row }">{{ formatType(row.type) }}</template>
         </el-table-column>
         <el-table-column label="可使用商品" width="100" align="center">
-          <template #default="{ row }">{{
-            formatUseType(row.useType)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatUseType(row.useType)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="使用门槛" width="140" align="center">
           <template #default="{ row }">满{{ row.minPoint }}元可用</template>
@@ -88,9 +90,11 @@
           <template #default="{ row }">{{ row.amount }}元</template>
         </el-table-column>
         <el-table-column label="适用平台" width="100" align="center">
-          <template #default="{ row }">{{
-            formatPlatform(row.platform)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatPlatform(row.platform)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="有效期" width="180" align="center">
           <template #default="{ row }">
@@ -98,9 +102,11 @@
           </template>
         </el-table-column>
         <el-table-column label="状态" width="100" align="center">
-          <template #default="{ row }">{{
-            formatStatus(row.endTime)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatStatus(row.endTime)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="操作" width="180" align="center">
           <template #default="{ row, $index }">
@@ -131,12 +137,13 @@
 <script setup lang="ts">
 import { Search, Tickets } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox, type ElTable } from 'element-plus';
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { CouponService } from '@/api/modules';
-import type { Coupon } from '@/interface';
+import type { CouponVo } from '@/api';
+import { useCouponStore } from '@/store';
 
 const router = useRouter();
+const couponStore = useCouponStore();
 const couponTableRef = ref<InstanceType<typeof ElTable>>();
 
 const defaultListQuery = {
@@ -147,10 +154,11 @@ const defaultListQuery = {
 };
 
 const listQuery = reactive({ ...defaultListQuery });
-const list = ref<Coupon[]>([]);
-const total = ref(0);
-const multipleSelection = ref<Coupon[]>([]);
-const listLoading = ref(false);
+const multipleSelection = ref<CouponVo[]>([]);
+
+const list = computed(() => couponStore.list);
+const total = computed(() => couponStore.total);
+const listLoading = computed(() => couponStore.loading);
 
 const typeOptions = [
   { label: '全场赠券', value: 0 },
@@ -198,7 +206,7 @@ const handleSearchList = () => {
   getList();
 };
 
-const handleSelectionChange = (val: Coupon[]) => {
+const handleSelectionChange = (val: CouponVo[]) => {
   multipleSelection.value = val;
 };
 
@@ -217,21 +225,21 @@ const handleAdd = () => {
   router.push({ path: '/mall/sms/coupon/add' });
 };
 
-const handleView = (_index: number, row: Coupon) => {
+const handleView = (_index: number, row: CouponVo) => {
   router.push({
     path: '/mall/sms/coupon/history',
     query: { id: String(row.id) },
   });
 };
 
-const handleUpdate = (_index: number, row: Coupon) => {
+const handleUpdate = (_index: number, row: CouponVo) => {
   router.push({
     path: '/mall/sms/coupon/update',
     query: { id: String(row.id) },
   });
 };
 
-const handleDelete = async (_index: number, row: Coupon) => {
+const handleDelete = async (_index: number, row: CouponVo) => {
   try {
     await ElMessageBox.confirm('是否进行删除操作?', '提示', {
       confirmButtonText: '确定',
@@ -239,7 +247,7 @@ const handleDelete = async (_index: number, row: Coupon) => {
       type: 'warning',
     });
 
-    await CouponService.deleteCoupon(row.id!);
+    await couponStore.deleteItem(row.id!);
     ElMessage.success('删除成功');
     await getList();
   } catch (error) {
@@ -251,16 +259,11 @@ const handleDelete = async (_index: number, row: Coupon) => {
 };
 
 const getList = async () => {
-  listLoading.value = true;
   try {
-    const response = await CouponService.fetchList(listQuery);
-    list.value = response.data.list;
-    total.value = response.data.total;
+    await couponStore.getList(listQuery);
   } catch (error) {
     console.error('获取列表失败:', error);
     ElMessage.error('获取列表失败');
-  } finally {
-    listLoading.value = false;
   }
 };
 

@@ -10,6 +10,8 @@
 
 /**
  * 启用状态：0->禁用；1->启用
+ * @minimum 0
+ * @maximum 1
  */
 export type CreateAdminRoleDtoStatus =
   (typeof CreateAdminRoleDtoStatus)[keyof typeof CreateAdminRoleDtoStatus];

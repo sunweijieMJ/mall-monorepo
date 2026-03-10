@@ -1,0 +1,328 @@
+# Mobile 小程序构建与上传工作流
+# 支持微信小程序和支付宝小程序的构建和上传（仅支持手动触发）
+#
+# 配置步骤（GitHub Secrets）:
+#   在 GitHub 仓库 Settings -> Secrets and variables -> Actions 中添加:
+#     微信小程序:
+#       - WEIXIN_APPID:       微信小程序 AppID
+#       - WEIXIN_PRIVATE_KEY: 上传密钥（base64 编码）
+#                             编码方式: base64 -i private.wx.key | tr -d '\n'
+#     支付宝小程序:
+#       - ALIPAY_APPID:       支付宝小程序 AppID
+#       - ALIPAY_PRIVATE_KEY: 支付宝小程序私钥
+#       - ALIPAY_TOOL_ID:     支付宝小程序工具 ID
+
+name: Deploy Mobile MP
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: '目标平台'
+        required: true
+        default: 'weixin'
+        type: choice
+        options:
+          - weixin
+          - alipay
+          - all
+      action:
+        description: '操作类型'
+        required: true
+        default: 'upload'
+        type: choice
+        options:
+          - upload
+          - preview
+      version:
+        description: '版本号（留空则从 package.json 读取）'
+        required: false
+        type: string
+      description:
+        description: '版本描述（留空则自动生成）'
+        required: false
+        type: string
+
+concurrency:
+  group: deploy-mobile-mp
+  cancel-in-progress: false
+
+env:
+  APP_DIR: 'apps/mobile'
+
+jobs:
+  # ==================== 代码质量检查 ====================
+  check:
+    name: Check
+    uses: ./.github/workflows/check-mobile.yml
+
+  # ==================== 构建小程序 ====================
+  build:
+    name: Build
+    needs: check
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      description: ${{ steps.version.outputs.description }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Get version info
+        id: version
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          if [[ -z "$VERSION" ]]; then
+            VERSION=$(node -p "require('./${{ env.APP_DIR }}/package.json').version")
+          fi
+          DESC="${{ github.event.inputs.description }}"
+          if [[ -z "$DESC" ]]; then
+            DESC="v${VERSION} - $(date '+%Y-%m-%d %H:%M')"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "description=$DESC" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+          echo "Description: $DESC"
+
+      - name: Build WeChat MiniProgram
+        if: |
+          github.event.inputs.platform == 'weixin' ||
+          github.event.inputs.platform == 'all'
+        working-directory: ${{ env.APP_DIR }}
+        run: pnpm build:mp-weixin
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+
+      - name: Build Alipay MiniProgram
+        if: |
+          github.event.inputs.platform == 'alipay' ||
+          github.event.inputs.platform == 'all'
+        working-directory: ${{ env.APP_DIR }}
+        run: pnpm build:mp-alipay
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+
+      - name: Check build size
+        run: |
+          # 微信: 总包 20MB；支付宝: 总包 8MB
+          WEIXIN_TOTAL_LIMIT=20971520
+          ALIPAY_TOTAL_LIMIT=8388608
+
+          check_size() {
+            local platform=$1
+            local path=$2
+            local total_limit=$3
+
+            if [[ ! -d "$path" ]]; then return 0; fi
+
+            total_size=$(du -sb "$path" | cut -f1)
+            total_mb=$(echo "scale=2; $total_size / 1048576" | bc)
+            limit_mb=$(echo "scale=0; $total_limit / 1048576" | bc)
+
+            echo "${platform} 小程序: ${total_mb}MB / ${limit_mb}MB"
+
+            if [[ $total_size -gt $total_limit ]]; then
+              echo "::error::${platform} 总包超出 ${limit_mb}MB 限制（当前 ${total_mb}MB），请检查分包配置"
+              return 1
+            fi
+          }
+
+          has_error=0
+          check_size "微信" "${{ env.APP_DIR }}/dist/build/mp-weixin" $WEIXIN_TOTAL_LIMIT || has_error=1
+          check_size "支付宝" "${{ env.APP_DIR }}/dist/build/mp-alipay" $ALIPAY_TOTAL_LIMIT || has_error=1
+          [[ $has_error -eq 1 ]] && exit 1
+          echo "包体积检查通过"
+
+      - name: Upload WeChat artifact
+        if: |
+          github.event.inputs.platform == 'weixin' ||
+          github.event.inputs.platform == 'all'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-mp-weixin-build
+          path: ${{ env.APP_DIR }}/dist/build/mp-weixin
+          retention-days: 1
+
+      - name: Upload Alipay artifact
+        if: |
+          github.event.inputs.platform == 'alipay' ||
+          github.event.inputs.platform == 'all'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-mp-alipay-build
+          path: ${{ env.APP_DIR }}/dist/build/mp-alipay
+          retention-days: 1
+
+  # ==================== 微信小程序上传 ====================
+  deploy-weixin:
+    name: Upload to WeChat
+    needs: build
+    runs-on: ubuntu-latest
+    if: |
+      github.event.inputs.platform == 'weixin' ||
+      github.event.inputs.platform == 'all'
+
+    steps:
+      - name: Check secrets
+        run: |
+          has_error=0
+          [[ -z "${{ secrets.WEIXIN_APPID }}" ]]       && echo "::error::缺少 WEIXIN_APPID"       && has_error=1
+          [[ -z "${{ secrets.WEIXIN_PRIVATE_KEY }}" ]] && echo "::error::缺少 WEIXIN_PRIVATE_KEY" && has_error=1
+          [[ $has_error -eq 1 ]] && exit 1
+          echo "微信小程序 Secrets 配置正确"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: mobile-mp-weixin-build
+          path: ${{ env.APP_DIR }}/dist/build/mp-weixin
+
+      - name: Upload to WeChat
+        working-directory: ${{ env.APP_DIR }}
+        run: pnpm tsx scripts/mp-upload.ts weixin "${{ github.event.inputs.action || 'upload' }}"
+        env:
+          WEIXIN_APPID: ${{ secrets.WEIXIN_APPID }}
+          WEIXIN_PRIVATE_KEY: ${{ secrets.WEIXIN_PRIVATE_KEY }}
+          MP_VERSION: ${{ needs.build.outputs.version }}
+          MP_DESC: ${{ needs.build.outputs.description }}
+
+      - name: Result
+        if: success()
+        run: |
+          echo "微信小程序上传成功!"
+          echo "版本: ${{ needs.build.outputs.version }}"
+          echo "描述: ${{ needs.build.outputs.description }}"
+          echo "后续: 登录 https://mp.weixin.qq.com → 管理 → 版本管理，提交审核或设为正式版"
+
+  # ==================== 支付宝小程序上传 ====================
+  deploy-alipay:
+    name: Upload to Alipay
+    needs: build
+    runs-on: ubuntu-latest
+    if: |
+      github.event.inputs.platform == 'alipay' ||
+      github.event.inputs.platform == 'all'
+
+    steps:
+      - name: Check secrets
+        run: |
+          has_error=0
+          [[ -z "${{ secrets.ALIPAY_APPID }}" ]]       && echo "::error::缺少 ALIPAY_APPID"       && has_error=1
+          [[ -z "${{ secrets.ALIPAY_PRIVATE_KEY }}" ]] && echo "::error::缺少 ALIPAY_PRIVATE_KEY" && has_error=1
+          [[ -z "${{ secrets.ALIPAY_TOOL_ID }}" ]]     && echo "::error::缺少 ALIPAY_TOOL_ID"     && has_error=1
+          [[ $has_error -eq 1 ]] && exit 1
+          echo "支付宝小程序 Secrets 配置正确"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: mobile-mp-alipay-build
+          path: ${{ env.APP_DIR }}/dist/build/mp-alipay
+
+      - name: Upload to Alipay
+        working-directory: ${{ env.APP_DIR }}
+        run: pnpm tsx scripts/mp-upload.ts alipay "${{ github.event.inputs.action || 'upload' }}"
+        env:
+          ALIPAY_APPID: ${{ secrets.ALIPAY_APPID }}
+          ALIPAY_PRIVATE_KEY: ${{ secrets.ALIPAY_PRIVATE_KEY }}
+          ALIPAY_TOOL_ID: ${{ secrets.ALIPAY_TOOL_ID }}
+          MP_VERSION: ${{ needs.build.outputs.version }}
+          MP_DESC: ${{ needs.build.outputs.description }}
+          # Node.js 22 使用 OpenSSL 3.x，需启用 legacy provider 支持支付宝私钥签名
+          NODE_OPTIONS: --openssl-legacy-provider
+
+      - name: Result
+        if: success()
+        run: |
+          echo "支付宝小程序上传成功!"
+          echo "版本: ${{ needs.build.outputs.version }}"
+          echo "描述: ${{ needs.build.outputs.description }}"
+          echo "后续: 登录 https://open.alipay.com → 小程序详情页，提交审核"
+
+  # ==================== 汇总通知 ====================
+  notify:
+    name: Notify
+    needs: [build, deploy-weixin, deploy-alipay]
+    runs-on: ubuntu-latest
+    if: always()
+    permissions:
+      actions: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Summary
+        run: |
+          {
+            echo "# 小程序部署结果"
+            echo ""
+            echo "| 项目 | 值/状态 |"
+            echo "|------|--------|"
+            echo "| 操作 | ${{ github.event.inputs.action }} |"
+            echo "| 版本 | ${{ needs.build.outputs.version }} |"
+            echo "| 描述 | ${{ needs.build.outputs.description }} |"
+            echo "| 构建 | ${{ needs.build.result }} |"
+            echo "| 微信 | ${{ needs.deploy-weixin.result || 'skipped' }} |"
+            echo "| 支付宝 | ${{ needs.deploy-alipay.result || 'skipped' }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Feishu notification
+        if: always() && env.FEISHU_WEBHOOK_URL != ''
+        uses: ./.github/actions/notify-feishu
+        env:
+          FEISHU_WEBHOOK_URL: ${{ secrets.FEISHU_WEBHOOK_URL }}
+        with:
+          app_name: 'Mobile 小程序'
+          status: ${{ needs.build.result == 'success' && (needs.deploy-weixin.result == 'success' || needs.deploy-weixin.result == 'skipped') && (needs.deploy-alipay.result == 'success' || needs.deploy-alipay.result == 'skipped') && 'success' || 'failure' }}
+          details: |
+            操作: ${{ github.event.inputs.action }}
+            版本: ${{ needs.build.outputs.version }}
+            构建: ${{ needs.build.result }}
+            微信: ${{ needs.deploy-weixin.result || 'skipped' }}
+            支付宝: ${{ needs.deploy-alipay.result || 'skipped' }}
+          webhook_url: ${{ secrets.FEISHU_WEBHOOK_URL }}
+          webhook_secret: ${{ secrets.FEISHU_WEBHOOK_SECRET }}

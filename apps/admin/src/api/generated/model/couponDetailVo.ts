@@ -7,11 +7,13 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
-import type { CouponDetailVoDeletedAt } from './couponDetailVoDeletedAt';
 import type { CouponDetailVoPlatform } from './couponDetailVoPlatform';
 import type { CouponDetailVoType } from './couponDetailVoType';
 import type { CouponDetailVoUseType } from './couponDetailVoUseType';
+import type { CouponHistoryEntity } from './couponHistoryEntity';
+import type { CouponProductCategoryRelationEntity } from './couponProductCategoryRelationEntity';
 import type { CouponProductCategoryRelationVo } from './couponProductCategoryRelationVo';
+import type { CouponProductRelationEntity } from './couponProductRelationEntity';
 import type { CouponProductRelationVo } from './couponProductRelationVo';
 
 export interface CouponDetailVo {
@@ -21,8 +23,11 @@ export interface CouponDetailVo {
   createdAt: string;
   /** 更新时间 */
   updatedAt: string;
-  /** 删除时间 */
-  deletedAt?: CouponDetailVoDeletedAt;
+  /**
+   * 删除时间
+   * @nullable
+   */
+  deletedAt?: string | null;
   /** 优惠券类型：0->全场通用；1->指定分类；2->指定商品 */
   type: CouponDetailVoType;
   /** 优惠券名称 */
@@ -61,4 +66,7 @@ export interface CouponDetailVo {
   productRelationList: CouponProductRelationVo[];
   /** 关联分类列表 */
   productCategoryRelationList: CouponProductCategoryRelationVo[];
+  couponHistories: CouponHistoryEntity[];
+  couponProductRelations: CouponProductRelationEntity[];
+  couponProductCategoryRelations: CouponProductCategoryRelationEntity[];
 }

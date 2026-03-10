@@ -93,14 +93,15 @@ import { Tickets } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox, type ElTable } from 'element-plus';
 import { ref, reactive, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import MenuService from '@/api/modules/menu';
-import type { MenuItem } from '@/interface';
+import type { AdminMenuVo } from '@/api';
+import { useMenuStore } from '@/store/modules/menu';
 
 const route = useRoute();
 const router = useRouter();
+const menuStore = useMenuStore();
 const menuTableRef = ref<InstanceType<typeof ElTable>>();
 
-const list = ref<MenuItem[]>([]);
+const list = ref<AdminMenuVo[]>([]);
 const total = ref(0);
 const listLoading = ref(false);
 const parentId = ref(0);
@@ -131,9 +132,9 @@ const resetParentId = () => {
 const getList = async () => {
   listLoading.value = true;
   try {
-    const response = await MenuService.fetchList(parentId.value, listQuery);
-    list.value = response.data.list;
-    total.value = response.data.total;
+    await menuStore.getList({ parentId: parentId.value, ...listQuery });
+    list.value = menuStore.list;
+    total.value = menuStore.total;
   } catch (error) {
     console.error('获取列表失败:', error);
     ElMessage.error('获取列表失败');
@@ -160,9 +161,9 @@ const handleCurrentChange = (val: number) => {
 };
 
 // 切换隐藏状态
-const handleHiddenChange = async (_index: number, row: MenuItem) => {
+const handleHiddenChange = async (_index: number, row: AdminMenuVo) => {
   try {
-    await MenuService.updateHidden(row.id, { hidden: row.hidden });
+    await menuStore.updateHidden(row.id, { hidden: row.hidden });
     ElMessage.success('修改成功');
   } catch (error) {
     console.error('修改失败:', error);
@@ -173,17 +174,17 @@ const handleHiddenChange = async (_index: number, row: MenuItem) => {
 };
 
 // 查看下级
-const handleShowNextLevel = (_index: number, row: MenuItem) => {
+const handleShowNextLevel = (_index: number, row: AdminMenuVo) => {
   router.push({ path: '/ums/menu', query: { parentId: String(row.id) } });
 };
 
 // 编辑
-const handleUpdate = (_index: number, row: MenuItem) => {
+const handleUpdate = (_index: number, row: AdminMenuVo) => {
   router.push({ path: '/ums/updateMenu', query: { id: String(row.id) } });
 };
 
 // 删除
-const handleDelete = async (_index: number, row: MenuItem) => {
+const handleDelete = async (_index: number, row: AdminMenuVo) => {
   try {
     await ElMessageBox.confirm('是否要删除该菜单?', '提示', {
       confirmButtonText: '确定',
@@ -191,7 +192,7 @@ const handleDelete = async (_index: number, row: MenuItem) => {
       type: 'warning',
     });
 
-    await MenuService.deleteMenu(row.id);
+    await menuStore.deleteItem(row.id);
     ElMessage.success('删除成功');
     await getList();
   } catch (error: any) {

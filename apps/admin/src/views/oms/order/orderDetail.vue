@@ -38,13 +38,15 @@
           <WarningFilled />
         </el-icon>
         <span class="color-danger"
-          >当前订单状态：{{ formatStatus(order.status) }}</span
+        >当前订单状态：{{ formatStatus(order.status) }}</span
         >
 
         <!-- 待付款状态操作按钮 -->
         <div v-show="order.status === 0" class="operate-button-container">
           <el-button @click="showUpdateReceiverDialog"
-            >修改收货人信息</el-button
+          >
+            修改收货人信息
+          </el-button
           >
           <el-button @click="showUpdateMoneyDialog">修改费用信息</el-button>
           <el-button @click="showMessageDialog">发送站内信</el-button>
@@ -55,7 +57,9 @@
         <!-- 待发货状态操作按钮 -->
         <div v-show="order.status === 1" class="operate-button-container">
           <el-button @click="showUpdateReceiverDialog"
-            >修改收货人信息</el-button
+          >
+            修改收货人信息
+          </el-button
           >
           <el-button @click="showMessageDialog">发送站内信</el-button>
           <el-button>取消订单</el-button>
@@ -81,7 +85,7 @@
 
       <!-- 基本信息 -->
       <div style="margin-top: 20px">
-        <el-icon style="color: #606266">
+        <el-icon style="color: var(--colorTextSecondary)">
           <Memo />
         </el-icon>
         <span class="font-small">基本信息</span>
@@ -98,18 +102,26 @@
         <el-row>
           <el-col :span="4" class="table-cell">{{ order.orderSn }}</el-col>
           <el-col :span="4" class="table-cell">暂无</el-col>
-          <el-col :span="4" class="table-cell">{{
-            order.memberUsername
-          }}</el-col>
-          <el-col :span="4" class="table-cell">{{
-            formatPayType(order.payType)
-          }}</el-col>
-          <el-col :span="4" class="table-cell">{{
-            formatSourceType(order.sourceType)
-          }}</el-col>
-          <el-col :span="4" class="table-cell">{{
-            formatOrderType(order.orderType)
-          }}</el-col>
+          <el-col :span="4" class="table-cell">
+            {{
+              order.memberUsername
+            }}
+          </el-col>
+          <el-col :span="4" class="table-cell">
+            {{
+              formatPayType(order.payType)
+            }}
+          </el-col>
+          <el-col :span="4" class="table-cell">
+            {{
+              formatSourceType(order.sourceType)
+            }}
+          </el-col>
+          <el-col :span="4" class="table-cell">
+            {{
+              formatOrderType(order.orderType)
+            }}
+          </el-col>
         </el-row>
         <el-row>
           <el-col :span="4" class="table-cell-title">配送方式</el-col>
@@ -120,14 +132,20 @@
           <el-col :span="4" class="table-cell-title">活动信息</el-col>
         </el-row>
         <el-row>
-          <el-col :span="4" class="table-cell">{{
-            formatNull(order.deliveryCompany)
-          }}</el-col>
-          <el-col :span="4" class="table-cell">{{
-            formatNull(order.deliverySn)
-          }}</el-col>
+          <el-col :span="4" class="table-cell">
+            {{
+              formatNull(order.deliveryCompany)
+            }}
+          </el-col>
+          <el-col :span="4" class="table-cell">
+            {{
+              formatNull(order.deliverySn)
+            }}
+          </el-col>
           <el-col :span="4" class="table-cell"
-            >{{ order.autoConfirmDay }}天</el-col
+          >
+            {{ order.autoConfirmDay }}天
+          </el-col
           >
           <el-col :span="4" class="table-cell">{{ order.integration }}</el-col>
           <el-col :span="4" class="table-cell">{{ order.growth }}</el-col>
@@ -149,7 +167,7 @@
 
       <!-- 收货人信息 -->
       <div style="margin-top: 20px">
-        <el-icon style="color: #606266">
+        <el-icon style="color: var(--colorTextSecondary)">
           <Location />
         </el-icon>
         <span class="font-small">收货人信息</span>
@@ -163,21 +181,27 @@
         </el-row>
         <el-row>
           <el-col :span="6" class="table-cell">{{ order.receiverName }}</el-col>
-          <el-col :span="6" class="table-cell">{{
-            order.receiverPhone
-          }}</el-col>
-          <el-col :span="6" class="table-cell">{{
-            order.receiverPostCode
-          }}</el-col>
-          <el-col :span="6" class="table-cell">{{
-            formatAddress(order)
-          }}</el-col>
+          <el-col :span="6" class="table-cell">
+            {{
+              order.receiverPhone
+            }}
+          </el-col>
+          <el-col :span="6" class="table-cell">
+            {{
+              order.receiverPostCode
+            }}
+          </el-col>
+          <el-col :span="6" class="table-cell">
+            {{
+              formatAddress(order)
+            }}
+          </el-col>
         </el-row>
       </div>
 
       <!-- 商品信息 -->
       <div style="margin-top: 20px">
-        <el-icon style="color: #606266">
+        <el-icon style="color: var(--colorTextSecondary)">
           <ShoppingCart />
         </el-icon>
         <span class="font-small">商品信息</span>
@@ -206,9 +230,11 @@
           </template>
         </el-table-column>
         <el-table-column label="属性" width="120" align="center">
-          <template #default="{ row }">{{
-            formatProductAttr(row.productAttr)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatProductAttr(row.productAttr)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="数量" width="120" align="center">
           <template #default="{ row }">{{ row.productQuantity }}</template>
@@ -225,7 +251,7 @@
 
       <!-- 费用信息 -->
       <div style="margin-top: 60px">
-        <el-icon style="color: #606266">
+        <el-icon style="color: var(--colorTextSecondary)">
           <Money />
         </el-icon>
         <span class="font-small">费用信息</span>
@@ -239,16 +265,24 @@
         </el-row>
         <el-row>
           <el-col :span="6" class="table-cell"
-            >￥{{ order.totalAmount }}</el-col
+          >
+            ￥{{ order.totalAmount }}
+          </el-col
           >
           <el-col :span="6" class="table-cell"
-            >￥{{ order.freightAmount }}</el-col
+          >
+            ￥{{ order.freightAmount }}
+          </el-col
           >
           <el-col :span="6" class="table-cell"
-            >-￥{{ order.couponAmount }}</el-col
+          >
+            -￥{{ order.couponAmount }}
+          </el-col
           >
           <el-col :span="6" class="table-cell"
-            >-￥{{ order.integrationAmount }}</el-col
+          >
+            -￥{{ order.integrationAmount }}
+          </el-col
           >
         </el-row>
         <el-row>
@@ -259,10 +293,14 @@
         </el-row>
         <el-row>
           <el-col :span="6" class="table-cell"
-            >-￥{{ order.promotionAmount }}</el-col
+          >
+            -￥{{ order.promotionAmount }}
+          </el-col
           >
           <el-col :span="6" class="table-cell"
-            >-￥{{ order.discountAmount }}</el-col
+          >
+            -￥{{ order.discountAmount }}
+          </el-col
           >
           <el-col :span="6" class="table-cell">
             <span class="color-danger">
@@ -289,7 +327,7 @@
 
       <!-- 操作信息 -->
       <div style="margin-top: 20px">
-        <el-icon style="color: #606266">
+        <el-icon style="color: var(--colorTextSecondary)">
           <Document />
         </el-icon>
         <span class="font-small">操作信息</span>
@@ -304,24 +342,32 @@
           <template #default="{ row }">{{ row.operateMan }}</template>
         </el-table-column>
         <el-table-column label="操作时间" width="160" align="center">
-          <template #default="{ row }">{{
-            formatTime(row.createTime)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatTime(row.createTime)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="订单状态" width="120" align="center">
-          <template #default="{ row }">{{
-            formatStatus(row.orderStatus)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatStatus(row.orderStatus)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="付款状态" width="120" align="center">
-          <template #default="{ row }">{{
-            formatPayStatus(row.orderStatus)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatPayStatus(row.orderStatus)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="发货状态" width="120" align="center">
-          <template #default="{ row }">{{
-            formatDeliverStatus(row.orderStatus)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatDeliverStatus(row.orderStatus)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="备注" align="center">
           <template #default="{ row }">{{ row.note }}</template>
@@ -371,7 +417,9 @@
       <template #footer>
         <el-button @click="receiverDialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="handleUpdateReceiverInfo"
-          >确 定</el-button
+        >
+          确 定
+        </el-button
         >
       </template>
     </el-dialog>
@@ -387,7 +435,9 @@
         </el-row>
         <el-row>
           <el-col :span="6" class="table-cell"
-            >￥{{ order.totalAmount }}</el-col
+          >
+            ￥{{ order.totalAmount }}
+          </el-col
           >
           <el-col :span="6" class="table-cell">
             <el-input v-model.number="moneyInfo.freightAmount">
@@ -395,10 +445,14 @@
             </el-input>
           </el-col>
           <el-col :span="6" class="table-cell"
-            >-￥{{ order.couponAmount }}</el-col
+          >
+            -￥{{ order.couponAmount }}
+          </el-col
           >
           <el-col :span="6" class="table-cell"
-            >-￥{{ order.integrationAmount }}</el-col
+          >
+            -￥{{ order.integrationAmount }}
+          </el-col
           >
         </el-row>
         <el-row>
@@ -409,7 +463,9 @@
         </el-row>
         <el-row>
           <el-col :span="6" class="table-cell"
-            >-￥{{ order.promotionAmount }}</el-col
+          >
+            -￥{{ order.promotionAmount }}
+          </el-col
           >
           <el-col :span="6" class="table-cell">
             <el-input v-model.number="moneyInfo.discountAmount">
@@ -439,7 +495,9 @@
       <template #footer>
         <el-button @click="moneyDialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="handleUpdateMoneyInfo"
-          >确 定</el-button
+        >
+          确 定
+        </el-button
         >
       </template>
     </el-dialog>
@@ -492,7 +550,9 @@
         <el-icon :size="80" color="#DCDFE6">
           <Van />
         </el-icon>
-        <p style="margin-top: 20px; color: #909399">物流跟踪功能待开发</p>
+        <p style="margin-top: 20px; color: var(--colorTextDescription)">
+          物流跟踪功能待开发
+        </p>
       </div>
       <template #footer>
         <el-button @click="logisticsDialogVisible = false">关 闭</el-button>
@@ -519,12 +579,13 @@ import {
 } from 'element-plus';
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import OrderService from '@/api/modules/order';
 import type { OrderDetail } from '@/interface';
+import { useOrderStore } from '@/store';
 import { formatDate } from '@/utils/date';
 
 const route = useRoute();
 const router = useRouter();
+const orderStore = useOrderStore();
 
 const orderItemTableRef = ref<InstanceType<typeof ElTable>>();
 const orderHistoryTableRef = ref<InstanceType<typeof ElTable>>();
@@ -694,7 +755,7 @@ const handleUpdateReceiverInfo = async () => {
       cancelButtonText: '取消',
       type: 'warning',
     });
-    await OrderService.updateReceiverInfo(receiverInfo);
+    await orderStore.updateReceiverInfo(receiverInfo.orderId!, receiverInfo);
     receiverDialogVisible.value = false;
     ElMessage.success('修改成功!');
     getDetail();
@@ -723,7 +784,7 @@ const handleUpdateMoneyInfo = async () => {
       cancelButtonText: '取消',
       type: 'warning',
     });
-    await OrderService.updateMoneyInfo(moneyInfo);
+    await orderStore.updateMoneyInfo(moneyInfo.orderId!, moneyInfo);
     moneyDialogVisible.value = false;
     ElMessage.success('修改成功!');
     getDetail();
@@ -774,7 +835,7 @@ const handleCloseOrder = async () => {
       cancelButtonText: '取消',
       type: 'warning',
     });
-    await OrderService.closeOrder({
+    await orderStore.close({
       ids: [closeInfo.id!],
       note: closeInfo.note || '',
     });
@@ -804,8 +865,7 @@ const handleMarkOrder = async () => {
       cancelButtonText: '取消',
       type: 'warning',
     });
-    await OrderService.updateOrderNote({
-      id: markInfo.id!,
+    await orderStore.updateNote(markInfo.id!, {
       note: markInfo.note || '',
       status: order.status || 0,
     });
@@ -828,7 +888,7 @@ const handleDeleteOrder = async () => {
       cancelButtonText: '取消',
       type: 'warning',
     });
-    await OrderService.deleteOrder({ ids: [id.value] });
+    await orderStore.batchDelete([id.value]);
     ElMessage.success('删除成功！');
     router.back();
   } catch (error: any) {
@@ -847,8 +907,8 @@ const showLogisticsDialog = () => {
 // 获取订单详情
 const getDetail = async () => {
   try {
-    const response = await OrderService.getOrderDetail(id.value);
-    Object.assign(order, response.data);
+    const data = await orderStore.getItem(id.value);
+    Object.assign(order, data);
   } catch (error) {
     console.error('获取订单详情失败:', error);
     ElMessage.error('获取订单详情失败');
@@ -871,7 +931,7 @@ onMounted(() => {
 .operate-container {
   height: 80px;
   margin: -20px -20px 0;
-  background: #f2f6fc;
+  background: var(--colorBgLayout);
   line-height: 80px;
 }
 
@@ -892,7 +952,7 @@ onMounted(() => {
   overflow: hidden;
   border-right: 1px solid #dcdfe6;
   border-bottom: 1px solid #dcdfe6;
-  color: #606266;
+  color: var(--colorTextSecondary);
   font-size: 14px;
   line-height: 40px;
   text-align: center;
@@ -902,8 +962,8 @@ onMounted(() => {
   padding: 10px;
   border-right: 1px solid #dcdfe6;
   border-bottom: 1px solid #dcdfe6;
-  background: #f2f6fc;
-  color: #303133;
+  background: var(--colorBgLayout);
+  color: var(--colorTextHeading);
   font-size: 14px;
   text-align: center;
 }
@@ -913,6 +973,6 @@ onMounted(() => {
 }
 
 .color-danger {
-  color: #f56c6c;
+  color: var(--colorError);
 }
 </style>

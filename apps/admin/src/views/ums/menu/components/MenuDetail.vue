@@ -46,8 +46,8 @@
 import { ElMessage, ElMessageBox, type ElForm } from 'element-plus';
 import { ref, reactive, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import MenuService from '@/api/modules/menu';
-import type { MenuItem } from '@/interface';
+import type { AdminMenuVo } from '@/api';
+import { useMenuStore } from '@/store';
 
 interface Props {
   isEdit?: boolean;
@@ -60,6 +60,7 @@ const props = withDefaults(defineProps<Props>(), {
 const route = useRoute();
 const router = useRouter();
 const menuFormRef = ref<InstanceType<typeof ElForm>>();
+const menuStore = useMenuStore();
 
 const defaultMenu = {
   title: '',
@@ -70,8 +71,8 @@ const defaultMenu = {
   sort: 0,
 };
 
-const menu = reactive<Partial<MenuItem>>({ ...defaultMenu });
-const selectMenuList = ref<MenuItem[]>([]);
+const menu = reactive<Partial<AdminMenuVo>>({ ...defaultMenu });
+const selectMenuList = ref<AdminMenuVo[]>([]);
 
 const rules = {
   title: [
@@ -91,12 +92,9 @@ const rules = {
 // 获取上级菜单列表
 const getSelectMenuList = async () => {
   try {
-    const response = await MenuService.fetchList(0, {
-      pageSize: 100,
-      pageNum: 1,
-    });
-    selectMenuList.value = response.data.list;
-    selectMenuList.value.unshift({ id: 0, title: '无上级菜单' } as MenuItem);
+    await menuStore.getList({ parentId: 0, pageSize: 100, pageNum: 1 });
+    selectMenuList.value = [...menuStore.list];
+    selectMenuList.value.unshift({ id: 0, title: '无上级菜单' } as AdminMenuVo);
   } catch (error) {
     console.error('获取菜单列表失败:', error);
   }
@@ -121,10 +119,10 @@ const onSubmit = async () => {
 
     if (props.isEdit) {
       const id = Number(route.query.id);
-      await MenuService.updateMenu(id, menu as MenuItem);
+      await menuStore.update(id, menu);
       ElMessage.success('修改成功');
     } else {
-      await MenuService.createMenu(menu as MenuItem);
+      await menuStore.create(menu);
       ElMessage.success('提交成功');
     }
 
@@ -148,8 +146,8 @@ onMounted(async () => {
   if (props.isEdit) {
     try {
       const id = Number(route.query.id);
-      const response = await MenuService.getMenu(id);
-      Object.assign(menu, response.data);
+      const data = await menuStore.getItem(id);
+      Object.assign(menu, data);
     } catch (error) {
       console.error('获取菜单详情失败:', error);
       ElMessage.error('获取菜单详情失败');

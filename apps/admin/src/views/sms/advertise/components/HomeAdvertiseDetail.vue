@@ -81,9 +81,9 @@ import {
 } from 'element-plus';
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { HomeAdvertiseService } from '@/api/modules';
+import type { HomeAdvertiseVo } from '@/api';
 import SingleUpload from '@/components/Upload/SingleUpload.vue';
-import type { HomeAdvertise } from '@/interface';
+import { useAdvertiseStore } from '@/store';
 
 const props = defineProps({
   isEdit: {
@@ -94,10 +94,11 @@ const props = defineProps({
 
 const router = useRouter();
 const route = useRoute();
+const advertiseStore = useAdvertiseStore();
 
 const homeAdvertiseFormRef = ref<FormInstance>();
 
-const defaultHomeAdvertise: Partial<HomeAdvertise> = {
+const defaultHomeAdvertise: Partial<HomeAdvertiseVo> = {
   name: '',
   type: 1,
   pic: '',
@@ -109,7 +110,7 @@ const defaultHomeAdvertise: Partial<HomeAdvertise> = {
   sort: 0,
 };
 
-const homeAdvertise = reactive<Partial<HomeAdvertise>>({
+const homeAdvertise = reactive<Partial<HomeAdvertiseVo>>({
   ...defaultHomeAdvertise,
 });
 
@@ -133,8 +134,8 @@ const loadHomeAdvertise = async () => {
   if (props.isEdit) {
     const id = Number(route.query.id);
     try {
-      const response = await HomeAdvertiseService.getHomeAdvertise(id);
-      Object.assign(homeAdvertise, response.data);
+      const data = await advertiseStore.getItem(id);
+      Object.assign(homeAdvertise, data);
     } catch (error) {
       console.error('加载广告数据失败:', error);
       ElMessage.error('加载广告数据失败');
@@ -162,16 +163,11 @@ const onSubmit = async () => {
 
     if (props.isEdit) {
       const id = Number(route.query.id);
-      await HomeAdvertiseService.updateHomeAdvertise(
-        id,
-        homeAdvertise as HomeAdvertise,
-      );
+      await advertiseStore.update(id, homeAdvertise as any);
       ElMessage.success('修改成功');
       router.back();
     } else {
-      await HomeAdvertiseService.createHomeAdvertise(
-        homeAdvertise as HomeAdvertise,
-      );
+      await advertiseStore.create(homeAdvertise as any);
       ElMessage.success('提交成功');
       resetForm();
     }

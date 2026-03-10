@@ -33,7 +33,10 @@ export interface UpdateProductDto {
   productAttributeCategoryId?: number;
   /** 运费模板 ID */
   freightTemplateId?: number;
-  /** 商品名称 */
+  /**
+   * 商品名称
+   * @maxLength 64
+   */
   name?: string;
   /** 商品图片 */
   pic?: string;
@@ -49,9 +52,15 @@ export interface UpdateProductDto {
   verifyStatus?: UpdateProductDtoVerifyStatus;
   /** 排序 */
   sort?: number;
-  /** 价格 */
+  /**
+   * 价格
+   * @minimum 0
+   */
   price?: number;
-  /** 促销价格 */
+  /**
+   * 促销价格
+   * @minimum 0
+   */
   promotionPrice?: number;
   /** 赠送积分 */
   giftPoint?: number;
@@ -63,11 +72,20 @@ export interface UpdateProductDto {
   subTitle?: string;
   /** 商品描述 */
   description?: string;
-  /** 市场价 */
+  /**
+   * 市场价
+   * @minimum 0
+   */
   originalPrice?: number;
-  /** 库存 */
+  /**
+   * 库存
+   * @minimum 0
+   */
   stock?: number;
-  /** 预警库存 */
+  /**
+   * 预警库存
+   * @minimum 0
+   */
   lowStock?: number;
   /** 单位 */
   unit?: string;

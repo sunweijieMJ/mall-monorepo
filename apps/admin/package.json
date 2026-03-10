@@ -47,6 +47,7 @@
     "@vitejs/plugin-legacy": "^7.2.1",
     "@vitejs/plugin-vue": "^6.0.4",
     "@vitejs/plugin-vue-jsx": "^5.1.4",
+    "@vue/test-utils": "^2.4.6",
     "autoprefixer": "^10.4.27",
     "code-inspector-plugin": "^1.4.2",
     "cross-env": "*",

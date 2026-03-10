@@ -17,7 +17,5 @@ export const port = 4326;
  * host配置
  */
 export const hostDict = {
-  /** 本地服务 */
-  LOCAL_SERVICE: 'localhost:3001',
-  API_SERVICE: 'rap2api.taobao.org/app/mock/263543',
+  API_SERVICE: '127.0.0.1:3001',
 };

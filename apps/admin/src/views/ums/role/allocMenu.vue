@@ -24,15 +24,16 @@
 import { ElMessage, ElMessageBox, type ElTree } from 'element-plus';
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import MenuService from '@/api/modules/menu';
-import RoleService from '@/api/modules/role';
-import type { MenuItem } from '@/interface';
+import type { AdminMenuTreeNodeVo } from '@/api';
+import { useMenuStore, useRoleStore } from '@/store';
 
 const route = useRoute();
 const router = useRouter();
 const treeRef = ref<InstanceType<typeof ElTree>>();
+const menuStore = useMenuStore();
+const roleStore = useRoleStore();
 
-const menuTreeList = ref<MenuItem[]>([]);
+const menuTreeList = ref<AdminMenuTreeNodeVo[]>([]);
 const roleId = ref<number>(0);
 
 const defaultProps = {
@@ -43,8 +44,8 @@ const defaultProps = {
 // 获取菜单树列表
 const getTreeList = async () => {
   try {
-    const response = await MenuService.fetchTreeList();
-    menuTreeList.value = response.data;
+    await menuStore.getTreeList();
+    menuTreeList.value = menuStore.treeList as AdminMenuTreeNodeVo[];
   } catch (error) {
     console.error('获取菜单树失败:', error);
     ElMessage.error('获取菜单树失败');
@@ -54,8 +55,7 @@ const getTreeList = async () => {
 // 获取角色已分配的菜单
 const getRoleMenu = async (id: number) => {
   try {
-    const response = await RoleService.listMenuByRole(id);
-    const menuList = response.data;
+    const menuList = await roleStore.getMenuList(id);
     const checkedMenuIds: number[] = [];
 
     if (menuList && menuList.length > 0) {
@@ -96,8 +96,7 @@ const handleSave = async () => {
       type: 'warning',
     });
 
-    await RoleService.allocMenu({
-      roleId: roleId.value,
+    await roleStore.assignMenus(roleId.value, {
       menuIds: Array.from(checkedMenuIds),
     });
 

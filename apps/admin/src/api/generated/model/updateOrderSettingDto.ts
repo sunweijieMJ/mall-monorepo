@@ -9,14 +9,29 @@
  */
 
 export interface UpdateOrderSettingDto {
-  /** 秒杀订单超时关闭时间(分) */
+  /**
+   * 秒杀订单超时关闭时间(分)
+   * @minimum 0
+   */
   flashOrderOvertime?: number;
-  /** 正常订单超时时间(分) */
+  /**
+   * 正常订单超时时间(分)
+   * @minimum 0
+   */
   normalOrderOvertime?: number;
-  /** 发货后自动确认收货时间（天） */
+  /**
+   * 发货后自动确认收货时间（天）
+   * @minimum 0
+   */
   confirmOvertime?: number;
-  /** 自动完成交易时间，不能申请售后（天） */
+  /**
+   * 自动完成交易时间，不能申请售后（天）
+   * @minimum 0
+   */
   finishOvertime?: number;
-  /** 订单完成后自动好评时间（天） */
+  /**
+   * 订单完成后自动好评时间（天）
+   * @minimum 0
+   */
   commentOvertime?: number;
 }

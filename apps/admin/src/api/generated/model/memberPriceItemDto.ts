@@ -15,6 +15,9 @@ export interface MemberPriceItemDto {
   memberLevelId?: number;
   /** 会员等级名称 */
   memberLevelName?: string;
-  /** 会员价格 */
+  /**
+   * 会员价格
+   * @minimum 0
+   */
   memberPrice?: number;
 }

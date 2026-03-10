@@ -1,24 +1,45 @@
-import * as ElementPlusIconsVue from '@element-plus/icons-vue';
-import 'element-plus/theme-chalk/dark/css-vars.css';
+// 手动引入组件，会和按需引入样式冲突，所以导入全量样式
 import 'element-plus/dist/index.css';
-import { createApp, markRaw } from 'vue';
+import 'element-plus/theme-chalk/dark/css-vars.css';
+import { createApp } from 'vue';
 import App from './app/App.vue';
 import { setupDirectives } from './directives';
 import { i18n } from './plugins/locale';
 import router from './router';
 import storePromise, { preloadPersistedData } from './store';
+import { setupGlobalErrorHandler } from './utils/errorHandler';
 
-const isDev = process.env.NODE_ENV === 'development';
+/**
+ * 初始化 Web Vitals 性能监控
+ * 根据环境变量 VITE_ENABLE_WEB_VITALS 配置启用
+ */
+async function setupWebVitals(): Promise<void> {
+  if (import.meta.env.VITE_ENABLE_WEB_VITALS !== 'true') return;
+
+  const { reportWebVitals } = await import('@/plugins/webVitals');
+  reportWebVitals(console.log);
+}
+
+/**
+ * 初始化 Sentry 错误监控
+ * 根据环境变量 VITE_ENABLE_SENTRY 配置启用
+ */
+async function setupSentry(
+  app: ReturnType<typeof createApp>,
+  router: typeof import('./router').default,
+): Promise<void> {
+  if (import.meta.env.VITE_ENABLE_SENTRY !== 'true') return;
+
+  const { initSentry } = await import('@/plugins/sentry');
+  await initSentry(app, router);
+}
 
 /**
  * 初始化应用
  */
 const initApp = async () => {
-  if (!isDev) {
-    import('@/utils/reportWebVitals').then((module) => {
-      module.reportWebVitals(console.log);
-    });
-  }
+  // 设置全局错误处理器
+  setupGlobalErrorHandler();
 
   // 预加载持久化数据
   await preloadPersistedData();
@@ -28,11 +49,6 @@ const initApp = async () => {
 
   const app = createApp(App);
 
-  // 注册Element Plus图标
-  for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-    app.component(key, markRaw(component));
-  }
-
   // 使用插件
   app.use(i18n);
   app.use(store);
@@ -41,13 +57,8 @@ const initApp = async () => {
   // 注册全局指令
   setupDirectives(app);
 
-  // 初始化使用动态导入
-  try {
-    const { initSentry } = await import('@/plugins/sentry');
-    await initSentry(app, router);
-  } catch (error) {
-    console.warn('Sentry initialization failed:', error);
-  }
+  // 并行初始化插件：Web Vitals + Sentry
+  await Promise.all([setupWebVitals(), setupSentry(app, router)]);
 
   app.mount('#main-app');
 };

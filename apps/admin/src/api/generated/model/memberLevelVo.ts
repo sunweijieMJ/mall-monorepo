@@ -8,7 +8,6 @@
  *  *\/
  */
 import type { MemberLevelVoDefaultStatus } from './memberLevelVoDefaultStatus';
-import type { MemberLevelVoDeletedAt } from './memberLevelVoDeletedAt';
 
 export interface MemberLevelVo {
   /** 主键ID */
@@ -17,8 +16,11 @@ export interface MemberLevelVo {
   createdAt: string;
   /** 更新时间 */
   updatedAt: string;
-  /** 删除时间 */
-  deletedAt?: MemberLevelVoDeletedAt;
+  /**
+   * 删除时间
+   * @nullable
+   */
+  deletedAt?: string | null;
   /** 等级名称 */
   name?: string;
   /** 成长值 */

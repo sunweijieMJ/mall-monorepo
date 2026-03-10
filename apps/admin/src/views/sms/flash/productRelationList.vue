@@ -31,7 +31,9 @@
         </el-table-column>
         <el-table-column label="货号" width="140" align="center">
           <template #default="{ row }"
-            >NO.{{ row.product?.productSn }}</template
+          >
+            NO.{{ row.product?.productSn }}
+          </template
           >
         </el-table-column>
         <el-table-column label="商品价格" width="100" align="center">
@@ -43,7 +45,7 @@
         <el-table-column label="秒杀价格" width="100" align="center">
           <template #default="{ row }">
             <span v-if="row.flashPromotionPrice !== null"
-              >￥{{ row.flashPromotionPrice }}</span
+            >￥{{ row.flashPromotionPrice }}</span
             >
           </template>
         </el-table-column>
@@ -124,7 +126,9 @@
       <template #footer>
         <el-button @click="selectDialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="handleSelectDialogConfirm"
-          >确 定</el-button
+        >
+          确 定
+        </el-button
         >
       </template>
     </el-dialog>
@@ -178,7 +182,9 @@
       <template #footer>
         <el-button @click="editDialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="handleEditDialogConfirm"
-          >确 定</el-button
+        >
+          确 定
+        </el-button
         >
       </template>
     </el-dialog>
@@ -195,9 +201,14 @@ import {
 } from 'element-plus';
 import { ref, reactive, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import FlashProductRelationService from '@/api/modules/flashProductRelation';
-import ProductService from '@/api/modules/product';
-import type { Product } from '@/interface';
+import {
+  flashProductRelationControllerListV1,
+  flashProductRelationControllerBatchCreateV1,
+  flashProductRelationControllerUpdateV1,
+  flashProductRelationControllerDeleteV1,
+  type ProductVo,
+} from '@/api';
+import { useProductStore } from '@/store';
 
 interface FlashProductRelationWithProduct {
   id: number;
@@ -208,10 +219,11 @@ interface FlashProductRelationWithProduct {
   flashPromotionCount: number;
   flashPromotionLimit: number;
   sort: number;
-  product?: Product;
+  product?: ProductVo;
 }
 
 const route = useRoute();
+const productStore = useProductStore();
 const productRelationTableRef = ref<InstanceType<typeof ElTable>>();
 const flashProductRelationFormRef = ref<InstanceType<typeof ElForm>>();
 
@@ -229,9 +241,9 @@ const selectDialogVisible = ref(false);
 const editDialogVisible = ref(false);
 
 const dialogData = reactive({
-  list: [] as Product[],
+  list: [] as ProductVo[],
   total: 0,
-  multipleSelection: [] as Product[],
+  multipleSelection: [] as ProductVo[],
   listQuery: {
     keyword: null as string | null,
     pageNum: 1,
@@ -241,7 +253,7 @@ const dialogData = reactive({
 
 const flashProductRelation = reactive<Partial<FlashProductRelationWithProduct>>(
   {
-    product: {} as Product,
+    product: {} as ProductVo,
   },
 );
 
@@ -280,7 +292,7 @@ const handleDelete = async (
       cancelButtonText: '取消',
       type: 'warning',
     });
-    await FlashProductRelationService.deleteFlashProductRelation(row.id);
+    await flashProductRelationControllerDeleteV1(row.id);
     ElMessage.success('删除成功!');
     getList();
   } catch (error: any) {
@@ -309,7 +321,7 @@ const handleDialogCurrentChange = (val: number) => {
 };
 
 // 对话框选择变化
-const handleDialogSelectionChange = (val: Product[]) => {
+const handleDialogSelectionChange = (val: ProductVo[]) => {
   dialogData.multipleSelection = val;
 };
 
@@ -332,9 +344,7 @@ const handleSelectDialogConfirm = async () => {
       cancelButtonText: '取消',
       type: 'warning',
     });
-    await FlashProductRelationService.createFlashProductRelation(
-      selectProducts,
-    );
+    await flashProductRelationControllerBatchCreateV1(selectProducts as any);
     selectDialogVisible.value = false;
     dialogData.multipleSelection = [];
     getList();
@@ -355,9 +365,9 @@ const handleEditDialogConfirm = async () => {
       cancelButtonText: '取消',
       type: 'warning',
     });
-    await FlashProductRelationService.updateFlashProductRelation(
+    await flashProductRelationControllerUpdateV1(
       flashProductRelation.id!,
-      flashProductRelation,
+      flashProductRelation as any,
     );
     ElMessage.success('修改成功！');
     editDialogVisible.value = false;
@@ -374,9 +384,9 @@ const handleEditDialogConfirm = async () => {
 const getList = async () => {
   listLoading.value = true;
   try {
-    const response = await FlashProductRelationService.fetchList(listQuery);
-    list.value = response.data.list;
-    total.value = response.data.total;
+    const data = await flashProductRelationControllerListV1(listQuery as any);
+    list.value = (data as any)?.list || [];
+    total.value = (data as any)?.total || 0;
   } catch (error) {
     console.error('获取列表失败:', error);
   } finally {
@@ -387,9 +397,9 @@ const getList = async () => {
 // 获取对话框列表
 const getDialogList = async () => {
   try {
-    const response = await ProductService.fetchList(dialogData.listQuery);
-    dialogData.list = response.data.list;
-    dialogData.total = response.data.total;
+    await productStore.getList(dialogData.listQuery);
+    dialogData.list = productStore.list;
+    dialogData.total = productStore.total;
   } catch (error) {
     console.error('获取商品列表失败:', error);
   }

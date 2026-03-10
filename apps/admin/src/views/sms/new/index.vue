@@ -89,9 +89,11 @@
           <template #default="{ row }">{{ row.sort }}</template>
         </el-table-column>
         <el-table-column label="状态" width="160" align="center">
-          <template #default="{ row }">{{
-            formatRecommendStatus(row.recommendStatus)
-          }}</template>
+          <template #default="{ row }">
+            {{
+              formatRecommendStatus(row.recommendStatus)
+            }}
+          </template>
         </el-table-column>
         <el-table-column label="操作" width="180" align="center">
           <template #default="{ row, $index }">
@@ -184,7 +186,9 @@
       <template #footer>
         <el-button @click="selectDialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="handleSelectDialogConfirm"
-          >确 定</el-button
+        >
+          确 定
+        </el-button
         >
       </template>
     </el-dialog>
@@ -211,10 +215,12 @@
 <script setup lang="ts">
 import { Search, Tickets } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox, type ElTable } from 'element-plus';
-import { ref, reactive, onMounted } from 'vue';
-import { NewProductService, ProductService } from '@/api/modules';
-import type { NewProduct, Product } from '@/interface';
+import { ref, reactive, computed, onMounted } from 'vue';
+import type { HomeNewProductVo, ProductVo } from '@/api';
+import { useHomeProductStore, useProductStore } from '@/store';
 
+const homeProductStore = useHomeProductStore();
+const productStore = useProductStore();
 const newProductTableRef = ref<InstanceType<typeof ElTable>>();
 
 const defaultListQuery = {
@@ -225,10 +231,10 @@ const defaultListQuery = {
 };
 
 const listQuery = reactive({ ...defaultListQuery });
-const list = ref<NewProduct[]>([]);
-const total = ref(0);
-const multipleSelection = ref<NewProduct[]>([]);
-const listLoading = ref(false);
+const list = computed(() => homeProductStore.newList);
+const total = computed(() => homeProductStore.newTotal);
+const multipleSelection = ref<HomeNewProductVo[]>([]);
+const listLoading = computed(() => homeProductStore.loading);
 
 const recommendOptions = [
   { label: '未推荐', value: 0 },
@@ -245,9 +251,9 @@ const operateType = ref<number | null>(null);
 
 const selectDialogVisible = ref(false);
 const dialogData = reactive({
-  list: [] as Product[],
+  list: [] as ProductVo[],
   total: 0,
-  multipleSelection: [] as Product[],
+  multipleSelection: [] as ProductVo[],
   listQuery: {
     keyword: null as string | null,
     pageNum: 1,
@@ -271,7 +277,7 @@ const handleSearchList = () => {
   getList();
 };
 
-const handleSelectionChange = (val: NewProduct[]) => {
+const handleSelectionChange = (val: HomeNewProductVo[]) => {
   multipleSelection.value = val;
 };
 
@@ -286,7 +292,10 @@ const handleCurrentChange = (val: number) => {
   getList();
 };
 
-const handleRecommendStatusChange = async (_index: number, row: NewProduct) => {
+const handleRecommendStatusChange = async (
+  _index: number,
+  row: HomeNewProductVo,
+) => {
   try {
     await ElMessageBox.confirm('是否要修改推荐状态?', '提示', {
       confirmButtonText: '确定',
@@ -294,7 +303,7 @@ const handleRecommendStatusChange = async (_index: number, row: NewProduct) => {
       type: 'warning',
     });
 
-    await NewProductService.updateRecommendStatus({
+    await homeProductStore.updateNewStatus({
       ids: [row.id!],
       recommendStatus: row.recommendStatus,
     });
@@ -311,7 +320,7 @@ const handleRecommendStatusChange = async (_index: number, row: NewProduct) => {
   }
 };
 
-const handleDelete = async (_index: number, row: NewProduct) => {
+const handleDelete = async (_index: number, row: HomeNewProductVo) => {
   try {
     await ElMessageBox.confirm('是否要删除该推荐?', '提示', {
       confirmButtonText: '确定',
@@ -319,7 +328,7 @@ const handleDelete = async (_index: number, row: NewProduct) => {
       type: 'warning',
     });
 
-    await NewProductService.deleteNewProduct([row.id!]);
+    await homeProductStore.batchDeleteNew([row.id!]);
     ElMessage.success('删除成功');
     await getList();
   } catch (error) {
@@ -345,7 +354,7 @@ const handleBatchOperate = async () => {
         cancelButtonText: '取消',
         type: 'warning',
       });
-      await NewProductService.updateRecommendStatus({
+      await homeProductStore.updateNewStatus({
         ids,
         recommendStatus: 1,
       });
@@ -357,7 +366,7 @@ const handleBatchOperate = async () => {
         cancelButtonText: '取消',
         type: 'warning',
       });
-      await NewProductService.updateRecommendStatus({
+      await homeProductStore.updateNewStatus({
         ids,
         recommendStatus: 0,
       });
@@ -369,7 +378,7 @@ const handleBatchOperate = async () => {
         cancelButtonText: '取消',
         type: 'warning',
       });
-      await NewProductService.deleteNewProduct(ids);
+      await homeProductStore.batchDeleteNew(ids);
       ElMessage.success('删除成功');
       await getList();
     } else {
@@ -404,7 +413,7 @@ const handleDialogCurrentChange = (val: number) => {
   getDialogList();
 };
 
-const handleDialogSelectionChange = (val: Product[]) => {
+const handleDialogSelectionChange = (val: ProductVo[]) => {
   dialogData.multipleSelection = val;
 };
 
@@ -426,7 +435,7 @@ const handleSelectDialogConfirm = async () => {
       productName: item.name,
     }));
 
-    await NewProductService.createNewProduct(selectProducts);
+    await homeProductStore.batchCreateNew(selectProducts);
     selectDialogVisible.value = false;
     dialogData.multipleSelection = [];
     ElMessage.success('添加成功');
@@ -439,7 +448,7 @@ const handleSelectDialogConfirm = async () => {
   }
 };
 
-const handleEditSort = (_index: number, row: NewProduct) => {
+const handleEditSort = (_index: number, row: HomeNewProductVo) => {
   sortDialogVisible.value = true;
   sortDialogData.sort = row.sort || 0;
   sortDialogData.id = row.id!;
@@ -453,7 +462,7 @@ const handleUpdateSort = async () => {
       type: 'warning',
     });
 
-    await NewProductService.updateNewProductSort(sortDialogData.id!, {
+    await homeProductStore.updateNewSort(sortDialogData.id!, {
       sort: sortDialogData.sort,
     });
     sortDialogVisible.value = false;
@@ -468,24 +477,19 @@ const handleUpdateSort = async () => {
 };
 
 const getList = async () => {
-  listLoading.value = true;
   try {
-    const response = await NewProductService.fetchList(listQuery);
-    list.value = response.data.list;
-    total.value = response.data.total;
+    await homeProductStore.getNewList(listQuery);
   } catch (error) {
     console.error('获取列表失败:', error);
     ElMessage.error('获取列表失败');
-  } finally {
-    listLoading.value = false;
   }
 };
 
 const getDialogList = async () => {
   try {
-    const response = await ProductService.fetchList(dialogData.listQuery);
-    dialogData.list = response.data.list;
-    dialogData.total = response.data.total;
+    await productStore.getList(dialogData.listQuery);
+    dialogData.list = productStore.list;
+    dialogData.total = productStore.total;
   } catch (error) {
     console.error('获取商品列表失败:', error);
     ElMessage.error('获取商品列表失败');

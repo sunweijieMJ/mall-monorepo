@@ -26,6 +26,9 @@ export interface UpdateAdminMenuDto {
   component?: string;
   /** 前端路由路径 */
   path?: string;
-  /** 排序 */
+  /**
+   * 排序
+   * @minimum 0
+   */
   sort?: number;
 }

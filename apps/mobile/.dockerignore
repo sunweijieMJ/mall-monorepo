@@ -1,0 +1,64 @@
+# uni-app 其他平台产物（Docker 只打包 H5 产物）
+dist/build/mp-weixin
+dist/build/mp-alipay
+dist/build/mp-baidu
+dist/build/app
+dist/dev
+unpackage
+
+# 源码（已编译进 dist/build/h5/）
+src
+public
+scripts
+config
+typings
+tests
+
+# Node.js
+node_modules
+npm-debug.log*
+pnpm-debug.log*
+
+# 配置文件（运行时不需要）
+*.config.ts
+*.config.mjs
+manifest.config.ts
+pages.config.ts
+tsconfig*.json
+package.json
+orval.config.ts
+
+# 环境变量
+.env
+.env.*
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# CI/CD
+.github
+
+# 文档
+*.md
+docs
+
+# 日志和临时文件
+*.log
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+node_build_info.sh
+
+# 归档
+*.tar.gz
+*.zip

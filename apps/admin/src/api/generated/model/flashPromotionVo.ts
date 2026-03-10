@@ -7,7 +7,6 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
-import type { FlashPromotionVoDeletedAt } from './flashPromotionVoDeletedAt';
 import type { FlashPromotionVoStatus } from './flashPromotionVoStatus';
 
 export interface FlashPromotionVo {
@@ -17,8 +16,11 @@ export interface FlashPromotionVo {
   createdAt: string;
   /** 更新时间 */
   updatedAt: string;
-  /** 删除时间 */
-  deletedAt?: FlashPromotionVoDeletedAt;
+  /**
+   * 删除时间
+   * @nullable
+   */
+  deletedAt?: string | null;
   /** 活动标题 */
   title: string;
   /** 开始日期 */
