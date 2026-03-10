@@ -39,6 +39,12 @@
       "prettier --write --ignore-unknown"
     ]
   },
+  "pnpm": {
+    "overrides": {
+      "@intlify/shared": "11.2.8",
+      "@intlify/message-compiler": "11.2.8"
+    }
+  },
   "devDependencies": {
     "@commitlint/cli": "^20.4.3",
     "@commitlint/config-conventional": "^20.4.3",

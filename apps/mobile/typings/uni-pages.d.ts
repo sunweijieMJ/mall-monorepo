@@ -31,11 +31,7 @@ interface NavigateToOptions {
 interface RedirectToOptions extends NavigateToOptions {}
 
 interface SwitchTabOptions {
-  url:
-    | '/pages/index/index'
-    | '/pages/category/category'
-    | '/pages/cart/cart'
-    | '/pages/mine/mine';
+  url: "/pages/index/index" | "/pages/category/category" | "/pages/cart/cart" | "/pages/mine/mine"
 }
 
 type ReLaunchOptions = NavigateToOptions | SwitchTabOptions;
@@ -47,6 +43,6 @@ declare interface Uni {
   reLaunch(options: UniNamespace.ReLaunchOptions & ReLaunchOptions): void;
 }
 
-declare module 'virtual:uni-pages' {
+declare module "virtual:uni-pages" {
   export type LocationUrl = _LocationUrl;
 }

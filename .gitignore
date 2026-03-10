@@ -55,5 +55,8 @@ yarn.lock
 unpackage/
 
 # UniApp 生成文件（由 vite-plugin-uni-pages / vite-plugin-uni-manifest 生成）
-apps/mobile/src/pages.json
-apps/mobile/src/manifest.json
+apps/mobile/typings/uni-pages.d.ts
+
+# admin
+apps/admin/auto-imports.d.ts
+apps/admin/components.d.ts

@@ -4,6 +4,10 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  '@intlify/shared': 11.2.8
+  '@intlify/message-compiler': 11.2.8
+
 importers:
   .:
     devDependencies:
@@ -4910,13 +4914,6 @@ packages:
       }
     engines: { node: '>= 16' }
 
-  '@intlify/message-compiler@9.1.9':
-    resolution:
-      {
-        integrity: sha512-6YgCMF46Xd0IH2hMRLCssZI3gFG4aywidoWQ3QP4RGYQXQYYfFC54DxhSgfIPpVoPLQ+4AD29eoYmhiHZ+qLFQ==,
-      }
-    engines: { node: '>= 10' }
-
   '@intlify/message-resolver@9.1.9':
     resolution:
       {
@@ -4937,13 +4934,6 @@ packages:
         integrity: sha512-l6e4NZyUgv8VyXXH4DbuucFOBmxLF56C/mqh2tvApbzl2Hrhi1aTDcuv5TKdxzfHYmpO3UB0Cz04fgDT9vszfw==,
       }
     engines: { node: '>= 16' }
-
-  '@intlify/shared@9.1.9':
-    resolution:
-      {
-        integrity: sha512-xKGM1d0EAxdDFCWedcYXOm6V5Pfw/TMudd6/qCdEb4tv0hk9EKeg7lwQF1azE0dP2phvx0yXxrt7UQK+IZjNdw==,
-      }
-    engines: { node: '>= 10' }
 
   '@intlify/vue-devtools@9.1.9':
     resolution:
@@ -25784,7 +25774,7 @@ snapshots:
       '@dcloudio/uni-nvue-styler': 3.0.0-alpha-5000220260306001
       '@dcloudio/uni-shared': 3.0.0-alpha-5000220260306001
       '@intlify/core-base': 9.1.9
-      '@intlify/shared': 9.1.9
+      '@intlify/shared': 11.2.8
       '@intlify/vue-devtools': 9.1.9
       '@rollup/pluginutils': 5.1.0(rollup@4.59.0)
       '@vue/compiler-core': 3.4.21
@@ -26507,44 +26497,36 @@ snapshots:
   '@intlify/core-base@9.1.9':
     dependencies:
       '@intlify/devtools-if': 9.1.9
-      '@intlify/message-compiler': 9.1.9
+      '@intlify/message-compiler': 11.2.8
       '@intlify/message-resolver': 9.1.9
       '@intlify/runtime': 9.1.9
-      '@intlify/shared': 9.1.9
+      '@intlify/shared': 11.2.8
       '@intlify/vue-devtools': 9.1.9
 
   '@intlify/devtools-if@9.1.9':
     dependencies:
-      '@intlify/shared': 9.1.9
+      '@intlify/shared': 11.2.8
 
   '@intlify/message-compiler@11.2.8':
     dependencies:
       '@intlify/shared': 11.2.8
       source-map-js: 1.2.1
 
-  '@intlify/message-compiler@9.1.9':
-    dependencies:
-      '@intlify/message-resolver': 9.1.9
-      '@intlify/shared': 9.1.9
-      source-map: 0.6.1
-
   '@intlify/message-resolver@9.1.9': {}
 
   '@intlify/runtime@9.1.9':
     dependencies:
-      '@intlify/message-compiler': 9.1.9
+      '@intlify/message-compiler': 11.2.8
       '@intlify/message-resolver': 9.1.9
-      '@intlify/shared': 9.1.9
+      '@intlify/shared': 11.2.8
 
   '@intlify/shared@11.2.8': {}
-
-  '@intlify/shared@9.1.9': {}
 
   '@intlify/vue-devtools@9.1.9':
     dependencies:
       '@intlify/message-resolver': 9.1.9
       '@intlify/runtime': 9.1.9
-      '@intlify/shared': 9.1.9
+      '@intlify/shared': 11.2.8
 
   '@ioredis/commands@1.5.0': {}
 
@@ -38555,7 +38537,7 @@ snapshots:
   vue-i18n@9.1.9(vue@3.5.30(typescript@5.9.3)):
     dependencies:
       '@intlify/core-base': 9.1.9
-      '@intlify/shared': 9.1.9
+      '@intlify/shared': 11.2.8
       '@intlify/vue-devtools': 9.1.9
       '@vue/devtools-api': 6.6.4
       vue: 3.5.30(typescript@5.9.3)

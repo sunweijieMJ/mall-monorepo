@@ -11,6 +11,7 @@ export default defineManifestConfig({
   versionName: '1.0.0',
   versionCode: '100',
   transformPx: false,
+  fallbackLocale: 'zh-CN',
 
   /* 微信小程序配置 */
   'mp-weixin': {
