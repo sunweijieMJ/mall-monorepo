@@ -54,7 +54,7 @@ export default registerAs<AppConfig>('app', () => {
     workingDirectory: process.env.PWD ?? process.cwd(),
     frontendDomain: process.env.FRONTEND_DOMAIN,
     backendDomain: process.env.BACKEND_DOMAIN,
-    port: parseInt(process.env.APP_PORT ?? '3001', 10),
+    port: parseInt(process.env.APP_PORT ?? '9000', 10),
     apiPrefix: process.env.API_PREFIX ?? 'api',
     fallbackLanguage: process.env.APP_FALLBACK_LANGUAGE ?? 'zh',
     headerLanguage: process.env.APP_HEADER_LANGUAGE ?? 'x-custom-lang',

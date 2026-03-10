@@ -17,5 +17,5 @@ export const port = 9002;
  * host配置
  */
 export const hostDict = {
-  API_SERVICE: '127.0.0.1:3001',
+  API_SERVICE: '127.0.0.1:9000',
 };

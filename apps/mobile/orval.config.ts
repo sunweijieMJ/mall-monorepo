@@ -9,7 +9,7 @@ export default defineConfig({
   api: {
     // 输入：OpenAPI 文档
     input: {
-      target: 'http://localhost:3001/openapi.json',
+      target: 'http://localhost:9000/openapi.json',
       // 使用 transformer 根据 API 路径自动生成英文 tag
       override: {
         transformer: './scripts/api/transform-openapi.ts',

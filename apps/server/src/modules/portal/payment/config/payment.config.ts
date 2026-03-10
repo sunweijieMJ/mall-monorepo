@@ -10,7 +10,7 @@ export default registerAs<PaymentConfig>('payment', () => ({
       process.env.ALIPAY_GATEWAY ?? 'https://openapi.alipaydev.com/gateway.do',
     notifyUrl:
       process.env.ALIPAY_NOTIFY_URL ??
-      'http://localhost:3001/api/v1/portal/payment/alipay/notify',
+      'http://localhost:9000/api/v1/portal/payment/alipay/notify',
     returnUrl:
       process.env.ALIPAY_RETURN_URL ?? 'http://localhost:5173/pay/success',
   },

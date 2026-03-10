@@ -86,7 +86,7 @@ RUN chmod +x /opt/wait-for-it.sh /opt/startup.sh && \
 # 文件上传目录（使用非 root 用户）
 RUN mkdir -p /app/files && chown -R node:node /app/files
 
-EXPOSE 3001
+EXPOSE 9000
 
 USER node
 
@@ -112,6 +112,6 @@ COPY apps/server/scripts/startup.sh /opt/startup.sh
 RUN chmod +x /opt/wait-for-it.sh /opt/startup.sh && \
     sed -i 's/\r//g' /opt/wait-for-it.sh /opt/startup.sh
 
-EXPOSE 3001
+EXPOSE 9000
 
 CMD ["/opt/startup.sh"]

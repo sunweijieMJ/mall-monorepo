@@ -54,7 +54,7 @@ case $ENV_MODE in
     APP_PID=$!
 
     echo "Waiting for API to be ready..."
-    if ! /opt/wait-for-it.sh localhost:3001 -t 120; then
+    if ! /opt/wait-for-it.sh localhost:9000 -t 120; then
       echo "========================================"
       echo "Application failed to start. Logs:"
       echo "========================================"

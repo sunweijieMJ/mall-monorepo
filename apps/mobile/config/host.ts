@@ -17,5 +17,5 @@ export const port = 9001;
  * host配置
  */
 export const hostDict = {
-  API_SERVICE: 'localhost:3001',
+  API_SERVICE: 'localhost:9000',
 } as const;
