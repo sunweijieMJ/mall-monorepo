@@ -146,7 +146,7 @@ jobs:
           [ $has_error -eq 1 ] && exit 1 || echo "Secrets 配置检查通过"
 
       - name: Sync deploy files to server
-        uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           port: ${{ secrets.DEPLOY_PORT || 22 }}
