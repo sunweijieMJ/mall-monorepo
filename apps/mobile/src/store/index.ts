@@ -1,4 +1,6 @@
-export { createPersistedPinia } from './plugins/persist';
+import { createPersistedPinia } from './plugins/persist';
+
+export { createPersistedPinia };
 
 export * from './modules/global';
 export * from './modules/user';
