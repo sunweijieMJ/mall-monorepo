@@ -30,11 +30,9 @@
           <template #default="{ row }">{{ row.product?.name }}</template>
         </el-table-column>
         <el-table-column label="货号" width="140" align="center">
-          <template #default="{ row }"
-          >
+          <template #default="{ row }">
             NO.{{ row.product?.productSn }}
-          </template
-          >
+          </template>
         </el-table-column>
         <el-table-column label="商品价格" width="100" align="center">
           <template #default="{ row }">￥{{ row.product?.price }}</template>
@@ -60,10 +58,10 @@
         </el-table-column>
         <el-table-column label="操作" width="100" align="center">
           <template #default="{ $index, row }">
-            <el-button type="text" @click="handleUpdate($index, row)">
+            <el-button link type="primary" @click="handleUpdate($index, row)">
               编辑
             </el-button>
-            <el-button type="text" @click="handleDelete($index, row)">
+            <el-button link type="danger" @click="handleDelete($index, row)">
               删除
             </el-button>
           </template>
@@ -125,11 +123,9 @@
       <div style="clear: both"></div>
       <template #footer>
         <el-button @click="selectDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="handleSelectDialogConfirm"
-        >
+        <el-button type="primary" @click="handleSelectDialogConfirm">
           确 定
-        </el-button
-        >
+        </el-button>
       </template>
     </el-dialog>
 
@@ -181,11 +177,9 @@
       </el-form>
       <template #footer>
         <el-button @click="editDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="handleEditDialogConfirm"
-        >
+        <el-button type="primary" @click="handleEditDialogConfirm">
           确 定
-        </el-button
-        >
+        </el-button>
       </template>
     </el-dialog>
   </div>

@@ -79,7 +79,11 @@
             style="height: 50px"
           >
             {{ orderReturnApply.orderSn
-            }}<el-button type="text" @click="handleViewOrder">查看</el-button>
+            }}<el-button link type="primary" @click="handleViewOrder"
+            >
+              查看
+            </el-button
+            >
           </el-col>
         </el-row>
         <el-row>

@@ -191,7 +191,7 @@ export function handleError(error: any, config: ErrorConfig = {}): ErrorType {
  * 处理认证错误
  */
 function handleAuthError() {
-  // 清除本地存储
+  // 清除 localStorage 中的 token
   localStorage.removeItem('token');
 
   // 延迟跳转到登录页（给用户看到错误提示的时间）

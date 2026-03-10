@@ -12,8 +12,7 @@ import {
 import { responseErrorInterceptor } from '../interceptors/response';
 
 // 获取 baseURL 配置
-const baseURL = window.location.origin;
-// const baseURL = import.meta.env.VITE_BASEURL;
+const baseURL = import.meta.env.VITE_API_BASE_URL ?? window.location.origin;
 
 /**
  * 下载专用响应拦截器

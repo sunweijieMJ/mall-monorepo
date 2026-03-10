@@ -24,9 +24,7 @@
         </el-table-column>
         <el-table-column label="每日开始时间" align="center">
           <template #default="{ row }">
-            {{
-              formatTime(row.startTime)
-            }}
+            {{ formatTime(row.startTime) }}
           </template>
         </el-table-column>
         <el-table-column label="每日结束时间" align="center">
@@ -37,7 +35,7 @@
         </el-table-column>
         <el-table-column label="操作" align="center">
           <template #default="{ row }">
-            <el-button type="text" @click="handleShowRelation(row)">
+            <el-button link type="primary" @click="handleShowRelation(row)">
               商品列表
             </el-button>
           </template>

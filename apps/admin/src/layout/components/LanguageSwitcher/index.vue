@@ -1,6 +1,6 @@
 <template>
   <el-dropdown @command="handleLanguageChange">
-    <el-button type="text">
+    <el-button link>
       <el-icon><Switch /></el-icon>
       {{ currentLanguageName }}
       <el-icon class="el-icon--right"><arrow-down /></el-icon>

@@ -48,17 +48,19 @@ function hasPermission(menus: MenuItem[], route: RouteRecordRaw): boolean {
 }
 
 /**
- * 根据路由名称获取菜单
+ * 根据路由名称获取菜单（递归搜索）
  * 支持不区分大小写匹配（后端返回小写，前端使用驼峰）
  */
 function getMenu(name: string, menus: MenuItem[]): MenuItem | null {
-  // 将路由名称转为小写进行匹配
   const lowerName = name.toLowerCase();
 
-  for (let i = 0; i < menus.length; i++) {
-    const menu = menus[i];
+  for (const menu of menus) {
     if (lowerName === menu.name.toLowerCase()) {
       return menu;
+    }
+    if (menu.children && menu.children.length > 0) {
+      const found = getMenu(name, menu.children);
+      if (found) return found;
     }
   }
   return null;
@@ -96,43 +98,13 @@ export const useMallPermissionStore = defineStore('mallPermission', () => {
    * 根据菜单生成可访问的路由
    */
   const generateRoutes = (asyncRoutes: RouteRecordRaw[], menus: MenuItem[]) => {
-    console.log('🔍 [Permission Store] 开始生成路由');
-    console.log('🔍 [Permission Store] 菜单数据:', menus);
-    console.log('🔍 [Permission Store] 异步路由数量:', asyncRoutes.length);
-
-    // admin账号直接返回所有菜单（可选）
-    // if (username === 'admin') {
-    //   routes.value = [...mallConstantRoutes, ...asyncRoutes]
-    //   isRoutesGenerated.value = true
-    //   return asyncRoutes
-    // }
-
     const accessedRoutes = asyncRoutes.filter((v) => {
       const hasAccess = hasPermission(menus, v);
-      console.log(`🔍 [Permission Store] 路由 ${v.name} 权限检查:`, hasAccess);
-
-      if (hasAccess) {
-        if (v.children && v.children.length > 0) {
-          v.children = v.children.filter((child) => {
-            const childHasAccess = hasPermission(menus, child);
-            console.log(`  └─ 子路由 ${child.name} 权限检查:`, childHasAccess);
-            return childHasAccess;
-          });
-          return true;
-        }
-        return true;
+      if (hasAccess && v.children && v.children.length > 0) {
+        v.children = v.children.filter((child) => hasPermission(menus, child));
       }
-      return false;
+      return hasAccess;
     });
-
-    console.log(
-      '✅ [Permission Store] 过滤后的路由数量:',
-      accessedRoutes.length,
-    );
-    console.log(
-      '✅ [Permission Store] 过滤后的路由:',
-      accessedRoutes.map((r) => r.name),
-    );
 
     // 对菜单进行排序
     sortRouters(accessedRoutes);
@@ -140,8 +112,6 @@ export const useMallPermissionStore = defineStore('mallPermission', () => {
     // 合并常规路由和可访问的异步路由
     routes.value = [...mallConstantRoutes, ...accessedRoutes];
     isRoutesGenerated.value = true;
-
-    console.log('✅ [Permission Store] 最终路由数量:', routes.value.length);
 
     return accessedRoutes;
   };

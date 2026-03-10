@@ -49,6 +49,14 @@ export class ResourceGuard implements CanActivate {
 
     if (request.method === 'OPTIONS') return true;
 
+    // 认证路由（/admin/auth/**、/portal/auth/**）不走资源权限校验
+    if (
+      rawPath.startsWith('/admin/auth/') ||
+      rawPath.startsWith('/portal/auth/')
+    ) {
+      return true;
+    }
+
     // 复用已计算的路径（资源表中存储不含前缀的路径）
     const requestPath = rawPath;
 

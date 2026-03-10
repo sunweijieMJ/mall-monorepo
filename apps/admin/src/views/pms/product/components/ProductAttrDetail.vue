@@ -48,7 +48,8 @@
                 >
                   <el-checkbox :label="item" />
                   <el-button
-                    type="text"
+                    link
+                    type="danger"
                     class="little-margin-left"
                     @click="handleRemoveProductAttrValue(idx, index)"
                   >
@@ -113,7 +114,8 @@
           <el-table-column label="操作" width="80" align="center">
             <template #default="{ $index, row }">
               <el-button
-                type="text"
+                link
+                type="danger"
                 @click="handleRemoveProductSku($index, row)"
               >
                 删除
@@ -204,11 +206,9 @@
         </el-tabs>
       </el-form-item>
       <el-form-item style="text-align: center">
-        <el-button size="default" @click="handlePrev"
-        >
+        <el-button size="default" @click="handlePrev">
           上一步，填写商品促销
-        </el-button
-        >
+        </el-button>
         <el-button type="primary" size="default" @click="handleNext">
           下一步，选择商品关联
         </el-button>

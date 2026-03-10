@@ -5,8 +5,9 @@
  */
 
 import { ElMessage } from 'element-plus';
-import type { Router } from 'vue-router';
+import type { Router, RouteRecordRaw } from 'vue-router';
 import { mallAsyncRoutes } from './routes';
+import type { MenuItem } from '@/interface';
 import { useMallPermissionStore } from '@/store/modules/mallPermission';
 import { useMallUserStore } from '@/store/modules/mallUser';
 
@@ -30,6 +31,33 @@ function isMallRoute(path: string): boolean {
 }
 
 /**
+ * 根据菜单数据生成并注册动态路由
+ * 在登录完成后调用可避免首次导航触发重定向"刷新"
+ */
+export function buildAndRegisterRoutes(
+  router: Router,
+  menus: MenuItem[],
+): void {
+  const mallPermissionStore = useMallPermissionStore();
+
+  // 浅拷贝，防止原地修改静态路由配置（generateRoutes 会 filter/mutate children 和 meta）
+  const asyncRoutesCopy = mallAsyncRoutes.map((route) => ({
+    ...route,
+    meta: route.meta ? { ...route.meta } : undefined,
+    children: route.children?.map((child) => ({
+      ...child,
+      meta: child.meta ? { ...child.meta } : undefined,
+    })),
+  })) as RouteRecordRaw[];
+
+  const accessRoutes = mallPermissionStore.generateRoutes(
+    asyncRoutesCopy,
+    menus,
+  );
+  accessRoutes.forEach((route) => router.addRoute(route));
+}
+
+/**
  * 设置 Mall 路由守卫
  *
  * Mall 的权限控制特点：
@@ -39,78 +67,52 @@ function isMallRoute(path: string): boolean {
  * 4. 支持多级菜单嵌套
  */
 export function setupMallRouterGuard(router: Router) {
-  router.beforeEach(async (to, _from, next) => {
+  router.beforeEach(async (to, _from) => {
     const mallUserStore = useMallUserStore();
     const mallPermissionStore = useMallPermissionStore();
 
     // 白名单直接放行
     if (MALL_WHITE_LIST.includes(to.path)) {
-      next();
-      return;
+      return true;
     }
 
     // 非 Mall 路由交给默认守卫处理
     if (!isMallRoute(to.path)) {
-      next();
-      return;
+      return true;
     }
 
     // 检查 Mall 登录状态
     if (!mallUserStore.token) {
-      next({ path: '/login', query: { redirect: to.fullPath } });
-      return;
+      return { path: '/login', query: { redirect: to.fullPath } };
     }
 
     // 已登录访问登录页，跳转首页
     if (to.path === '/login') {
-      next('/home');
-      return;
+      return '/home';
     }
 
-    // 已生成路由，直接放行
+    // 已生成路由，直接放行（登录时预生成后不再重复）
     if (mallPermissionStore.isRoutesGenerated) {
-      next();
-      return;
+      // 路由已生成仍命中兜底路由，说明是真正不存在的路径
+      if (to.name === 'NotFound') {
+        return '/404';
+      }
+      return true;
     }
 
-    // 获取用户信息和菜单数据，生成可访问路由
+    // 页面刷新场景：重新获取用户信息并生成路由
     try {
-      // 获取用户信息（包含菜单数据）
       await mallUserStore.getInfoAction();
 
       const menus = mallUserStore.menus;
-      const username = mallUserStore.name;
-
-      console.log('🔍 [路由守卫] 获取到的菜单数据:', menus);
-      console.log('🔍 [路由守卫] 菜单数量:', menus?.length);
-
       if (!menus || menus.length === 0) {
         throw new Error('菜单数据为空，请联系管理员分配权限');
       }
 
-      // 根据后端菜单数据生成可访问的路由
-      const accessRoutes = mallPermissionStore.generateRoutes(
-        mallAsyncRoutes,
-        menus,
-        username,
-      );
+      buildAndRegisterRoutes(router, menus);
 
-      console.log('✅ [路由守卫] 生成的可访问路由:', accessRoutes);
-      console.log('✅ [路由守卫] 路由数量:', accessRoutes.length);
-
-      // 动态添加路由
-      accessRoutes.forEach((route) => router.addRoute(route));
-
-      // 添加 404 路由（必须在最后）
-      router.addRoute({
-        path: '/:pathMatch(.*)*',
-        redirect: '/404',
-      });
-
-      console.log('✅ [路由守卫] 路由已动态添加');
-
-      // 重新导航
-      next({ ...to, replace: true });
+      // 路由刚注册完，需重新导航让 Vue Router 重新匹配
+      return { path: to.fullPath, replace: true };
     } catch (error) {
       console.error('❌ [路由守卫] 获取权限失败:', error);
       ElMessage.error(
@@ -120,7 +122,7 @@ export function setupMallRouterGuard(router: Router) {
       );
       await mallUserStore.logoutAction();
       mallPermissionStore.resetState();
-      next('/login');
+      return '/login';
     }
   });
 }

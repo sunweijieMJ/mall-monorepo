@@ -7,8 +7,8 @@
  */
 
 import type { InternalAxiosRequestConfig } from 'axios';
-import storage from '@/plugins/storage';
 import { handleRequestError } from '@/utils/errorHandler';
+import { getMallToken } from '@/utils/mallAuth';
 
 /**
  * 请求拦截器
@@ -38,8 +38,8 @@ export function requestInterceptor(
   config: InternalAxiosRequestConfig,
 ): InternalAxiosRequestConfig {
   try {
-    // 从 localStorage 读取 Token
-    const token = storage('localStorage').get('token');
+    // 从 localStorage 读取 Token（与 setMallToken 存储位置一致）
+    const token = getMallToken();
     if (token) {
       // 添加到请求头，使用 Bearer 认证方案
       // 格式：Authorization: Bearer <token>

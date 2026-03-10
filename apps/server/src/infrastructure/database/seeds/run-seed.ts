@@ -16,10 +16,10 @@ import { AdminSeedService } from './admin/admin-seed.service';
 async function bootstrap() {
   const app = await NestFactory.create(SeedModule);
 
-  // 按依赖顺序执行
-  await app.get(RoleSeedService).run();
+  // 按依赖顺序执行：Menu/Resource 先（独立数据），Role 次（需要分配菜单），Admin 最后（需要关联角色）
   await app.get(MenuSeedService).run();
   await app.get(ResourceSeedService).run();
+  await app.get(RoleSeedService).run();
   await app.get(AdminSeedService).run();
 
   await app.close();

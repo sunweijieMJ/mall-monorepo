@@ -37,73 +37,79 @@ export class ResourceSeedService {
     );
     this.logger.log(`已创建 ${savedCategories.length} 个资源分类`);
 
-    // 创建资源
+    // 创建资源（URL 对应 NestJS 实际路由，去掉 /api/v1 前缀）
     const resources: Partial<AdminResourceEntity>[] = [
       {
         categoryId: savedCategories[0].id,
         name: '商品品牌管理',
-        url: '/brand/**',
+        url: '/admin/pms/brands/**',
         description: '商品品牌的增删改查',
       },
       {
         categoryId: savedCategories[0].id,
         name: '商品属性管理',
-        url: '/productAttribute/**',
-        description: '商品属性的增删改查',
+        url: '/admin/pms/product-attribute*/**',
+        description: '商品属性及属性分类的增删改查',
       },
       {
         categoryId: savedCategories[0].id,
         name: '商品分类管理',
-        url: '/productCategory/**',
+        url: '/admin/pms/product-categories/**',
         description: '商品分类的增删改查',
+      },
+      {
+        categoryId: savedCategories[0].id,
+        name: '商品管理',
+        url: '/admin/pms/products/**',
+        description: '商品的增删改查',
       },
       {
         categoryId: savedCategories[1].id,
         name: '订单管理',
-        url: '/order/**',
+        url: '/admin/oms/orders/**',
         description: '订单的查询、发货、关闭',
       },
       {
         categoryId: savedCategories[1].id,
         name: '退货申请管理',
-        url: '/returnApply/**',
+        url: '/admin/oms/return-applies/**',
         description: '退货申请的处理',
       },
       {
         categoryId: savedCategories[2].id,
         name: '优惠券管理',
-        url: '/coupon/**',
+        url: '/admin/sms/coupon*/**',
         description: '优惠券的增删改查',
       },
       {
         categoryId: savedCategories[2].id,
         name: '秒杀活动管理',
-        url: '/flash/**',
+        url: '/admin/sms/flash*/**',
         description: '秒杀活动的增删改查',
       },
       {
         categoryId: savedCategories[3].id,
         name: '后台用户管理',
-        url: '/admin/**',
+        url: '/admin/ums/admins/**',
         description: '后台用户的增删改查',
       },
       {
         categoryId: savedCategories[3].id,
         name: '后台角色管理',
-        url: '/role/**',
+        url: '/admin/ums/roles/**',
         description: '后台角色的增删改查',
       },
       {
         categoryId: savedCategories[3].id,
         name: '后台菜单管理',
-        url: '/menu/**',
+        url: '/admin/ums/menus/**',
         description: '后台菜单的增删改查',
       },
       {
         categoryId: savedCategories[3].id,
         name: '后台资源管理',
-        url: '/resource/**',
-        description: '后台资源的增删改查',
+        url: '/admin/ums/resource*/**',
+        description: '后台资源及分类的增删改查',
       },
     ];
 

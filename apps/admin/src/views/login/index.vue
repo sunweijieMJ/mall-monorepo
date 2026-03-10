@@ -70,6 +70,7 @@ import { ElMessage, type FormInstance, type FormRules } from 'element-plus';
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import loginCenterBg from '@/assets/images/login/background.png';
+import { buildAndRegisterRoutes } from '@/router/mallGuards';
 import { useMallUserStore } from '@/store/modules/mallUser';
 
 // Router and Store
@@ -124,6 +125,8 @@ const handleLogin = async () => {
     loading.value = true;
     await mallUserStore.loginAction(loginForm.username, loginForm.password);
     await mallUserStore.getInfoAction();
+    // 登录后立即预生成路由，避免首次导航触发重定向造成"刷新"感
+    buildAndRegisterRoutes(router, mallUserStore.menus);
     ElMessage.success('登录成功');
     router.push({ path: '/home' });
   } catch (error: any) {

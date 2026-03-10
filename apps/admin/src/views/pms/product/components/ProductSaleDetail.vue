@@ -138,13 +138,15 @@
           <el-table-column align="center" label="操作">
             <template #default="{ $index, row }">
               <el-button
-                type="text"
+                link
+                type="danger"
                 @click="handleRemoveProductLadder($index, row)"
               >
                 删除
               </el-button>
               <el-button
-                type="text"
+                link
+                type="primary"
                 @click="handleAddProductLadder($index, row)"
               >
                 添加
@@ -173,13 +175,15 @@
           <el-table-column align="center" label="操作">
             <template #default="{ $index, row }">
               <el-button
-                type="text"
+                link
+                type="danger"
                 @click="handleRemoveFullReduction($index, row)"
               >
                 删除
               </el-button>
               <el-button
-                type="text"
+                link
+                type="primary"
                 @click="handleAddFullReduction($index, row)"
               >
                 添加
@@ -189,11 +193,9 @@
         </el-table>
       </el-form-item>
       <el-form-item style="text-align: center">
-        <el-button size="default" @click="handlePrev"
-        >
+        <el-button size="default" @click="handlePrev">
           上一步，填写商品信息
-        </el-button
-        >
+        </el-button>
         <el-button type="primary" size="default" @click="handleNext">
           下一步，填写商品属性
         </el-button>

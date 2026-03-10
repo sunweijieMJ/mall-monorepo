@@ -19,7 +19,7 @@ interface ImportMetaEnv {
   /**
    * api基础地址
    */
-  readonly VITE_BASEURL: string;
+  readonly VITE_API_BASE_URL: string;
   /**
    * 是否开启构建分析器
    */

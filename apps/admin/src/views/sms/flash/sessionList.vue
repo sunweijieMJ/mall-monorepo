@@ -26,9 +26,7 @@
         </el-table-column>
         <el-table-column label="每日开始时间" align="center">
           <template #default="{ row }">
-            {{
-              formatTime(row.startTime)
-            }}
+            {{ formatTime(row.startTime) }}
           </template>
         </el-table-column>
         <el-table-column label="每日结束时间" align="center">
@@ -46,10 +44,10 @@
         </el-table-column>
         <el-table-column label="操作" width="180" align="center">
           <template #default="{ row, $index }">
-            <el-button type="text" @click="handleUpdate($index, row)">
+            <el-button link type="primary" @click="handleUpdate($index, row)">
               编辑
             </el-button>
-            <el-button type="text" @click="handleDelete($index, row)">
+            <el-button link type="danger" @click="handleDelete($index, row)">
               删除
             </el-button>
           </template>

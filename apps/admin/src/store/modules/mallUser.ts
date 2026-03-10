@@ -36,9 +36,8 @@ export const useMallUserStore = defineStore(
         password,
       });
       if (data) {
-        const tokenStr = data.tokenHead + data.token;
-        setMallToken(tokenStr);
-        token.value = tokenStr;
+        setMallToken(data.token);
+        token.value = data.token;
       }
     };
 
@@ -110,6 +109,9 @@ export const useMallUserStore = defineStore(
     };
   },
   {
-    persist: true, // 启用持久化
+    // token 由 mallAuth.ts 单独管理（localStorage），不需要 Pinia 持久化
+    persist: {
+      omit: ['token'],
+    },
   },
 );

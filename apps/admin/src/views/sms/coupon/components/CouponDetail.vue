@@ -120,7 +120,8 @@
           <el-table-column label="操作" align="center" width="100">
             <template #default="{ $index, row }">
               <el-button
-                type="text"
+                link
+                type="danger"
                 @click="handleDeleteProductCateRelation($index, row)"
               >
                 删除
@@ -172,7 +173,8 @@
           <el-table-column label="操作" align="center" width="100">
             <template #default="{ $index, row }">
               <el-button
-                type="text"
+                link
+                type="danger"
                 @click="handleDeleteProductRelation($index, row)"
               >
                 删除

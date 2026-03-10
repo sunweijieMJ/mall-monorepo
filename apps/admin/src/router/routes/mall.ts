@@ -25,6 +25,18 @@ export const mallConstantRoutes: RouteRecordRaw[] = [
     meta: { title: '登录', hidden: true },
   },
   {
+    path: '/404',
+    name: '404',
+    component: () => import('@/views/404.vue'),
+    meta: { title: '404', hidden: true },
+  },
+  {
+    path: '/403',
+    name: '403',
+    component: () => import('@/views/403.vue'),
+    meta: { title: '403', hidden: true },
+  },
+  {
     path: '/',
     component: Layout,
     redirect: '/home',
@@ -35,16 +47,6 @@ export const mallConstantRoutes: RouteRecordRaw[] = [
         name: 'home',
         component: () => import('@/views/home/index.vue'),
         meta: { title: '仪表盘', icon: 'dashboard' },
-      },
-      {
-        name: 'Document',
-        path: 'https://www.macrozheng.com',
-        meta: { title: '学习教程', icon: 'document' },
-      },
-      {
-        name: 'Video',
-        path: 'https://www.macrozheng.com/mall/foreword/mall_video.html',
-        meta: { title: '视频教程', icon: 'video' },
       },
     ],
   },

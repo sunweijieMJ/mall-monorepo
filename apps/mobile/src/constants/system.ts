@@ -67,7 +67,7 @@ export const ICP_LINK = 'https://beian.miit.gov.cn/';
  */
 export const API_CONFIG = {
   /** 接口地址 */
-  BASE_URL: import.meta.env.VITE_APP_API_BASE_URL,
+  BASE_URL: import.meta.env.VITE_API_BASE_URL,
   /** 接口超时时间 */
   TIMEOUT: 10 * 60 * 1000,
   /** 是否启用支付宝支付 */
