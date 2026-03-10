@@ -6,7 +6,7 @@ import * as path from 'path';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 // TypeORM CLI 使用的 DataSource（migration:generate / migration:run）
-export const AppDataSource = new DataSource({
+const AppDataSource = new DataSource({
   type: 'postgres',
   url: process.env.DATABASE_URL,
   host: process.env.DATABASE_HOST ?? 'localhost',

@@ -10,14 +10,6 @@ import {
   vi,
 } from 'vitest';
 
-// PaymentController 直接 import { Request, Response } from 'express'
-// pnpm strict 模式下 express 不在 apps/server/node_modules，
-// 需要导出占位符（实际 HTTP 由 NestJS platform-express 处理）
-vi.mock('express', () => ({
-  Request: class {},
-  Response: class {},
-}));
-
 import { PaymentService } from '@/modules/portal/payment/payment.service';
 import { PaymentController } from '@/modules/portal/payment/payment.controller';
 

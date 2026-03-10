@@ -15,7 +15,7 @@ import {
   ApiOperation,
 } from '@nestjs/swagger';
 import { ApiWrappedResponse } from '@/common/decorators/api-wrapped-response.decorator';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { PaymentService } from './payment.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { Public } from '@/core/auth/decorators/public.decorator';
