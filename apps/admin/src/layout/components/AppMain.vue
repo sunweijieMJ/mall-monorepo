@@ -33,7 +33,7 @@ const cachedViews = computed(() => appStore.cachedViews);
   /* 50是navbar的高度 */
   min-height: calc(100vh - 50px);
   padding: 20px;
-  overflow: hidden;
+  overflow: auto;
   background-color: #f0f2f5;
 }
 

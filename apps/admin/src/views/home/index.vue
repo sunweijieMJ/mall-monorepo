@@ -4,45 +4,6 @@
 -->
 <template>
   <div class="app-container">
-    <!-- 学习资源区域 -->
-    <div class="address-layout">
-      <el-row :gutter="20">
-        <el-col :span="8">
-          <div class="out-border">
-            <div class="layout-title">学习教程</div>
-            <div class="color-main address-content">
-              <a href="https://www.macrozheng.com" target="_blank"
-              >mall学习教程</a
-              >
-            </div>
-          </div>
-        </el-col>
-        <el-col :span="8">
-          <div class="out-border">
-            <div class="layout-title">视频教程</div>
-            <div class="color-main address-content">
-              <a
-                href="https://www.macrozheng.com/mall/catalog/mall_video.html"
-                target="_blank"
-              >
-                mall视频教程（2023）
-              </a>
-            </div>
-          </div>
-        </el-col>
-        <el-col :span="8">
-          <div class="out-border">
-            <div class="layout-title">点Star支持项目</div>
-            <div class="color-main address-content">
-              <a href="https://github.com/macrozheng/mall" target="_blank"
-              >mall项目</a
-              >
-            </div>
-          </div>
-        </el-col>
-      </el-row>
-    </div>
-
     <!-- 销售统计区域 -->
     <div class="total-layout">
       <el-row :gutter="20">
@@ -75,21 +36,6 @@
         </el-col>
       </el-row>
     </div>
-
-    <!-- 二维码区域 -->
-    <el-card class="mine-layout">
-      <div style="text-align: center">
-        <img
-          width="150px"
-          height="150px"
-          src="http://macro-oss.oss-cn-shenzhen.aliyuncs.com/mall/banner/qrcode_for_macrozheng_258.jpg"
-        />
-      </div>
-      <div style="text-align: center">mall全套学习教程连载中！</div>
-      <div style="margin-top: 5px; text-align: center">
-        <span class="color-main">关注公号</span>，第一时间获取。
-      </div>
-    </el-card>
 
     <!-- 待处理事务区域 -->
     <div class="un-handle-layout">
@@ -343,10 +289,6 @@ const statisticsData = ref({
   padding: 20px;
 }
 
-.address-layout {
-  margin-top: 20px;
-}
-
 .out-border {
   padding: 20px;
   border: 1px solid var(--colorBorder);
@@ -358,24 +300,6 @@ const statisticsData = ref({
   color: var(--colorTextHeading);
   font-size: 16px;
   font-weight: 500;
-}
-
-.color-main {
-  color: var(--colorPrimary);
-}
-
-.address-content {
-  padding: 10px 0;
-  text-align: center;
-
-  a {
-    color: var(--colorPrimary);
-    text-decoration: none;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
 }
 
 .total-layout {
@@ -410,11 +334,6 @@ const statisticsData = ref({
   color: var(--colorTextHeading);
   font-size: 28px;
   font-weight: bold;
-}
-
-.mine-layout {
-  margin-top: 20px;
-  padding: 20px;
 }
 
 .un-handle-layout {

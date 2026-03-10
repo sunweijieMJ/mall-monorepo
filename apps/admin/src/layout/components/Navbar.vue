@@ -39,7 +39,6 @@
 <script setup lang="ts">
 import { CaretBottom } from '@element-plus/icons-vue';
 import { computed } from 'vue';
-import { useRouter } from 'vue-router';
 import Breadcrumb from './Breadcrumb.vue';
 import Hamburger from './Hamburger.vue';
 import { useMallAppStore } from '@/store/modules/mallApp';
@@ -47,7 +46,6 @@ import { useMallUserStore } from '@/store/modules/mallUser';
 
 const appStore = useMallAppStore();
 const userStore = useMallUserStore();
-const router = useRouter();
 
 // 侧边栏状态
 const sidebar = computed(() => appStore.sidebar);
@@ -74,17 +72,18 @@ const logout = async () => {
 
 <style lang="scss" scoped>
 .navbar {
+  display: flex !important;
+  align-items: center;
   height: 50px;
   border-radius: 0 !important;
   box-shadow: 0 1px 4px rgb(0 21 41 / 0.08);
-  line-height: 50px;
 
   .hamburger-container {
+    display: flex;
+    align-items: center;
     height: 50px;
     padding: 0 10px;
-    float: left;
     transition: background 0.3s;
-    line-height: 58px;
     cursor: pointer;
 
     &:hover {
@@ -93,21 +92,19 @@ const logout = async () => {
   }
 
   .breadcrumb-container {
-    float: left;
+    flex: 1;
     line-height: 50px;
   }
 
   .avatar-container {
-    display: inline-block;
-    position: absolute;
-    right: 35px;
+    display: flex;
+    align-items: center;
     height: 50px;
+    margin-right: 35px;
 
     .avatar-wrapper {
       display: flex;
-      position: relative;
       align-items: center;
-      margin-top: 5px;
       cursor: pointer;
 
       .user-avatar {
