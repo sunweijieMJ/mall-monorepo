@@ -237,6 +237,7 @@ jobs:
             docker load -i "${IMAGE_TAG_NAME//:/\_}.tar"
 
             echo "重启容器..."
+            chmod +x manage.sh
             ./manage.sh stop || true
             ./manage.sh remove || true
             ./manage.sh start
