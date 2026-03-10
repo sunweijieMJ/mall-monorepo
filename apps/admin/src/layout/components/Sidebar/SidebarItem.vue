@@ -6,13 +6,7 @@
 <template>
   <div v-if="!item.meta?.hidden" class="menu-wrapper">
     <!-- 只有一个子菜单且不强制显示父菜单 -->
-    <template
-      v-if="
-        hasOneShowingChild(item.children, item) &&
-        (!onlyOneChild?.children || onlyOneChild.noShowingChildren) &&
-        !item.alwaysShow
-      "
-    >
+    <template v-if="showAsSingleItem">
       <!-- 外链 -->
       <a
         v-if="onlyOneChild?.meta?.link"
@@ -43,12 +37,7 @@
     </template>
 
     <!-- 有多个子菜单 -->
-    <el-sub-menu
-      v-else
-      ref="subMenu"
-      :index="resolvePath(item.path)"
-      teleported
-    >
+    <el-sub-menu v-else :index="resolvePath(item.path)" teleported>
       <template #title>
         <el-icon v-if="item.meta?.icon">
           <component :is="item.meta.icon" />
@@ -66,11 +55,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed } from 'vue';
 import type { RouteRecordRaw } from 'vue-router';
 
+// 扩展路由类型，支持侧边栏自定义属性
+type SidebarRoute = RouteRecordRaw & {
+  alwaysShow?: boolean;
+  noShowingChildren?: boolean;
+};
+
 interface Props {
-  item: RouteRecordRaw;
+  item: SidebarRoute;
   basePath?: string;
 }
 
@@ -78,39 +73,30 @@ const props = withDefaults(defineProps<Props>(), {
   basePath: '',
 });
 
-const onlyOneChild = ref<RouteRecordRaw | null>(null);
+// 计算唯一可见的子菜单项，无则返回 null（表示需要展示 sub-menu）
+const onlyOneChild = computed<SidebarRoute | null>(() => {
+  const children = (props.item.children || []) as SidebarRoute[];
+  const showingChildren = children.filter((item) => !item.meta?.hidden);
 
-// 判断是否只有一个显示的子菜单
-const hasOneShowingChild = (
-  children: RouteRecordRaw[] = [],
-  parent: RouteRecordRaw,
-) => {
-  const showingChildren = children.filter((item) => {
-    if (item.meta?.hidden) {
-      return false;
-    }
-    // 临时设置（如果只有一个显示的子项，则将使用）
-    onlyOneChild.value = item;
-    return true;
-  });
-
-  // 当只有一个子路由器时，默认显示子路由器
   if (showingChildren.length === 1) {
-    return true;
+    return showingChildren[0];
   }
 
-  // 如果没有要显示的子路由器，则显示父路由器
+  // 没有可见子菜单时，将父菜单自身作为叶子节点显示
   if (showingChildren.length === 0) {
-    onlyOneChild.value = {
-      ...parent,
-      path: '',
-      noShowingChildren: true,
-    } as any;
-    return true;
+    return { ...props.item, path: '', noShowingChildren: true };
   }
 
-  return false;
-};
+  return null;
+});
+
+// 是否以单菜单项展示（不显示 sub-menu 折叠层）
+const showAsSingleItem = computed(
+  () =>
+    onlyOneChild.value !== null &&
+    (!onlyOneChild.value.children || onlyOneChild.value.noShowingChildren) &&
+    !props.item.alwaysShow,
+);
 
 /**
  * 解析路径
