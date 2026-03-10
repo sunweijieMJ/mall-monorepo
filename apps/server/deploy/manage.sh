@@ -18,6 +18,18 @@ COMPOSE_FILE="deploy/docker-compose.prod.yaml"
 HEALTH_URL="http://localhost:${HOST_PORT:-9090}/api/v1/health"
 HEALTH_TIMEOUT=30
 
+# 包装 docker compose，将 .env 变量 source 到 shell 环境再执行
+# Shell 环境变量优先级最高，保证 docker compose 所有变量替换都能正确读取
+dc() {
+    if [ -f ".env" ]; then
+        set -a
+        # shellcheck disable=SC1091
+        source .env
+        set +a
+    fi
+    docker compose "$@"
+}
+
 log_info()  { echo -e "${GREEN}[INFO]${NC} $*"; }
 log_warn()  { echo -e "${YELLOW}[WARN]${NC} $*"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $*" >&2; }
@@ -66,7 +78,7 @@ start_services() {
 
     log_info "Starting services..."
     cd "$project_root"
-    docker compose -f "$COMPOSE_FILE" up -d --remove-orphans
+    dc -f "$COMPOSE_FILE" up -d --remove-orphans
 
     log_info "Waiting for API to be healthy..."
     for i in $(seq 1 "$HEALTH_TIMEOUT"); do
@@ -95,7 +107,7 @@ stop_services() {
 
     log_info "Stopping services..."
     cd "$project_root"
-    docker compose -f "$COMPOSE_FILE" stop
+    dc -f "$COMPOSE_FILE" stop
     log_info "Services stopped"
 }
 
@@ -105,7 +117,7 @@ restart_services() {
 
     log_info "Restarting services..."
     cd "$project_root"
-    docker compose -f "$COMPOSE_FILE" restart
+    dc -f "$COMPOSE_FILE" restart
     sleep 3
 
     if container_running; then
@@ -124,7 +136,7 @@ remove_services() {
 
     log_info "Removing services and volumes..."
     cd "$project_root"
-    docker compose -f "$COMPOSE_FILE" down -v --remove-orphans
+    dc -f "$COMPOSE_FILE" down -v --remove-orphans
     log_info "Services removed"
 }
 
@@ -134,7 +146,7 @@ show_status() {
 
     log_blue "Service Status:"
     cd "$project_root"
-    docker compose -f "$COMPOSE_FILE" ps
+    dc -f "$COMPOSE_FILE" ps
 }
 
 show_logs() {
@@ -143,7 +155,7 @@ show_logs() {
 
     log_info "Showing logs (Ctrl+C to exit)..."
     cd "$project_root"
-    docker compose -f "$COMPOSE_FILE" logs -f
+    dc -f "$COMPOSE_FILE" logs -f
 }
 
 show_logs_tail() {
@@ -152,7 +164,7 @@ show_logs_tail() {
 
     log_blue "Recent API logs:"
     cd "$project_root"
-    docker compose -f "$COMPOSE_FILE" logs api --tail=30
+    dc -f "$COMPOSE_FILE" logs api --tail=30
 }
 
 health_check() {
