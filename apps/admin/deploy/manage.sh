@@ -108,17 +108,13 @@ start_container() {
         log_info "Starting existing container '$CONTAINER_NAME'..."
         docker start "$CONTAINER_NAME"
     else
-        # 检查镜像
-        if ! image_exists; then
+        # 始终尝试从 tar 文件加载（如有，会覆盖旧 local 标签，确保始终使用最新版本）
+        if load_image; then
+            log_info "Image loaded successfully"
+        elif ! image_exists; then
             log_warn "Docker image '$IMAGE_NAME' not found"
-
-            # 尝试加载镜像
-            if load_image; then
-                log_info "Image loaded successfully"
-            else
-                log_info "No tar file found. Building image from source..."
-                build_image
-            fi
+            log_info "No tar file found. Building image from source..."
+            build_image
         fi
 
         log_info "Creating and starting container '$CONTAINER_NAME'..."
