@@ -9,7 +9,7 @@
  */
 export const SENTRY_CONFIG = {
   // 基础配置（通过环境变量 VITE_ENABLE_SENTRY 控制启用）
-  DSN: 'https://857344c2ec1086fd0f81e65297f369a5@o4506822939508736.ingest.us.sentry.io/4510032619962368',
+  DSN: 'https://205a33ba1d7681b81b373bb86ca12a04@o4506822939508736.ingest.us.sentry.io/4511024528556032',
   ENVIRONMENT: import.meta.env.MODE || 'development',
   RELEASE: '1.0.0',
 

@@ -70,7 +70,7 @@ import { ElMessage, type FormInstance, type FormRules } from 'element-plus';
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import loginCenterBg from '@/assets/images/login/background.png';
-import { buildAndRegisterRoutes } from '@/router/mallGuards';
+import { buildAndRegisterRoutes } from '@/router/guards';
 import { useMallUserStore } from '@/store/modules/mallUser';
 
 // Router and Store

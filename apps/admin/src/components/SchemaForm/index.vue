@@ -94,6 +94,7 @@
                 "
               >
                 <el-color-picker
+                  show-alpha
                   :model-value="getFieldValue(sectionKey, fieldKey) as string"
                   @change="
                     (val: string) =>

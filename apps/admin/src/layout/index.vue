@@ -2,12 +2,18 @@
   主布局组件
 -->
 <template>
-  <div class="app-wrapper" :class="classObj">
-    <LayoutHeader class="app-header" logo-title="Mall Admin" />
-    <LayoutMenu class="app-sidebar" />
-    <LayoutMain class="app-main" />
-    <Watermark :config="siteConfigStore.savedConfig.watermark" />
-  </div>
+  <el-watermark
+    :content="watermark.enabled ? watermark.content : undefined"
+    :font="watermarkFont"
+    :rotate="watermark.rotate"
+    :gap="[watermark.gapX, watermark.gapY]"
+  >
+    <div class="app-wrapper" :class="classObj">
+      <LayoutHeader class="app-header" logo-title="Mall Admin" />
+      <LayoutMenu class="app-sidebar" />
+      <LayoutMain class="app-main" />
+    </div>
+  </el-watermark>
 </template>
 
 <script setup lang="ts">
@@ -17,7 +23,6 @@ import LayoutHeader from './components/LayoutHeader/index.vue';
 import LayoutMain from './components/LayoutMain/index.vue';
 import LayoutMenu from './components/LayoutMenu/index.vue';
 import { provideLayoutContext } from './useLayoutContext';
-import Watermark from '@/components/Watermark/index.vue';
 import { useMallAppStore } from '@/store/modules/mallApp';
 import { useSiteConfigStore } from '@/store/modules/siteConfig';
 
@@ -28,6 +33,14 @@ const { layoutVisible, setLayoutVisible } = provideLayoutContext();
 const route = useRoute();
 const appStore = useMallAppStore();
 const siteConfigStore = useSiteConfigStore();
+
+const watermark = computed(() => siteConfigStore.savedConfig.watermark);
+
+const watermarkFont = computed(() => ({
+  color: watermark.value.color,
+  fontSize: watermark.value.fontSize,
+  fontWeight: watermark.value.fontWeight as any,
+}));
 
 // 根据路由路径自动切换侧边栏可见性
 // 在 layout 层监听（而非在子页面 onMounted/onUnmounted），避免子组件反复挂载/卸载导致的闪烁

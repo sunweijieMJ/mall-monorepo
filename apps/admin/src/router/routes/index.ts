@@ -1,2 +1,2 @@
-// Mall 业务路由
-export { mallConstantRoutes, mallAsyncRoutes } from './mall';
+export { mallConstantRoutes } from './constant';
+export { mallAsyncRoutes } from './async';

@@ -17,7 +17,6 @@
     "cspell": "cspell",
     "format": "prettier . --write",
     "lint:md": "markdownlint-cli2 '**/*.{md}'",
-    "lint:cssVars": "tsx scripts/cssVars/checkCssVars.ts",
     "postinstall": "npx husky"
   },
   "config": {

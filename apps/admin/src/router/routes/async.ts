@@ -1,19 +1,13 @@
 /**
- * Mall 业务路由配置
- * 从 mall-admin-web 迁移并转换为 Vue 3 + TypeScript
- *
+ * 异步路由（根据后端菜单数据动态加载）
  * 路由说明：
  * - hidden: true 不在侧边栏显示
- * - alwaysShow: true 始终显示根菜单
- * - redirect: noredirect 面包屑不跳转
  * - name 用于 <keep-alive> 缓存
  * - meta.title 侧边栏和面包屑显示的标题
  * - meta.icon 侧边栏显示的图标
  */
 
 import {
-  HomeFilled,
-  DataAnalysis,
   Goods,
   List,
   CirclePlus,
@@ -40,77 +34,6 @@ import {
 import type { RouteRecordRaw } from 'vue-router';
 import Layout from '@/layout/index.vue';
 
-/**
- * Mall 常规路由（无需权限即可访问）
- */
-export const mallConstantRoutes: RouteRecordRaw[] = [
-  {
-    path: '/login',
-    name: 'login',
-    component: () => import('@/views/login/index.vue'),
-    meta: { title: '登录', hidden: true },
-  },
-  {
-    path: '/404',
-    name: '404',
-    component: () => import('@/views/404.vue'),
-    meta: { title: '404', hidden: true },
-  },
-  {
-    path: '/403',
-    name: '403',
-    component: () => import('@/views/403.vue'),
-    meta: { title: '403', hidden: true },
-  },
-  {
-    path: '/',
-    component: Layout,
-    redirect: '/home',
-    meta: { title: '首页', icon: HomeFilled },
-    children: [
-      {
-        path: 'home',
-        name: 'home',
-        component: () => import('@/views/home/index.vue'),
-        meta: { title: '仪表盘', icon: DataAnalysis },
-      },
-    ],
-  },
-  // 系统设置（前端本地功能，无需后端菜单授权，但需要登录）
-  {
-    path: '/setting',
-    component: Layout,
-    redirect: '/setting/frontend',
-    name: 'Setting',
-    meta: { title: '系统设置', icon: Setting, hidden: true },
-    children: [
-      {
-        path: '',
-        redirect: '/setting/frontend',
-        component: () => import('@/views/setting/index.vue'),
-        meta: { hidden: true },
-        children: [
-          {
-            path: 'frontend',
-            name: 'SettingFrontend',
-            component: () => import('@/views/setting/frontend.vue'),
-            meta: { hidden: true },
-          },
-          {
-            path: 'theme',
-            name: 'SettingTheme',
-            component: () => import('@/views/setting/theme.vue'),
-            meta: { hidden: true },
-          },
-        ],
-      },
-    ],
-  },
-];
-
-/**
- * Mall 异步路由（需要根据后端菜单数据动态加载）
- */
 export const mallAsyncRoutes: RouteRecordRaw[] = [
   // 商品管理 (PMS)
   {
@@ -421,8 +344,3 @@ export const mallAsyncRoutes: RouteRecordRaw[] = [
     ],
   },
 ];
-
-export default {
-  mallConstantRoutes,
-  mallAsyncRoutes,
-};

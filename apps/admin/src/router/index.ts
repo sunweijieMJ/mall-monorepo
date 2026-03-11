@@ -1,6 +1,6 @@
 import type { Component } from 'vue';
 import { createRouter, createWebHistory } from 'vue-router';
-import { setupMallRouterGuard } from './mallGuards';
+import { setupMallRouterGuard } from './guards';
 import { mallConstantRoutes } from './routes';
 
 declare module 'vue-router' {

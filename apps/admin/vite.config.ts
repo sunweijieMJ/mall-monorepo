@@ -98,7 +98,7 @@ function generatePlugins(mode: string): PluginOption[] {
         sentryVitePlugin({
           org: process.env.VITE_SENTRY_ORG,
           project: process.env.VITE_SENTRY_PROJECT,
-          authToken: process.env.VITE_SENTRY_AUTH_TOKEN,
+          authToken: process.env.SENTRY_AUTH_TOKEN,
           telemetry: false,
         }),
       );

@@ -12,24 +12,9 @@ import { useMallPermissionStore } from '@/store/modules/mallPermission';
 import { useMallUserStore } from '@/store/modules/mallUser';
 
 /**
- * Mall 路由白名单（无需登录即可访问）
+ * 路由白名单（无需登录即可访问）
  */
-const MALL_WHITE_LIST = ['/login', '/404', '/403'];
-
-/**
- * 判断是否是 Mall 相关路由
- */
-function isMallRoute(path: string): boolean {
-  return (
-    path === '/' ||
-    path === '/home' ||
-    path.startsWith('/pms') ||
-    path.startsWith('/oms') ||
-    path.startsWith('/sms') ||
-    path.startsWith('/ums') ||
-    path.startsWith('/setting')
-  );
-}
+const WHITE_LIST = ['/login', '/404', '/403'];
 
 /**
  * 根据菜单数据生成并注册动态路由
@@ -73,16 +58,11 @@ export function setupMallRouterGuard(router: Router) {
     const mallPermissionStore = useMallPermissionStore();
 
     // 白名单直接放行
-    if (MALL_WHITE_LIST.includes(to.path)) {
+    if (WHITE_LIST.includes(to.path)) {
       return true;
     }
 
-    // 非 Mall 路由交给默认守卫处理
-    if (!isMallRoute(to.path)) {
-      return true;
-    }
-
-    // 检查 Mall 登录状态
+    // 检查登录状态
     if (!mallUserStore.token) {
       return { path: '/login', query: { redirect: to.fullPath } };
     }

@@ -99,8 +99,9 @@ export const siteConfigSchema: SiteSchema = {
       color: {
         type: 'string',
         title: '水印颜色',
+        description: '支持透明度，可通过颜色选择器调整',
         inputType: 'color',
-        defaultValue: '#000000',
+        defaultValue: 'rgba(0,0,0,0.15)',
         span: 12,
       },
       fontSize: {
@@ -126,16 +127,6 @@ export const siteConfigSchema: SiteSchema = {
         ] as const,
         defaultValue: 'normal',
         span: 12,
-      },
-      opacity: {
-        type: 'number',
-        title: '透明度',
-        inputType: 'slider',
-        min: 0,
-        max: 1,
-        step: 0.05,
-        defaultValue: 0.15,
-        span: 24,
       },
       rotate: {
         type: 'number',
@@ -258,10 +249,9 @@ export interface BasicConfig {
 export interface WatermarkConfig {
   enabled: boolean;
   content: string;
-  color: string;
+  color: string; // rgba 格式，如 rgba(0,0,0,0.15)
   fontSize: number;
   fontWeight: string;
-  opacity: number;
   rotate: number;
   gapX: number;
   gapY: number;
