@@ -194,9 +194,14 @@ function handleAuthError() {
   // 清除 localStorage 中的 token
   localStorage.removeItem('token');
 
-  // 延迟跳转到登录页（给用户看到错误提示的时间）
+  // 延迟跳转到登录页（给用户看到错误提示的时间），保留当前路径作为 redirect 参数
   setTimeout(() => {
-    window.location.href = '/login';
+    const redirect = window.location.pathname + window.location.search;
+    const loginUrl =
+      redirect && redirect !== '/login'
+        ? `/login?redirect=${encodeURIComponent(redirect)}`
+        : '/login';
+    window.location.href = loginUrl;
   }, 1500);
 }
 

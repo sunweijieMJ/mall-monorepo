@@ -68,13 +68,14 @@
 import { ShoppingCart, User, Lock, View, Hide } from '@element-plus/icons-vue';
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus';
 import { ref, reactive, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import loginCenterBg from '@/assets/images/login/background.png';
 import { buildAndRegisterRoutes } from '@/router/guards';
 import { useMallUserStore } from '@/store/modules/mallUser';
 
 // Router and Store
 const router = useRouter();
+const route = useRoute();
 const mallUserStore = useMallUserStore();
 
 // Refs
@@ -128,7 +129,8 @@ const handleLogin = async () => {
     // 登录后立即预生成路由，避免首次导航触发重定向造成"刷新"感
     buildAndRegisterRoutes(router, mallUserStore.menus);
     ElMessage.success('登录成功');
-    router.push({ path: '/home' });
+    const redirect = route.query.redirect as string;
+    router.push({ path: redirect || '/home' });
   } catch (error: any) {
     console.error('登录失败:', error);
     ElMessage.error(error?.message || '登录失败，请检查用户名和密码');

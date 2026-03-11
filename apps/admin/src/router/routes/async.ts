@@ -318,18 +318,6 @@ export const mallAsyncRoutes: RouteRecordRaw[] = [
         meta: { title: '菜单列表', icon: Grid },
       },
       {
-        path: 'addMenu',
-        name: 'AddMenu',
-        component: () => import('@/views/ums/menu/add.vue'),
-        meta: { title: '添加菜单', hidden: true },
-      },
-      {
-        path: 'updateMenu',
-        name: 'UpdateMenu',
-        component: () => import('@/views/ums/menu/update.vue'),
-        meta: { title: '修改菜单', hidden: true },
-      },
-      {
         path: 'resource',
         name: 'Resource',
         component: () => import('@/views/ums/resource/index.vue'),

@@ -1,125 +1,119 @@
 <!--
   菜单列表页面
-  从 mall-admin-web 迁移并转换为 Vue 3 + TypeScript
 -->
 <template>
   <div class="app-container">
     <!-- 操作按钮 -->
-    <el-card class="operate-container" shadow="never">
-      <el-icon><Tickets /></el-icon>
-      <span>数据列表</span>
-      <el-button class="btn-add" @click="handleAddMenu">添加</el-button>
-    </el-card>
+    <OperateContainer>
+      <el-button type="primary" @click="handleAdd">添加</el-button>
+    </OperateContainer>
 
     <!-- 数据列表 -->
-    <div class="table-container">
-      <el-table
-        ref="menuTableRef"
-        v-loading="listLoading"
-        :data="list"
-        style="width: 100%"
-        border
-      >
-        <el-table-column label="编号" width="100" align="center">
-          <template #default="{ row }">{{ row.id }}</template>
-        </el-table-column>
-        <el-table-column label="菜单名称" align="center">
-          <template #default="{ row }">{{ row.title }}</template>
-        </el-table-column>
-        <el-table-column label="菜单级数" width="100" align="center">
-          <template #default="{ row }">{{ formatLevel(row.level) }}</template>
-        </el-table-column>
-        <el-table-column label="前端名称" align="center">
-          <template #default="{ row }">{{ row.name }}</template>
-        </el-table-column>
-        <el-table-column label="前端图标" width="100" align="center">
-          <template #default="{ row }">{{ row.icon }}</template>
-        </el-table-column>
-        <el-table-column label="是否显示" width="100" align="center">
-          <template #default="{ row, $index }">
-            <el-switch
-              v-model="row.hidden"
-              :active-value="0"
-              :inactive-value="1"
-              @change="handleHiddenChange($index, row)"
-            />
-          </template>
-        </el-table-column>
-        <el-table-column label="排序" width="100" align="center">
-          <template #default="{ row }">{{ row.sort }}</template>
-        </el-table-column>
-        <el-table-column label="设置" width="120" align="center">
-          <template #default="{ row, $index }">
-            <el-button
-              link
-              type="primary"
-              :disabled="row.level !== 0"
-              @click="handleShowNextLevel($index, row)"
-            >
-              查看下级
-            </el-button>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="200" align="center">
-          <template #default="{ row, $index }">
-            <el-button link type="primary" @click="handleUpdate($index, row)">
-              编辑
-            </el-button>
-            <el-button link type="danger" @click="handleDelete($index, row)">
-              删除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </div>
+    <AppTable
+      v-model:current-page="listQuery.pageNum"
+      v-model:page-size="listQuery.pageSize"
+      :data="list"
+      :loading="listLoading"
+      :total="total"
+      :page-sizes="[5, 10, 15]"
+      @size-change="handleSizeChange"
+      @page-change="handleCurrentChange"
+    >
+      <el-table-column label="编号" width="100" align="center">
+        <template #default="{ row }">{{ row.id }}</template>
+      </el-table-column>
+      <el-table-column label="菜单名称" align="center">
+        <template #default="{ row }">{{ row.title }}</template>
+      </el-table-column>
+      <el-table-column label="菜单级数" width="100" align="center">
+        <template #default="{ row }">{{ formatLevel(row.level) }}</template>
+      </el-table-column>
+      <el-table-column label="前端名称" align="center">
+        <template #default="{ row }">{{ row.name }}</template>
+      </el-table-column>
+      <el-table-column label="前端图标" width="100" align="center">
+        <template #default="{ row }">{{ row.icon }}</template>
+      </el-table-column>
+      <el-table-column label="是否显示" width="100" align="center">
+        <template #default="{ row, $index }">
+          <el-switch
+            v-model="row.hidden"
+            :active-value="0"
+            :inactive-value="1"
+            @change="handleHiddenChange($index, row)"
+          />
+        </template>
+      </el-table-column>
+      <el-table-column label="排序" width="100" align="center">
+        <template #default="{ row }">{{ row.sort }}</template>
+      </el-table-column>
+      <el-table-column label="设置" width="120" align="center">
+        <template #default="{ row, $index }">
+          <el-button
+            link
+            type="primary"
+            :disabled="row.level !== 0"
+            @click="handleShowNextLevel($index, row)"
+          >
+            查看下级
+          </el-button>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="140" align="center">
+        <template #default="{ row, $index }">
+          <el-button link type="primary" @click="handleUpdate($index, row)">
+            编辑
+          </el-button>
+          <el-button link type="danger" @click="handleDelete($index, row)">
+            删除
+          </el-button>
+        </template>
+      </el-table-column>
+    </AppTable>
 
-    <!-- 分页 -->
-    <div class="pagination-container">
-      <el-pagination
-        v-model:current-page="listQuery.pageNum"
-        v-model:page-size="listQuery.pageSize"
-        background
-        layout="total, sizes, prev, pager, next, jumper"
-        :page-sizes="[10, 15, 20]"
-        :total="total"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
-    </div>
+    <!-- 新增/编辑弹窗 -->
+    <MenuFormDialog
+      v-model="dialogVisible"
+      :is-edit="isEdit"
+      :edit-data="currentMenu"
+      @success="getList"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { Tickets } from '@element-plus/icons-vue';
-import { ElMessage, ElMessageBox, type ElTable } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { ref, reactive, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import MenuFormDialog from './components/MenuFormDialog.vue';
 import type { AdminMenuVo } from '@/api';
+import AppTable from '@/components/List/AppTable.vue';
+import OperateContainer from '@/components/List/OperateContainer.vue';
 import { useMenuStore } from '@/store/modules/menu';
 
 const route = useRoute();
 const router = useRouter();
 const menuStore = useMenuStore();
-const menuTableRef = ref<InstanceType<typeof ElTable>>();
 
 const list = ref<AdminMenuVo[]>([]);
 const total = ref(0);
 const listLoading = ref(false);
 const parentId = ref(0);
+const dialogVisible = ref(false);
+const isEdit = ref(false);
+const currentMenu = ref<AdminMenuVo | null>(null);
 
 const listQuery = reactive({
   pageNum: 1,
   pageSize: 5,
 });
 
-// 格式化菜单级数
 const formatLevel = (level?: number) => {
   if (level === 0) return '一级';
   if (level === 1) return '二级';
   return level;
 };
 
-// 重置父菜单ID
 const resetParentId = () => {
   listQuery.pageNum = 1;
   if (route.query.parentId != null) {
@@ -129,7 +123,6 @@ const resetParentId = () => {
   }
 };
 
-// 获取列表
 const getList = async () => {
   listLoading.value = true;
   try {
@@ -144,12 +137,12 @@ const getList = async () => {
   }
 };
 
-// 添加菜单
-const handleAddMenu = () => {
-  router.push({ path: '/ums/addMenu' });
+const handleAdd = () => {
+  isEdit.value = false;
+  currentMenu.value = null;
+  dialogVisible.value = true;
 };
 
-// 分页
 const handleSizeChange = (val: number) => {
   listQuery.pageNum = 1;
   listQuery.pageSize = val;
@@ -161,7 +154,6 @@ const handleCurrentChange = (val: number) => {
   getList();
 };
 
-// 切换隐藏状态
 const handleHiddenChange = async (_index: number, row: AdminMenuVo) => {
   try {
     await menuStore.updateHidden(row.id, { hidden: row.hidden });
@@ -169,22 +161,20 @@ const handleHiddenChange = async (_index: number, row: AdminMenuVo) => {
   } catch (error) {
     console.error('修改失败:', error);
     ElMessage.error('修改失败');
-    // 恢复原状态
     await getList();
   }
 };
 
-// 查看下级
 const handleShowNextLevel = (_index: number, row: AdminMenuVo) => {
   router.push({ path: '/ums/menu', query: { parentId: String(row.id) } });
 };
 
-// 编辑
 const handleUpdate = (_index: number, row: AdminMenuVo) => {
-  router.push({ path: '/ums/updateMenu', query: { id: String(row.id) } });
+  isEdit.value = true;
+  currentMenu.value = row;
+  dialogVisible.value = true;
 };
 
-// 删除
 const handleDelete = async (_index: number, row: AdminMenuVo) => {
   try {
     await ElMessageBox.confirm('是否要删除该菜单?', '提示', {
@@ -204,7 +194,6 @@ const handleDelete = async (_index: number, row: AdminMenuVo) => {
   }
 };
 
-// 监听路由变化
 watch(
   () => route.query,
   () => {
@@ -218,28 +207,3 @@ onMounted(() => {
   getList();
 });
 </script>
-
-<style scoped lang="scss">
-.operate-container {
-  margin-bottom: 10px;
-
-  .btn-add {
-    float: right;
-  }
-
-  .el-icon {
-    margin-right: 5px;
-    vertical-align: middle;
-  }
-}
-
-.table-container {
-  margin-bottom: 10px;
-}
-
-.pagination-container {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-}
-</style>

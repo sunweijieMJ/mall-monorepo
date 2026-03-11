@@ -1,6 +1,9 @@
 // 自定义mixin
 @use './mixin' as mixin;
 
+// 列表页通用布局样式
+@use './page';
+
 .hide-scrollbar {
   @include mixin.hide-scrollbar;
 }

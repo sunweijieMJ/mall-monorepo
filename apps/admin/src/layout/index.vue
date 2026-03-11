@@ -3,7 +3,8 @@
 -->
 <template>
   <el-watermark
-    :content="watermark.enabled ? watermark.content : undefined"
+    v-if="watermark.enabled"
+    :content="watermark.content"
     :font="watermarkFont"
     :rotate="watermark.rotate"
     :gap="[watermark.gapX, watermark.gapY]"
@@ -14,6 +15,11 @@
       <LayoutMain class="app-main" />
     </div>
   </el-watermark>
+  <div v-else class="app-wrapper" :class="classObj">
+    <LayoutHeader class="app-header" logo-title="Mall Admin" />
+    <LayoutMenu class="app-sidebar" />
+    <LayoutMain class="app-main" />
+  </div>
 </template>
 
 <script setup lang="ts">

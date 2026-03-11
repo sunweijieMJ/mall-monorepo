@@ -4,122 +4,86 @@
 <template>
   <div class="app-container">
     <!-- 筛选搜索 -->
-    <el-card class="filter-container" shadow="never">
-      <div>
-        <el-icon><Search /></el-icon>
-        <span>筛选搜索</span>
-        <el-button
-          style="float: right"
-          type="primary"
-          @click="handleSearchList"
-        >
-          查询搜索
-        </el-button>
-        <el-button
-          style="margin-right: 15px; float: right"
-          @click="handleResetSearch"
-        >
-          重置
-        </el-button>
-      </div>
-      <div style="margin-top: 15px">
-        <el-form :inline="true" :model="listQuery" label-width="140px">
-          <el-form-item label="输入搜索：">
-            <el-input
-              v-model="listQuery.keyword"
-              class="input-width"
-              placeholder="角色名称"
-              clearable
-            />
-          </el-form-item>
-        </el-form>
-      </div>
-    </el-card>
+    <FilterContainer @search="handleSearch" @reset="handleReset">
+      <el-form :inline="true" :model="listQuery" label-width="140px">
+        <el-form-item label="输入搜索：">
+          <el-input
+            v-model="listQuery.keyword"
+            class="input-width"
+            placeholder="角色名称"
+            clearable
+          />
+        </el-form-item>
+      </el-form>
+    </FilterContainer>
 
     <!-- 数据列表 -->
-    <el-card class="operate-container" shadow="never">
-      <el-icon><Tickets /></el-icon>
-      <span>数据列表</span>
-      <el-button class="btn-add" style="margin-left: 20px" @click="handleAdd">
-        添加
-      </el-button>
-    </el-card>
+    <OperateContainer>
+      <el-button type="primary" @click="handleAdd">添加</el-button>
+    </OperateContainer>
 
-    <div class="table-container">
-      <el-table
-        ref="roleTableRef"
-        v-loading="listLoading"
-        :data="list"
-        style="width: 100%"
-        border
-      >
-        <el-table-column label="编号" width="100" align="center">
-          <template #default="{ row }">{{ row.id }}</template>
-        </el-table-column>
-        <el-table-column label="角色名称" align="center">
-          <template #default="{ row }">{{ row.name }}</template>
-        </el-table-column>
-        <el-table-column label="描述" align="center">
-          <template #default="{ row }">{{ row.description }}</template>
-        </el-table-column>
-        <el-table-column label="用户数" width="100" align="center">
-          <template #default="{ row }">{{ row.adminCount }}</template>
-        </el-table-column>
-        <el-table-column label="添加时间" width="160" align="center">
-          <template #default="{ row }">
-            {{
-              formatDateTime(row.createTime)
-            }}
-          </template>
-        </el-table-column>
-        <el-table-column label="是否启用" width="140" align="center">
-          <template #default="{ row, $index }">
-            <el-switch
-              v-model="row.status"
-              :active-value="1"
-              :inactive-value="0"
-              @change="handleStatusChange($index, row)"
-            />
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="160" align="center">
-          <template #default="{ row, $index }">
-            <el-row>
-              <el-button @click="handleSelectMenu($index, row)">
-                分配菜单
-              </el-button>
-              <el-button @click="handleSelectResource($index, row)">
-                分配资源
-              </el-button>
-            </el-row>
-            <el-row>
-              <el-button @click="handleUpdate($index, row)"> 编辑 </el-button>
-              <el-button @click="handleDelete($index, row)"> 删除 </el-button>
-            </el-row>
-          </template>
-        </el-table-column>
-      </el-table>
-    </div>
-
-    <!-- 分页 -->
-    <div class="pagination-container">
-      <el-pagination
-        v-model:current-page="listQuery.pageNum"
-        v-model:page-size="listQuery.pageSize"
-        background
-        layout="total, sizes, prev, pager, next, jumper"
-        :page-sizes="[5, 10, 15]"
-        :total="total"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
-    </div>
+    <AppTable
+      v-model:current-page="listQuery.pageNum"
+      v-model:page-size="listQuery.pageSize"
+      :data="list"
+      :loading="loading"
+      :total="total"
+      :page-sizes="[5, 10, 15]"
+      @size-change="handleSizeChange"
+      @page-change="handlePageChange"
+    >
+      <el-table-column label="编号" width="100" align="center">
+        <template #default="{ row }">{{ row.id }}</template>
+      </el-table-column>
+      <el-table-column label="角色名称" align="center">
+        <template #default="{ row }">{{ row.name }}</template>
+      </el-table-column>
+      <el-table-column label="描述" align="center">
+        <template #default="{ row }">{{ row.description }}</template>
+      </el-table-column>
+      <el-table-column label="用户数" width="100" align="center">
+        <template #default="{ row }">{{ row.adminCount }}</template>
+      </el-table-column>
+      <el-table-column label="添加时间" width="160" align="center">
+        <template #default="{ row }">
+          {{ formatDateTime(row.createTime) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="是否启用" width="140" align="center">
+        <template #default="{ row, $index }">
+          <el-switch
+            v-model="row.status"
+            :active-value="1"
+            :inactive-value="0"
+            @change="handleStatusChange($index, row)"
+          />
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="200" align="center">
+        <template #default="{ row, $index }">
+          <el-button size="small" @click="handleSelectMenu($index, row)">
+            分配菜单
+          </el-button>
+          <el-button size="small" @click="handleSelectResource($index, row)">
+            分配资源
+          </el-button>
+          <el-button link type="primary" @click="handleUpdate($index, row)">
+            编辑
+          </el-button>
+          <el-button link type="danger" @click="handleDelete($index, row)">
+            删除
+          </el-button>
+        </template>
+      </el-table-column>
+    </AppTable>
 
     <!-- 添加/编辑对话框 -->
-    <el-dialog
+    <AppDialog
       v-model="dialogVisible"
       :title="isEdit ? '编辑角色' : '添加角色'"
       width="40%"
+      :confirm-loading="submitLoading"
+      @confirm="handleDialogConfirm"
     >
       <el-form ref="roleFormRef" :model="role" label-width="150px">
         <el-form-item label="角色名称：">
@@ -140,30 +104,24 @@
           </el-radio-group>
         </el-form-item>
       </el-form>
-      <template #footer>
-        <el-button @click="dialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="handleDialogConfirm">确 定</el-button>
-      </template>
-    </el-dialog>
+    </AppDialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Search, Tickets } from '@element-plus/icons-vue';
-import {
-  ElMessage,
-  ElMessageBox,
-  type ElTable,
-  type FormInstance,
-} from 'element-plus';
-import { ref, reactive, onMounted } from 'vue';
+import { ElMessage, ElMessageBox, type FormInstance } from 'element-plus';
+import { ref, reactive, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import type { AdminRoleVo } from '@/api';
+import AppDialog from '@/components/Dialog/AppDialog.vue';
+import AppTable from '@/components/List/AppTable.vue';
+import FilterContainer from '@/components/List/FilterContainer.vue';
+import OperateContainer from '@/components/List/OperateContainer.vue';
+import { useListPage } from '@/composables/useListPage';
 import { useRoleStore } from '@/store/modules/role';
 
 const router = useRouter();
 const roleStore = useRoleStore();
-const roleTableRef = ref<InstanceType<typeof ElTable>>();
 const roleFormRef = ref<FormInstance>();
 
 const defaultListQuery = {
@@ -180,11 +138,25 @@ const defaultRole: Partial<AdminRoleVo> = {
   status: 1 as any,
 };
 
-const listQuery = reactive({ ...defaultListQuery });
-const list = ref<AdminRoleVo[]>([]);
-const total = ref(0);
-const listLoading = ref(false);
+const {
+  listQuery,
+  loading,
+  list,
+  total,
+  getList,
+  handleSearch,
+  handleReset,
+  handleSizeChange,
+  handlePageChange,
+} = useListPage(
+  defaultListQuery,
+  (q) => roleStore.getList(q),
+  computed(() => roleStore.list),
+  computed(() => roleStore.total),
+);
+
 const dialogVisible = ref(false);
+const submitLoading = ref(false);
 const role = reactive<Partial<AdminRoleVo>>({ ...defaultRole });
 const isEdit = ref(false);
 
@@ -199,26 +171,6 @@ const formatDateTime = (time?: string) => {
     minute: '2-digit',
     second: '2-digit',
   });
-};
-
-const handleResetSearch = () => {
-  Object.assign(listQuery, defaultListQuery);
-};
-
-const handleSearchList = () => {
-  listQuery.pageNum = 1;
-  getList();
-};
-
-const handleSizeChange = (val: number) => {
-  listQuery.pageNum = 1;
-  listQuery.pageSize = val;
-  getList();
-};
-
-const handleCurrentChange = (val: number) => {
-  listQuery.pageNum = val;
-  getList();
 };
 
 const handleAdd = () => {
@@ -274,13 +226,8 @@ const handleUpdate = (_index: number, row: AdminRoleVo) => {
 };
 
 const handleDialogConfirm = async () => {
+  submitLoading.value = true;
   try {
-    await ElMessageBox.confirm('是否要确认?', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    });
-
     if (isEdit.value) {
       await roleStore.update(role.id!, role as any);
       ElMessage.success('修改成功');
@@ -288,14 +235,13 @@ const handleDialogConfirm = async () => {
       await roleStore.create(role as any);
       ElMessage.success('添加成功');
     }
-
     dialogVisible.value = false;
     await getList();
   } catch (error) {
-    if (error !== 'cancel') {
-      console.error('操作失败:', error);
-      ElMessage.error('操作失败');
-    }
+    console.error('操作失败:', error);
+    ElMessage.error('操作失败');
+  } finally {
+    submitLoading.value = false;
   }
 };
 
@@ -313,59 +259,13 @@ const handleSelectResource = (_index: number, row: AdminRoleVo) => {
   });
 };
 
-const getList = async () => {
-  listLoading.value = true;
-  try {
-    await roleStore.getList(listQuery);
-    list.value = roleStore.list;
-    total.value = roleStore.total;
-  } catch (error) {
-    console.error('获取列表失败:', error);
-    ElMessage.error('获取列表失败');
-  } finally {
-    listLoading.value = false;
-  }
-};
-
 onMounted(() => {
   getList();
 });
 </script>
 
 <style scoped lang="scss">
-.filter-container {
-  margin-bottom: 10px;
-
-  .el-icon {
-    margin-right: 5px;
-    vertical-align: middle;
-  }
-}
-
 .input-width {
   width: 203px;
-}
-
-.operate-container {
-  margin-bottom: 10px;
-
-  .btn-add {
-    float: right;
-  }
-
-  .el-icon {
-    margin-right: 5px;
-    vertical-align: middle;
-  }
-}
-
-.table-container {
-  margin-bottom: 10px;
-}
-
-.pagination-container {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
 }
 </style>
