@@ -1,7 +1,9 @@
 <template>
   <view class="container">
     <view class="left-bottom-sign"></view>
-    <view class="back-btn yticon icon-zuojiantou-up" @click="navBack"></view>
+    <view class="back-btn" @click="navBack">
+      <uni-icons type="arrow-left" size="20" color="var(--color-text)" />
+    </view>
     <view class="right-top-sign"></view>
     <!-- 设置白色背景防止软键盘把下部绝对定位元素顶上来盖住输入框等 -->
     <view class="wrapper">
@@ -182,13 +184,13 @@ page {
 }
 
 .back-btn {
+  display: flex;
   position: absolute;
   z-index: 9999;
   top: 40rpx;
   left: 40rpx;
+  align-items: center;
   padding-top: var(--status-bar-height);
-  color: var(--color-text);
-  font-size: 40rpx;
 }
 
 .left-top-sign {

@@ -3,14 +3,6 @@
 -->
 <template>
   <aside class="layout-menu">
-    <!-- 折叠/展开按钮 -->
-    <div class="menu-toggle" @click="toggleSideBar">
-      <el-icon>
-        <Expand v-if="isCollapse" />
-        <Fold v-else />
-      </el-icon>
-    </div>
-
     <!-- 菜单滚动容器 -->
     <el-scrollbar wrap-class="scrollbar-wrapper">
       <MenuItem
@@ -19,6 +11,14 @@
         :active-menu="activeMenu"
       />
     </el-scrollbar>
+
+    <!-- 折叠/展开按钮（底部） -->
+    <div class="menu-toggle" @click="toggleSideBar">
+      <el-icon>
+        <Expand v-if="isCollapse" />
+        <Fold v-else />
+      </el-icon>
+    </div>
   </aside>
 </template>
 
@@ -66,6 +66,10 @@ const toggleSideBar = () => {
       .el-scrollbar__view {
         height: 100%;
       }
+    }
+
+    :deep(.el-scrollbar__bar.is-horizontal) {
+      display: none;
     }
 
     :deep(.el-menu) {

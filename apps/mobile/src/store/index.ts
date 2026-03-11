@@ -15,5 +15,7 @@ export * from './modules/member';
 export * from './modules/attention';
 export * from './modules/collection';
 export * from './modules/history';
+export * from './modules/returnApply';
+export * from './modules/payment';
 
 export default createPersistedPinia();

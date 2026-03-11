@@ -12,6 +12,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    ConfigEditor: typeof import('./src/components/ConfigEditor/index.vue')['default']
     EditorImage: typeof import('./src/components/Tinymce/components/editorImage.vue')['default']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']
     ElBreadcrumb: typeof import('element-plus/es')['ElBreadcrumb']
@@ -22,11 +23,13 @@ declare module 'vue' {
     ElCheckbox: typeof import('element-plus/es')['ElCheckbox']
     ElCheckboxGroup: typeof import('element-plus/es')['ElCheckboxGroup']
     ElCol: typeof import('element-plus/es')['ElCol']
+    ElColorPicker: typeof import('element-plus/es')['ElColorPicker']
     ElDatePicker: typeof import('element-plus/es')['ElDatePicker']
     ElDialog: typeof import('element-plus/es')['ElDialog']
     ElDropdown: typeof import('element-plus/es')['ElDropdown']
     ElDropdownItem: typeof import('element-plus/es')['ElDropdownItem']
     ElDropdownMenu: typeof import('element-plus/es')['ElDropdownMenu']
+    ElEmpty: typeof import('element-plus/es')['ElEmpty']
     ElForm: typeof import('element-plus/es')['ElForm']
     ElFormItem: typeof import('element-plus/es')['ElFormItem']
     ElIcon: typeof import('element-plus/es')['ElIcon']
@@ -43,6 +46,7 @@ declare module 'vue' {
     ElRow: typeof import('element-plus/es')['ElRow']
     ElScrollbar: typeof import('element-plus/es')['ElScrollbar']
     ElSelect: typeof import('element-plus/es')['ElSelect']
+    ElSlider: typeof import('element-plus/es')['ElSlider']
     ElStep: typeof import('element-plus/es')['ElStep']
     ElSteps: typeof import('element-plus/es')['ElSteps']
     ElSubMenu: typeof import('element-plus/es')['ElSubMenu']
@@ -60,9 +64,11 @@ declare module 'vue' {
     MultiUpload: typeof import('./src/components/Upload/MultiUpload.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SchemaForm: typeof import('./src/components/SchemaForm/index.vue')['default']
     SentryProvider: typeof import('./src/components/SentryProvider/index.vue')['default']
     SingleUpload: typeof import('./src/components/Upload/SingleUpload.vue')['default']
     Tinymce: typeof import('./src/components/Tinymce/index.vue')['default']
+    Watermark: typeof import('./src/components/Watermark/index.vue')['default']
   }
   export interface GlobalDirectives {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']
@@ -71,6 +77,7 @@ declare module 'vue' {
 
 // For TSX support
 declare global {
+  const ConfigEditor: typeof import('./src/components/ConfigEditor/index.vue')['default']
   const EditorImage: typeof import('./src/components/Tinymce/components/editorImage.vue')['default']
   const ElAvatar: typeof import('element-plus/es')['ElAvatar']
   const ElBreadcrumb: typeof import('element-plus/es')['ElBreadcrumb']
@@ -81,11 +88,13 @@ declare global {
   const ElCheckbox: typeof import('element-plus/es')['ElCheckbox']
   const ElCheckboxGroup: typeof import('element-plus/es')['ElCheckboxGroup']
   const ElCol: typeof import('element-plus/es')['ElCol']
+  const ElColorPicker: typeof import('element-plus/es')['ElColorPicker']
   const ElDatePicker: typeof import('element-plus/es')['ElDatePicker']
   const ElDialog: typeof import('element-plus/es')['ElDialog']
   const ElDropdown: typeof import('element-plus/es')['ElDropdown']
   const ElDropdownItem: typeof import('element-plus/es')['ElDropdownItem']
   const ElDropdownMenu: typeof import('element-plus/es')['ElDropdownMenu']
+  const ElEmpty: typeof import('element-plus/es')['ElEmpty']
   const ElForm: typeof import('element-plus/es')['ElForm']
   const ElFormItem: typeof import('element-plus/es')['ElFormItem']
   const ElIcon: typeof import('element-plus/es')['ElIcon']
@@ -102,6 +111,7 @@ declare global {
   const ElRow: typeof import('element-plus/es')['ElRow']
   const ElScrollbar: typeof import('element-plus/es')['ElScrollbar']
   const ElSelect: typeof import('element-plus/es')['ElSelect']
+  const ElSlider: typeof import('element-plus/es')['ElSlider']
   const ElStep: typeof import('element-plus/es')['ElStep']
   const ElSteps: typeof import('element-plus/es')['ElSteps']
   const ElSubMenu: typeof import('element-plus/es')['ElSubMenu']
@@ -119,7 +129,9 @@ declare global {
   const MultiUpload: typeof import('./src/components/Upload/MultiUpload.vue')['default']
   const RouterLink: typeof import('vue-router')['RouterLink']
   const RouterView: typeof import('vue-router')['RouterView']
+  const SchemaForm: typeof import('./src/components/SchemaForm/index.vue')['default']
   const SentryProvider: typeof import('./src/components/SentryProvider/index.vue')['default']
   const SingleUpload: typeof import('./src/components/Upload/SingleUpload.vue')['default']
   const Tinymce: typeof import('./src/components/Tinymce/index.vue')['default']
+  const Watermark: typeof import('./src/components/Watermark/index.vue')['default']
 }

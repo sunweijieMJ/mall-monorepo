@@ -34,5 +34,8 @@ export * from './modules/homeBrand';
 export * from './modules/homeProduct';
 export * from './modules/homeSubject';
 
+// 站点配置
+export * from './modules/siteConfig';
+
 // 注意：这里导出的是一个 Promise，需要在 main.ts 中 await
 export default createPersistedPinia();

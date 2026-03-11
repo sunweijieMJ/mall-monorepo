@@ -7,7 +7,12 @@
       @click="navTo('个人资料')"
     >
       <text class="cell-tit">个人资料</text>
-      <text class="cell-more yticon icon-you"></text>
+      <uni-icons
+        type="arrow-right"
+        size="17"
+        color="#c0c4cc"
+        class="cell-more"
+      />
     </view>
     <view
       class="list-cell b-b"
@@ -16,7 +21,12 @@
       @click="navTo('/pages-sub/address/address')"
     >
       <text class="cell-tit">收货地址</text>
-      <text class="cell-more yticon icon-you"></text>
+      <uni-icons
+        type="arrow-right"
+        size="17"
+        color="#c0c4cc"
+        class="cell-more"
+      />
     </view>
     <view
       class="list-cell"
@@ -25,7 +35,12 @@
       @click="navTo('实名认证')"
     >
       <text class="cell-tit">实名认证</text>
-      <text class="cell-more yticon icon-you"></text>
+      <uni-icons
+        type="arrow-right"
+        size="17"
+        color="#c0c4cc"
+        class="cell-more"
+      />
     </view>
 
     <view class="list-cell m-t">
@@ -39,7 +54,12 @@
       @click="navTo('清除缓存')"
     >
       <text class="cell-tit">清除缓存</text>
-      <text class="cell-more yticon icon-you"></text>
+      <uni-icons
+        type="arrow-right"
+        size="17"
+        color="#c0c4cc"
+        class="cell-more"
+      />
     </view>
     <view
       class="list-cell b-b"
@@ -48,12 +68,22 @@
       @click="navToOuter('https://github.com/macrozheng/mall')"
     >
       <text class="cell-tit">关于mall-app-web</text>
-      <text class="cell-more yticon icon-you"></text>
+      <uni-icons
+        type="arrow-right"
+        size="17"
+        color="#c0c4cc"
+        class="cell-more"
+      />
     </view>
     <view class="list-cell">
       <text class="cell-tit">检查更新</text>
       <text class="cell-tip">当前版本 1.0.0</text>
-      <text class="cell-more yticon icon-you"></text>
+      <uni-icons
+        type="arrow-right"
+        size="17"
+        color="#c0c4cc"
+        class="cell-more"
+      />
     </view>
     <view class="list-cell log-out-btn" @click="toLogout">
       <text class="cell-tit">退出登录</text>

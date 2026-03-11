@@ -6,25 +6,44 @@
     <LayoutHeader class="app-header" logo-title="Mall Admin" />
     <LayoutMenu class="app-sidebar" />
     <LayoutMain class="app-main" />
+    <Watermark :config="siteConfigStore.savedConfig.watermark" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import LayoutHeader from './components/LayoutHeader/index.vue';
 import LayoutMain from './components/LayoutMain/index.vue';
 import LayoutMenu from './components/LayoutMenu/index.vue';
 import { provideLayoutContext } from './useLayoutContext';
+import Watermark from '@/components/Watermark/index.vue';
 import { useMallAppStore } from '@/store/modules/mallApp';
+import { useSiteConfigStore } from '@/store/modules/siteConfig';
 
-provideLayoutContext();
+// 直接使用返回值，而非通过 inject 重新查找
+// inject 从父组件向上查找，在 Layout 自身里用 inject 拿不到自己 provide 的 context
+const { layoutVisible, setLayoutVisible } = provideLayoutContext();
 
+const route = useRoute();
 const appStore = useMallAppStore();
+const siteConfigStore = useSiteConfigStore();
+
+// 根据路由路径自动切换侧边栏可见性
+// 在 layout 层监听（而非在子页面 onMounted/onUnmounted），避免子组件反复挂载/卸载导致的闪烁
+watch(
+  () => route.path,
+  (path) => {
+    setLayoutVisible({ nav: !path.startsWith('/setting') });
+  },
+  { immediate: true },
+);
 
 const classObj = computed(() => ({
   hideSidebar: !appStore.sidebar.opened,
   withoutAnimation: appStore.sidebar.withoutAnimation,
   mobile: appStore.device === 'mobile',
+  noSidebar: !layoutVisible.nav,
 }));
 </script>
 
@@ -48,6 +67,11 @@ const classObj = computed(() => ({
 
   &.withoutAnimation {
     transition: none;
+  }
+
+  // 隐藏侧边栏（setting 页等特殊页面使用）
+  &.noSidebar {
+    grid-template-columns: 0 1fr;
   }
 
   // 移动端：侧边栏覆盖在内容上

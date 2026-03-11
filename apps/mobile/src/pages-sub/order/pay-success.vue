@@ -1,6 +1,11 @@
 <template>
   <view class="content">
-    <text class="success-icon yticon icon-xuanzhong2"></text>
+    <uni-icons
+      type="checkbox-filled"
+      size="80"
+      class="success-icon"
+      color="var(--color-primary)"
+    />
     <text class="tit">{{ payText }}</text>
 
     <view class="btn-group">
@@ -72,8 +77,6 @@ onLoad((options) => {
 
 .success-icon {
   margin-top: 100rpx;
-  color: var(--color-primary);
-  font-size: 160rpx;
 }
 
 .tit {

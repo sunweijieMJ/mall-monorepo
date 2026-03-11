@@ -44,11 +44,13 @@
               <text class="state" :style="{ color: 'var(--color-primary)' }">
                 {{ formatStatus(item.status) }}
               </text>
-              <text
+              <uni-icons
                 v-if="item.status === 3 || item.status === 4"
-                class="del-btn yticon icon-iconfontshanchu1"
+                type="trash"
+                size="20"
+                class="del-btn"
                 @click="deleteOrder(item.id)"
-              ></text>
+              />
             </view>
             <view
               v-for="(orderItem, itemIndex) in item.orderItemList"

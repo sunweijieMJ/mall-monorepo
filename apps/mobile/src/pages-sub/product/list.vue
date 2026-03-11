@@ -22,20 +22,32 @@
       >
         <text>价格</text>
         <view class="p-box">
-          <text
-            :class="{ active: priceOrder === 1 && filterIndex === 2 }"
-            class="yticon icon-shang"
-          ></text>
-          <text
-            :class="{ active: priceOrder === 2 && filterIndex === 2 }"
-            class="yticon icon-shang xia"
-          ></text>
+          <uni-icons
+            type="arrow-up"
+            size="14"
+            :color="
+              priceOrder === 1 && filterIndex === 2
+                ? 'var(--color-primary)'
+                : '#888'
+            "
+          />
+          <uni-icons
+            type="arrow-down"
+            size="14"
+            :color="
+              priceOrder === 2 && filterIndex === 2
+                ? 'var(--color-primary)'
+                : '#888'
+            "
+          />
         </view>
       </view>
-      <text
-        class="cate-item yticon icon-fenlei1"
+      <uni-icons
+        type="bars"
+        size="20"
+        class="cate-item"
         @click="toggleCateMask('show')"
-      ></text>
+      />
     </view>
     <view class="goods-list">
       <view
@@ -406,26 +418,7 @@ page,
   .p-box {
     display: flex;
     flex-direction: column;
-
-    .yticon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 30rpx;
-      height: 14rpx;
-      margin-left: 4rpx;
-      color: #888;
-      font-size: 26rpx;
-      line-height: 1;
-
-      &.active {
-        color: var(--color-primary);
-      }
-    }
-
-    .xia {
-      transform: scaleY(-1);
-    }
+    margin-left: 4rpx;
   }
 
   .cate-item {
@@ -435,7 +428,6 @@ page,
     justify-content: center;
     width: 80rpx;
     height: 100%;
-    font-size: 44rpx;
 
     &::after {
       content: '';

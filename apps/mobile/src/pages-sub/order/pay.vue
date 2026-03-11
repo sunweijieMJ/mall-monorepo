@@ -7,7 +7,12 @@
 
     <view class="pay-type-list">
       <view class="type-item b-b" @click="changePayType(1)">
-        <text class="icon yticon icon-alipay"></text>
+        <uni-icons
+          type="wallet-filled"
+          size="28"
+          color="#01aaef"
+          class="icon"
+        />
         <view class="con">
           <text class="tit">支付宝支付</text>
           <text>推荐使用支付宝支付</text>
@@ -17,7 +22,7 @@
         </label>
       </view>
       <view class="type-item b-b" @click="changePayType(2)">
-        <text class="icon yticon icon-weixinzhifu"></text>
+        <uni-icons type="weixin" size="28" color="#36cb59" class="icon" />
         <view class="con">
           <text class="tit">微信支付</text>
         </view>
@@ -176,18 +181,6 @@ const confirm = async () => {
   .icon {
     width: 100rpx;
     font-size: 52rpx;
-  }
-
-  .icon-erjiye-yucunkuan {
-    color: #fe8e2e;
-  }
-
-  .icon-weixinzhifu {
-    color: #36cb59;
-  }
-
-  .icon-alipay {
-    color: #01aaef;
   }
 
   .tit {

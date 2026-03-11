@@ -37,10 +37,15 @@
                 @error="onImageError(index)"
               ></image>
               <view
-                class="yticon icon-xuanzhong2 checkbox"
+                class="checkbox"
                 :class="{ checked: item.checked }"
                 @click="check('item', index)"
-              ></view>
+              >
+                <uni-icons
+                  :type="item.checked ? 'checkbox-filled' : 'checkbox'"
+                  size="22"
+                />
+              </view>
             </view>
             <view class="item-right">
               <text class="clamp title">{{ item.productName }}</text>
@@ -55,10 +60,12 @@
                 @event-change="numberChange"
               ></uni-number-box>
             </view>
-            <text
-              class="del-btn yticon icon-fork"
+            <uni-icons
+              type="trash"
+              size="20"
+              class="del-btn"
               @click="handleDeleteCartItem(index)"
-            ></text>
+            />
           </view>
         </block>
       </view>
@@ -421,7 +428,6 @@ const createOrder = () => {
     border-radius: 50px;
     background: var(--color-bg);
     color: var(--color-text-secondary);
-    font-size: 44rpx;
     line-height: 1;
   }
 

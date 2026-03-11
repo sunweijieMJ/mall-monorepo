@@ -26,7 +26,8 @@ function isMallRoute(path: string): boolean {
     path.startsWith('/pms') ||
     path.startsWith('/oms') ||
     path.startsWith('/sms') ||
-    path.startsWith('/ums')
+    path.startsWith('/ums') ||
+    path.startsWith('/setting')
   );
 }
 

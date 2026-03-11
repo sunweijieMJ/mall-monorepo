@@ -22,7 +22,8 @@ async function setupWebVitals(): Promise<void> {
 
 /**
  * 初始化 Sentry 错误监控
- * 根据环境变量 VITE_ENABLE_SENTRY 配置启用
+ * 由 VITE_ENABLE_SENTRY 环境变量作为总开关，
+ * 再读取 siteConfig store 中的运行时配置（需在 app.use(store) 之后调用）
  */
 async function setupSentry(
   app: ReturnType<typeof createApp>,
@@ -30,8 +31,26 @@ async function setupSentry(
 ): Promise<void> {
   if (import.meta.env.VITE_ENABLE_SENTRY !== 'true') return;
 
+  // 读取站点配置中的 Sentry 运行时参数（store 已在 app.use(store) 后可用）
+  const { useSiteConfigStore } = await import('@/store/modules/siteConfig');
+  const siteConfigStore = useSiteConfigStore();
+  const sentryCfg = siteConfigStore.savedConfig.sentry;
+
+  // 运行时配置显式禁用时跳过
+  if (sentryCfg.enabled === false) return;
+
   const { initSentry } = await import('@/plugins/sentry');
-  await initSentry(app, router);
+  // 将站点配置作为覆盖参数传入（非空 dsn 才覆盖默认 DSN）
+  await initSentry(app, router, {
+    ...(sentryCfg.dsn ? { dsn: sentryCfg.dsn } : {}),
+    enablePerformance: sentryCfg.enablePerformance,
+    enableReplay: sentryCfg.enableReplay,
+    enableRouterTracking: sentryCfg.enableRouterTracking,
+    enableFeedback: sentryCfg.enableFeedback,
+    tracesSampleRate: sentryCfg.tracesSampleRate,
+    replaysSessionSampleRate: sentryCfg.replaysSessionSampleRate,
+    replaysOnErrorSampleRate: sentryCfg.replaysOnErrorSampleRate,
+  });
 }
 
 /**

@@ -6,7 +6,7 @@
       class="address-section"
     >
       <view class="order-content">
-        <text class="yticon icon-shouhuodizhi"></text>
+        <uni-icons type="location-filled" size="18" />
         <view class="cen">
           <view class="top">
             <text class="name">{{ currentAddress.name }}</text>
@@ -18,7 +18,7 @@
             {{ currentAddress.detailAddress }}
           </text>
         </view>
-        <text class="yticon icon-you"></text>
+        <uni-icons type="arrow-right" size="17" />
       </view>
 
       <image
@@ -459,16 +459,6 @@ page {
     align-items: center;
   }
 
-  .icon-shouhuodizhi {
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    width: 90rpx;
-    color: #888;
-    font-size: 44rpx;
-  }
-
   .cen {
     display: flex;
     flex: 1;
@@ -486,12 +476,6 @@ page {
     margin-top: 16rpx;
     margin-right: 20rpx;
     color: var(--color-text-secondary);
-  }
-
-  .icon-you {
-    margin-right: 30rpx;
-    color: var(--color-text-secondary);
-    font-size: 32rpx;
   }
 
   .a-bg {

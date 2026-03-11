@@ -11,8 +11,7 @@
 
 // 导入重置样式
 @use './reset' as *;
-@use './tools' as *;
-@use './font' as *;
+@use './components' as *;
 
 // ============================================
 // 页面基础样式 Mixin

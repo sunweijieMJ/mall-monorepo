@@ -17,12 +17,11 @@
           品牌首字母：{{ brand.firstLetter }}
         </text>
       </view>
-      <view>
-        <text
-          class="yticon icon-shoucang"
-          :class="{ active: favoriteStatus }"
-          @click="favorite()"
-        ></text>
+      <view @click="favorite()">
+        <uni-icons
+          :type="favoriteStatus ? 'heart-filled' : 'heart'"
+          size="24"
+        />
       </view>
     </view>
     <!-- 品牌故事 -->
@@ -379,14 +378,8 @@ page {
     }
   }
 
-  .yticon {
+  uni-icons {
     margin: 0 10rpx 0 30rpx;
-    color: #606266;
-    font-size: 80rpx;
-
-    &.active {
-      color: var(--color-primary);
-    }
   }
 }
 
@@ -398,25 +391,6 @@ page {
   .text {
     color: var(--color-text-secondary);
     font-size: 24rpx;
-  }
-}
-
-.actions {
-  padding: 10rpx 28rpx;
-  background: var(--color-bg);
-
-  .yticon {
-    padding: 10rpx 12rpx;
-    color: #606266;
-    font-size: 46rpx;
-
-    &.active {
-      color: var(--color-primary);
-    }
-
-    &:nth-child(2) {
-      font-size: 50rpx;
-    }
   }
 }
 

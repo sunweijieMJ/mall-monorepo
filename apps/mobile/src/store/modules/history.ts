@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import {
   readHistoryControllerListV1,
   readHistoryControllerCreateV1,
+  readHistoryControllerBatchDeleteV1,
   readHistoryControllerClearV1,
 } from '@/api';
 import type {
@@ -22,11 +23,17 @@ export const useHistoryStore = defineStore('history', () => {
     return res.data ?? null;
   }
 
+  /** 批量删除浏览历史 */
+  async function batchDelete(ids: number[]) {
+    const res = await readHistoryControllerBatchDeleteV1({ ids });
+    return res.data ?? null;
+  }
+
   /** 清空全部浏览历史 */
   async function clear() {
     const res = await readHistoryControllerClearV1();
     return res.data ?? null;
   }
 
-  return { fetchList, create, clear };
+  return { fetchList, create, batchDelete, clear };
 });

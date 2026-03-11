@@ -22,7 +22,6 @@ const cachedViews = computed(() => appStore.cachedViews);
 <style scoped lang="scss">
 .layout-main {
   box-sizing: border-box;
-  padding: 20px;
   overflow: auto;
   background-color: var(--colorBgLayout);
 }

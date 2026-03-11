@@ -76,6 +76,36 @@ export const mallConstantRoutes: RouteRecordRaw[] = [
       },
     ],
   },
+  // 系统设置（前端本地功能，无需后端菜单授权，但需要登录）
+  {
+    path: '/setting',
+    component: Layout,
+    redirect: '/setting/frontend',
+    name: 'Setting',
+    meta: { title: '系统设置', icon: Setting, hidden: true },
+    children: [
+      {
+        path: '',
+        redirect: '/setting/frontend',
+        component: () => import('@/views/setting/index.vue'),
+        meta: { hidden: true },
+        children: [
+          {
+            path: 'frontend',
+            name: 'SettingFrontend',
+            component: () => import('@/views/setting/frontend.vue'),
+            meta: { hidden: true },
+          },
+          {
+            path: 'theme',
+            name: 'SettingTheme',
+            component: () => import('@/views/setting/theme.vue'),
+            meta: { hidden: true },
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 /**

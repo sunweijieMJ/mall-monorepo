@@ -4,11 +4,14 @@ import {
   cartControllerListV1,
   cartControllerCreateV1,
   cartControllerUpdateQuantityV1,
+  cartControllerUpdateAttrV1,
   cartControllerDeleteV1,
   cartControllerClearV1,
   cartControllerCountV1,
+  cartControllerPromotionListV1,
+  cartControllerCartProductV1,
 } from '@/api';
-import type { AddCartDto } from '@/api';
+import type { AddCartDto, CartControllerPromotionListV1Params } from '@/api';
 import type { CartItem } from '@/interface';
 
 export const useCartStore = defineStore(
@@ -94,6 +97,26 @@ export const useCartStore = defineStore(
       return res.data ?? 0;
     }
 
+    /** 获取含促销信息的购物车列表（结算页用） */
+    async function fetchPromotionList(
+      params: CartControllerPromotionListV1Params,
+    ) {
+      const res = await cartControllerPromotionListV1(params);
+      return res.data ?? null;
+    }
+
+    /** 获取购物车商品的可选规格列表（重选规格时用） */
+    async function fetchCartProduct(productId: number) {
+      const res = await cartControllerCartProductV1(productId);
+      return res.data ?? null;
+    }
+
+    /** 修改购物车商品规格 */
+    async function updateAttr(id: number, productSkuId: number) {
+      const res = await cartControllerUpdateAttrV1(id, { productSkuId });
+      return res.data ?? null;
+    }
+
     return {
       cartItems,
       cartCount,
@@ -108,6 +131,9 @@ export const useCartStore = defineStore(
       deleteItems,
       clearRemote,
       fetchCount,
+      fetchPromotionList,
+      fetchCartProduct,
+      updateAttr,
     };
   },
   {

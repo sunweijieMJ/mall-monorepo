@@ -61,7 +61,11 @@
         <text class="tit">品牌制造商直供</text>
         <text class="tit2">工厂直达消费者，剔除品牌溢价</text>
       </view>
-      <text class="yticon icon-you"></text>
+      <uni-icons
+        type="arrow-right"
+        size="17"
+        color="var(--color-text-secondary)"
+      />
     </view>
 
     <view class="guess-section">
@@ -99,7 +103,12 @@
           <text class="second timer">{{ cutDownTime.endSecond }}</text>
         </view>
       </view>
-      <text v-show="false" class="yticon icon-you"></text>
+      <uni-icons
+        v-show="false"
+        type="arrow-right"
+        size="17"
+        color="var(--color-text-secondary)"
+      />
     </view>
 
     <view v-if="state.homeFlashPromotion?.productList" class="guess-section">
@@ -125,7 +134,11 @@
         <text class="tit">新鲜好物</text>
         <text class="tit2">为你寻觅世间好物</text>
       </view>
-      <text class="yticon icon-you"></text>
+      <uni-icons
+        type="arrow-right"
+        size="17"
+        color="var(--color-text-secondary)"
+      />
     </view>
     <view class="seckill-section">
       <scroll-view class="floor-list" scroll-x>
@@ -152,7 +165,11 @@
         <text class="tit">人气推荐</text>
         <text class="tit2">大家都赞不绝口的</text>
       </view>
-      <text class="yticon icon-you"></text>
+      <uni-icons
+        type="arrow-right"
+        size="17"
+        color="var(--color-text-secondary)"
+      />
     </view>
 
     <view class="hot-section">
@@ -180,7 +197,12 @@
         <text class="tit">猜你喜欢</text>
         <text class="tit2">你喜欢的都在这里了</text>
       </view>
-      <text v-show="false" class="yticon icon-you"></text>
+      <uni-icons
+        v-show="false"
+        type="arrow-right"
+        size="17"
+        color="var(--color-text-secondary)"
+      />
     </view>
 
     <view class="guess-section">
@@ -217,24 +239,6 @@ definePage({
           disabled: true,
           placeholderColor: '#606266',
         },
-        buttons: [
-          {
-            fontSrc: '/static/fonts/yticon.ttf',
-            text: '\ue60d',
-            fontSize: '26',
-            color: '#303133',
-            float: 'left',
-            background: 'rgba(0,0,0,0)',
-          },
-          {
-            fontSrc: '/static/fonts/yticon.ttf',
-            text: '\ue744',
-            fontSize: '27',
-            color: '#303133',
-            background: 'rgba(0,0,0,0)',
-            redDot: true,
-          },
-        ],
       },
     },
   },
@@ -755,13 +759,6 @@ page {
       line-height: 36rpx;
       text-align: center;
     }
-
-    .icon-you {
-      flex: 1;
-      color: var(--color-text-secondary);
-      font-size: var(--font-size-lg);
-      text-align: right;
-    }
   }
 
   .floor-list {
@@ -827,11 +824,6 @@ page {
   .tit2 {
     color: var(--color-text-secondary);
     font-size: var(--font-size-sm);
-  }
-
-  .icon-you {
-    color: var(--color-text-secondary);
-    font-size: 34rpx;
   }
 
   .timer {

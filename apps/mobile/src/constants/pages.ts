@@ -77,6 +77,18 @@ export const TAB_BAR_CONFIG = [
   },
   {
     index: 1,
+    text: '分类',
+    iconKey: 'iconCategory',
+    iconActiveKey: 'iconCategoryActive',
+  },
+  {
+    index: 2,
+    text: '购物车',
+    iconKey: 'iconCart',
+    iconActiveKey: 'iconCartActive',
+  },
+  {
+    index: 3,
     text: '我的',
     iconKey: 'iconMine',
     iconActiveKey: 'iconMineActive',

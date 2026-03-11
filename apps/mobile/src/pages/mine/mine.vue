@@ -17,7 +17,7 @@
         <image class="card-bg" src="/static/ui/vip-card-bg.png" mode=""></image>
         <view class="b-btn">立即开通</view>
         <view class="tit">
-          <text class="yticon icon-iLinkapp-"></text>
+          <uni-icons type="vip" size="22" color="#f6e5a3" />
           黄金会员
         </view>
         <text class="e-m">mall移动端商城</text>
@@ -59,7 +59,12 @@
           :hover-stay-time="50"
           @click="navTo('/pages-sub/order/order?state=0')"
         >
-          <text class="yticon icon-shouye"></text>
+          <uni-icons
+            type="home"
+            size="24"
+            color="var(--color-primary)"
+            class="order-icon"
+          />
           <text>全部订单</text>
         </view>
         <view
@@ -68,7 +73,12 @@
           :hover-stay-time="50"
           @click="navTo('/pages-sub/order/order?state=1')"
         >
-          <text class="yticon icon-daifukuan"></text>
+          <uni-icons
+            type="wallet"
+            size="24"
+            color="var(--color-primary)"
+            class="order-icon"
+          />
           <text>待付款</text>
         </view>
         <view
@@ -77,7 +87,12 @@
           :hover-stay-time="50"
           @click="navTo('/pages-sub/order/order?state=2')"
         >
-          <text class="yticon icon-yishouhuo"></text>
+          <uni-icons
+            type="shop"
+            size="24"
+            color="var(--color-primary)"
+            class="order-icon"
+          />
           <text>待收货</text>
         </view>
         <view
@@ -85,43 +100,44 @@
           hover-class="common-hover"
           :hover-stay-time="50"
         >
-          <text class="yticon icon-shouhoutuikuan"></text>
+          <uni-icons
+            type="redo"
+            size="24"
+            color="var(--color-primary)"
+            class="order-icon"
+          />
           <text>退款/售后</text>
         </view>
       </view>
       <!-- 浏览历史 -->
       <view class="history-section icon">
         <UMenuItem
-          icon="yticon icon-dizhi"
+          icon="location"
           icon-color="#5fcda2"
           title="地址管理"
           @click="navTo('/pages-sub/address/address')"
         />
         <UMenuItem
-          icon="yticon icon-lishijilu"
+          icon="list"
           icon-color="#e07472"
           title="我的足迹"
           @click="navTo('/pages-sub/user/read-history')"
         />
         <UMenuItem
-          icon="yticon icon-shoucang"
+          icon="heart"
           icon-color="#5fcda2"
           title="我的关注"
           @click="navTo('/pages-sub/user/brand-attention')"
         />
         <UMenuItem
-          icon="yticon icon-shoucang_xuanzhongzhuangtai"
+          icon="heart-filled"
           icon-color="#54b4ef"
           title="我的收藏"
           @click="navTo('/pages-sub/user/product-collection')"
         />
+        <UMenuItem icon="star" icon-color="#ee883b" title="我的评价" />
         <UMenuItem
-          icon="yticon icon-pingjia"
-          icon-color="#ee883b"
-          title="我的评价"
-        />
-        <UMenuItem
-          icon="yticon icon-shezhi1"
+          icon="gear"
           icon-color="#e07472"
           title="设置"
           :border="false"
@@ -140,24 +156,6 @@ definePage({
       bounce: 'none',
       titleNView: {
         type: 'transparent',
-        buttons: [
-          {
-            fontSrc: '/static/fonts/yticon.ttf',
-            text: '\ue60f',
-            fontSize: '24',
-            color: '#303133',
-            width: '46px',
-            background: 'rgba(0,0,0,0)',
-          },
-          {
-            fontSrc: '/static/fonts/yticon.ttf',
-            text: '\ue744',
-            fontSize: '28',
-            color: '#303133',
-            background: 'rgba(0,0,0,0)',
-            redDot: true,
-          },
-        ],
       },
     },
   },
@@ -379,9 +377,8 @@ const coverTouchend = () => {
     color: #f7d680;
     font-size: 32rpx;
 
-    .yticon {
+    uni-icons {
       margin-right: 16rpx;
-      color: #f6e5a3;
     }
   }
 
@@ -443,14 +440,8 @@ const coverTouchend = () => {
     font-size: 24rpx;
   }
 
-  .yticon {
+  .order-icon {
     margin-bottom: 18rpx;
-    color: var(--color-primary);
-    font-size: 48rpx;
-  }
-
-  .icon-shouhoutuikuan {
-    font-size: 44rpx;
   }
 }
 
@@ -459,22 +450,6 @@ const coverTouchend = () => {
   padding: 30rpx 0 0;
   border-radius: 10rpx;
   background: var(--color-bg);
-
-  .sec-header {
-    display: flex;
-    align-items: center;
-    margin-left: 30rpx;
-    color: var(--color-text);
-    font-size: 30rpx;
-    line-height: 40rpx;
-
-    .yticon {
-      margin-right: 16rpx;
-      color: #5eba8f;
-      font-size: 44rpx;
-      line-height: 40rpx;
-    }
-  }
 
   .h-list {
     padding: 30rpx 30rpx 0;

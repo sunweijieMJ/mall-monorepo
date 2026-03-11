@@ -15,7 +15,7 @@
   >
     <!-- 左侧图标 -->
     <view v-if="icon" class="u-menu-item__icon">
-      <text :class="icon" :style="iconStyle" />
+      <uni-icons :type="icon" :size="iconSize / 2" :color="iconStyle.color" />
     </view>
 
     <!-- 内容区域 -->
@@ -27,9 +27,7 @@
     <!-- 右侧区域 -->
     <view class="u-menu-item__right">
       <text v-if="rightText" class="u-menu-item__right-text">
-        {{
-          rightText
-        }}
+        {{ rightText }}
       </text>
       <text v-if="badge" class="u-menu-item__badge">{{ badge }}</text>
       <switch
@@ -79,7 +77,7 @@ interface Props {
   label?: string;
   /** 右侧文字 */
   rightText?: string;
-  /** 左侧图标 (UnoCSS 图标类名，如 i-carbon-*) */
+  /** 左侧图标（uni-icons type 名称，如 'location'） */
   icon?: string;
   /** 图标颜色 */
   iconColor?: string;

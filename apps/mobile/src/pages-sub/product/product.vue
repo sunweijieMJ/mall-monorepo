@@ -33,14 +33,14 @@
     <!-- 分享 -->
     <view class="share-section" @click="share">
       <view class="share-icon">
-        <text class="yticon icon-xingxing"></text>
+        <uni-icons type="star" size="18" />
         返
       </view>
       <text class="tit">该商品分享可领49减10红包</text>
-      <text class="yticon icon-bangzhu1"></text>
+      <uni-icons type="help" size="18" />
       <view class="share-btn">
         立即分享
-        <text class="yticon icon-you"></text>
+        <uni-icons type="arrow-right" size="17" />
       </view>
     </view>
 
@@ -56,19 +56,19 @@
             {{ sItem.name }}
           </text>
         </view>
-        <text class="yticon icon-you"></text>
+        <uni-icons type="arrow-right" size="17" />
       </view>
       <view class="c-row b-b" @click="toggleAttr">
         <text class="tit">商品参数</text>
         <view class="con">
           <text class="con t-r">查看</text>
         </view>
-        <text class="yticon icon-you"></text>
+        <uni-icons type="arrow-right" size="17" />
       </view>
       <view class="c-row b-b" @click="toggleCoupon('show')">
         <text class="tit">优惠券</text>
         <text class="con t-r red">领取优惠券</text>
-        <text class="yticon icon-you"></text>
+        <uni-icons type="arrow-right" size="17" />
       </view>
       <view class="c-row b-b">
         <text class="tit">促销活动</text>
@@ -90,7 +90,7 @@
         <text class="tit">评价</text>
         <text>(86)</text>
         <text class="tip">好评率 100%</text>
-        <text class="yticon icon-you"></text>
+        <uni-icons type="arrow-right" size="17" />
       </view>
       <view class="eva-box">
         <image
@@ -137,15 +137,15 @@
     <!-- 底部操作菜单 -->
     <view class="page-bottom">
       <navigator url="/pages/index/index" open-type="switchTab" class="p-b-btn">
-        <text class="yticon icon-xiatubiao--copy"></text>
+        <uni-icons type="arrow-down" size="18" />
         <text>首页</text>
       </navigator>
       <navigator url="/pages/cart/cart" open-type="switchTab" class="p-b-btn">
-        <text class="yticon icon-gouwuche"></text>
+        <uni-icons type="cart" size="22" />
         <text>购物车</text>
       </navigator>
       <view class="p-b-btn" :class="{ active: favorite }" @click="toFavorite">
-        <text class="yticon icon-shoucang"></text>
+        <uni-icons type="heart" size="22" />
         <text>收藏</text>
       </view>
 
@@ -1001,11 +1001,6 @@ page {
   background: var(--color-bg-grey);
 }
 
-.icon-you {
-  color: #888;
-  font-size: 30rpx;
-}
-
 .carousel {
   position: relative;
   height: 722rpx;
@@ -1127,25 +1122,9 @@ page {
     }
   }
 
-  .icon-xingxing {
-    position: relative;
-    z-index: 1;
-    margin-right: 10rpx;
-    margin-left: 2rpx;
-    color: var(--color-bg);
-    font-size: 24rpx;
-    line-height: 1;
-  }
-
   .tit {
     margin-left: 10rpx;
     font-size: 28rpx;
-  }
-
-  .icon-bangzhu1 {
-    padding: 10rpx;
-    font-size: 30rpx;
-    line-height: 1;
   }
 
   .share-btn {
@@ -1153,12 +1132,6 @@ page {
     color: var(--color-primary);
     font-size: 24rpx;
     text-align: right;
-  }
-
-  .icon-you {
-    margin-left: 4rpx;
-    color: var(--color-primary);
-    font-size: 24rpx;
   }
 }
 
@@ -1235,10 +1208,6 @@ page {
     .tip {
       flex: 1;
       text-align: right;
-    }
-
-    .icon-you {
-      margin-left: 10rpx;
     }
   }
 }
@@ -1518,24 +1487,9 @@ page {
     color: #666;
     font-size: 24rpx;
 
-    .yticon {
-      color: var(--color-text-secondary);
-      font-size: 40rpx;
-      line-height: 48rpx;
-    }
-
     &.active,
-    &.active .yticon {
+    &.active uni-icons {
       color: var(--color-primary);
-    }
-
-    .icon-fenxiang2 {
-      transform: translateY(-2rpx);
-      font-size: 42rpx;
-    }
-
-    .icon-shoucang {
-      font-size: 46rpx;
     }
   }
 

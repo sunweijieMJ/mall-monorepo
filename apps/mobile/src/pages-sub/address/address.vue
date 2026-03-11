@@ -19,14 +19,18 @@
           <text class="mobile">{{ item.phoneNumber }}</text>
         </view>
       </view>
-      <text
-        class="yticon icon-bianji"
+      <uni-icons
+        type="compose"
+        size="20"
+        class="icon-bianji"
         @click.stop="addAddress('edit', item)"
-      ></text>
-      <text
-        class="yticon icon-iconfontshanchu1"
+      />
+      <uni-icons
+        type="trash"
+        size="20"
+        class="icon-iconfontshanchu1"
         @click.stop="handleDeleteAddress(item.id)"
-      ></text>
+      />
     </view>
 
     <button class="add-btn" @click="addAddress('add')">新增地址</button>
@@ -193,22 +197,13 @@ page {
   }
 }
 
-.icon-bianji {
-  display: flex;
-  align-items: center;
-  height: 80rpx;
-  padding-left: 30rpx;
-  color: var(--color-text-secondary);
-  font-size: 40rpx;
-}
-
+.icon-bianji,
 .icon-iconfontshanchu1 {
   display: flex;
   align-items: center;
   height: 80rpx;
   padding-left: 30rpx;
   color: var(--color-text-secondary);
-  font-size: 40rpx;
 }
 
 .add-btn {

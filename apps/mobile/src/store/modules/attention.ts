@@ -3,6 +3,7 @@ import {
   attentionControllerListV1,
   attentionControllerCreateV1,
   attentionControllerDeleteV1,
+  attentionControllerClearV1,
 } from '@/api';
 import type { AttentionControllerListV1Params, AddAttentionDto } from '@/api';
 
@@ -25,5 +26,11 @@ export const useAttentionStore = defineStore('attention', () => {
     return res.data ?? null;
   }
 
-  return { fetchList, create, remove };
+  /** 清空全部关注记录 */
+  async function clear() {
+    const res = await attentionControllerClearV1();
+    return res.data ?? null;
+  }
+
+  return { fetchList, create, remove, clear };
 });

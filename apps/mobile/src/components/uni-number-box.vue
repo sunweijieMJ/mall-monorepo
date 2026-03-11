@@ -1,10 +1,11 @@
 <template>
   <view class="uni-numbox">
     <view class="uni-numbox-minus" @click="calcValue('subtract')">
-      <text
-        class="yticon icon--jianhao"
-        :class="minDisabled ? 'uni-numbox-disabled' : ''"
-      ></text>
+      <uni-icons
+        type="minus"
+        size="18"
+        :color="minDisabled ? '#d6d6d6' : '#555'"
+      />
     </view>
     <input
       class="uni-numbox-value"
@@ -14,10 +15,11 @@
       @blur="onBlur"
     />
     <view class="uni-numbox-plus" @click="calcValue('add')">
-      <text
-        class="yticon icon-jia2"
-        :class="maxDisabled ? 'uni-numbox-disabled' : ''"
-      ></text>
+      <uni-icons
+        type="plus"
+        size="18"
+        :color="maxDisabled ? '#d6d6d6' : '#555'"
+      />
     </view>
   </view>
 </template>
@@ -180,12 +182,6 @@ const onBlur = (event: any) => {
   text-align: center;
 }
 
-.uni-numbox-minus .yticon,
-.uni-numbox-plus .yticon {
-  color: #555;
-  font-size: 36upx;
-}
-
 .uni-numbox-minus {
   border-right: none;
   border-top-left-radius: 6upx;
@@ -206,9 +202,5 @@ const onBlur = (event: any) => {
   background-color: #f5f5f5;
   font-size: 30upx;
   text-align: center;
-}
-
-.uni-numbox-disabled.yticon {
-  color: #d6d6d6;
 }
 </style>

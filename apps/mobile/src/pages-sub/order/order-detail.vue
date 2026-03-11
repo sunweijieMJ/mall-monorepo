@@ -7,7 +7,7 @@
     <!-- 地址 -->
     <view class="address-section">
       <view class="order-content">
-        <text class="yticon icon-shouhuodizhi"></text>
+        <uni-icons type="location-filled" size="18" />
         <view class="cen">
           <view class="top">
             <text class="name">{{ order.receiverName }}</text>
@@ -365,16 +365,6 @@ page {
   .order-content {
     display: flex;
     align-items: center;
-  }
-
-  .icon-shouhuodizhi {
-    display: flex;
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-    width: 90rpx;
-    color: #888;
-    font-size: 44rpx;
   }
 
   .cen {

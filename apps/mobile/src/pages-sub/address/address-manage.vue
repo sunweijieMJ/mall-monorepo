@@ -254,11 +254,6 @@ page {
     color: var(--color-text);
     font-size: 30rpx;
   }
-
-  .icon-shouhuodizhi {
-    color: var(--color-text-secondary);
-    font-size: 36rpx;
-  }
 }
 
 .default-row {

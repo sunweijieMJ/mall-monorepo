@@ -15,7 +15,7 @@
         </text>
         <view class="bot b-t">
           <text>查看详情</text>
-          <text class="more-icon yticon icon-you"></text>
+          <uni-icons type="arrow-right" size="16" class="more-icon" />
         </view>
       </view>
     </view>
@@ -32,7 +32,7 @@
         </view>
         <view class="bot b-t">
           <text>查看详情</text>
-          <text class="more-icon yticon icon-you"></text>
+          <uni-icons type="arrow-right" size="16" class="more-icon" />
         </view>
       </view>
     </view>
@@ -52,7 +52,7 @@
         </text>
         <view class="bot b-t">
           <text>查看详情</text>
-          <text class="more-icon yticon icon-you"></text>
+          <uni-icons type="arrow-right" size="16" class="more-icon" />
         </view>
       </view>
     </view>
@@ -155,6 +155,7 @@ page {
 }
 
 .more-icon {
-  font-size: 32upx;
+  display: flex;
+  align-items: center;
 }
 </style>

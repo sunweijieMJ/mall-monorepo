@@ -4,6 +4,7 @@ import {
   collectionControllerCreateV1,
   collectionControllerDeleteV1,
   collectionControllerGetItemV1,
+  collectionControllerClearV1,
 } from '@/api';
 import type { CollectionControllerListV1Params, AddCollectionDto } from '@/api';
 
@@ -32,5 +33,11 @@ export const useCollectionStore = defineStore('collection', () => {
     return res.data ?? null;
   }
 
-  return { fetchList, create, remove, getItem };
+  /** 清空全部收藏 */
+  async function clear() {
+    const res = await collectionControllerClearV1();
+    return res.data ?? null;
+  }
+
+  return { fetchList, create, remove, getItem, clear };
 });

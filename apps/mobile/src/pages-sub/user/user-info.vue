@@ -2,13 +2,13 @@
   <view>
     <view class="user-section">
       <image class="bg" src="/static/ui/user-bg.jpg"></image>
-      <text class="bg-upload-btn yticon icon-paizhao"></text>
+      <uni-icons type="camera" size="24" class="bg-upload-btn" />
       <view class="portrait-box">
         <image
           class="portrait"
           :src="userInfo.portrait || '/static/ui/missing-face.png'"
         ></image>
-        <text class="pt-upload-btn yticon icon-paizhao"></text>
+        <uni-icons type="camera" size="24" class="pt-upload-btn" />
       </view>
     </view>
   </view>
@@ -79,14 +79,14 @@ page {
     border-radius: 50%;
   }
 
-  .yticon {
+  .pt-upload-btn,
+  .bg-upload-btn {
     position: absolute;
     z-index: 5;
     padding: 4rpx 6rpx;
     border-radius: 6rpx;
     background: rgba(0, 0, 0, 0.4);
     color: var(--color-bg);
-    font-size: 48rpx;
     line-height: 1;
   }
 

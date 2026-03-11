@@ -49,6 +49,7 @@ export default {
           'web-view',
           'ad',
           'official-account',
+          'uni-icons',
         ],
       },
     ],
