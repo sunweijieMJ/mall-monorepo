@@ -12,8 +12,8 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    Breadcrumb: typeof import('./src/components/Breadcrumb/index.vue')['default']
     EditorImage: typeof import('./src/components/Tinymce/components/editorImage.vue')['default']
+    ElAvatar: typeof import('element-plus/es')['ElAvatar']
     ElBreadcrumb: typeof import('element-plus/es')['ElBreadcrumb']
     ElBreadcrumbItem: typeof import('element-plus/es')['ElBreadcrumbItem']
     ElButton: typeof import('element-plus/es')['ElButton']
@@ -52,18 +52,16 @@ declare module 'vue' {
     ElTabPane: typeof import('element-plus/es')['ElTabPane']
     ElTabs: typeof import('element-plus/es')['ElTabs']
     ElTimePicker: typeof import('element-plus/es')['ElTimePicker']
+    ElTooltip: typeof import('element-plus/es')['ElTooltip']
     ElTransfer: typeof import('element-plus/es')['ElTransfer']
     ElTree: typeof import('element-plus/es')['ElTree']
     ElUpload: typeof import('element-plus/es')['ElUpload']
     ErrorBoundary: typeof import('./src/components/ErrorBoundary/index.vue')['default']
-    Hamburger: typeof import('./src/components/Hamburger/index.vue')['default']
     MultiUpload: typeof import('./src/components/Upload/MultiUpload.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    ScrollBar: typeof import('./src/components/ScrollBar/index.vue')['default']
     SentryProvider: typeof import('./src/components/SentryProvider/index.vue')['default']
     SingleUpload: typeof import('./src/components/Upload/SingleUpload.vue')['default']
-    SvgIcon: typeof import('./src/components/SvgIcon/index.vue')['default']
     Tinymce: typeof import('./src/components/Tinymce/index.vue')['default']
   }
   export interface GlobalDirectives {
@@ -73,8 +71,8 @@ declare module 'vue' {
 
 // For TSX support
 declare global {
-  const Breadcrumb: typeof import('./src/components/Breadcrumb/index.vue')['default']
   const EditorImage: typeof import('./src/components/Tinymce/components/editorImage.vue')['default']
+  const ElAvatar: typeof import('element-plus/es')['ElAvatar']
   const ElBreadcrumb: typeof import('element-plus/es')['ElBreadcrumb']
   const ElBreadcrumbItem: typeof import('element-plus/es')['ElBreadcrumbItem']
   const ElButton: typeof import('element-plus/es')['ElButton']
@@ -113,17 +111,15 @@ declare global {
   const ElTabPane: typeof import('element-plus/es')['ElTabPane']
   const ElTabs: typeof import('element-plus/es')['ElTabs']
   const ElTimePicker: typeof import('element-plus/es')['ElTimePicker']
+  const ElTooltip: typeof import('element-plus/es')['ElTooltip']
   const ElTransfer: typeof import('element-plus/es')['ElTransfer']
   const ElTree: typeof import('element-plus/es')['ElTree']
   const ElUpload: typeof import('element-plus/es')['ElUpload']
   const ErrorBoundary: typeof import('./src/components/ErrorBoundary/index.vue')['default']
-  const Hamburger: typeof import('./src/components/Hamburger/index.vue')['default']
   const MultiUpload: typeof import('./src/components/Upload/MultiUpload.vue')['default']
   const RouterLink: typeof import('vue-router')['RouterLink']
   const RouterView: typeof import('vue-router')['RouterView']
-  const ScrollBar: typeof import('./src/components/ScrollBar/index.vue')['default']
   const SentryProvider: typeof import('./src/components/SentryProvider/index.vue')['default']
   const SingleUpload: typeof import('./src/components/Upload/SingleUpload.vue')['default']
-  const SvgIcon: typeof import('./src/components/SvgIcon/index.vue')['default']
   const Tinymce: typeof import('./src/components/Tinymce/index.vue')['default']
 }

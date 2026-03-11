@@ -1,6 +1,17 @@
+import type { Component } from 'vue';
 import { createRouter, createWebHistory } from 'vue-router';
 import { setupMallRouterGuard } from './mallGuards';
 import { mallConstantRoutes } from './routes';
+
+declare module 'vue-router' {
+  interface RouteMeta {
+    title?: string;
+    icon?: Component;
+    hidden?: boolean;
+    sort?: number;
+    link?: string;
+  }
+}
 
 const router = createRouter({
   history: createWebHistory(),

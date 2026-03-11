@@ -5,7 +5,7 @@
         :icon="Setting"
         circle
         text
-        size="large"
+        size="small"
         class="setting-btn"
         @click="handleSettingClick"
       />
@@ -17,19 +17,12 @@
 import { Setting } from '@element-plus/icons-vue';
 import { useRouter } from 'vue-router';
 
+defineOptions({ name: 'SettingButton' });
+
 const router = useRouter();
 
-/**
- * 处理设置按钮点击事件
- */
 const handleSettingClick = () => {
   router.push('/setting');
-};
-</script>
-
-<script lang="ts">
-export default {
-  name: 'SettingButton',
 };
 </script>
 
@@ -42,17 +35,17 @@ export default {
 
 .setting-btn {
   transition: all 0.3s ease;
-  color: var(--el-text-color-regular);
+  color: var(--colorTextSecondary);
 
   &:hover {
     transform: rotate(90deg);
-    background-color: var(--el-color-primary-light-9);
-    color: var(--el-color-primary);
+    background-color: var(--colorPrimaryBg);
+    color: var(--colorPrimary);
   }
 
   &:focus {
-    background-color: var(--el-color-primary-light-8);
-    color: var(--el-color-primary);
+    background-color: var(--colorPrimaryBgHover);
+    color: var(--colorPrimary);
   }
 
   // 图标样式

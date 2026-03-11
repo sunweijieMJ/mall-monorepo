@@ -9,7 +9,7 @@
         auto-complete="on"
       >
         <div class="login-icon">
-          <svg-icon icon-class="login-mall" class="icon" />
+          <el-icon class="icon"><ShoppingCart /></el-icon>
         </div>
         <h2 class="login-title">mall-admin</h2>
 
@@ -22,7 +22,7 @@
             auto-complete="on"
           >
             <template #prefix>
-              <svg-icon icon-class="user" class="input-icon" />
+              <el-icon class="input-icon"><User /></el-icon>
             </template>
           </el-input>
         </el-form-item>
@@ -37,14 +37,13 @@
             @keyup.enter="handleLogin"
           >
             <template #prefix>
-              <svg-icon icon-class="password" class="input-icon" />
+              <el-icon class="input-icon"><Lock /></el-icon>
             </template>
             <template #suffix>
-              <svg-icon
-                icon-class="eye"
-                class="input-icon clickable"
-                @click="showPwd"
-              />
+              <el-icon class="input-icon clickable" @click="showPwd">
+                <View v-if="pwdType === 'password'" />
+                <Hide v-else />
+              </el-icon>
             </template>
           </el-input>
         </el-form-item>
@@ -66,6 +65,7 @@
 </template>
 
 <script setup lang="ts">
+import { ShoppingCart, User, Lock, View, Hide } from '@element-plus/icons-vue';
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus';
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
@@ -174,9 +174,8 @@ onMounted(() => {
   text-align: center;
 
   .icon {
-    width: 56px;
-    height: 56px;
     color: var(--colorPrimary);
+    font-size: 56px;
   }
 }
 

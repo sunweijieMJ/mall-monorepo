@@ -1,13 +1,11 @@
 <template>
   <el-dropdown @command="handleCommand">
     <div class="user-info">
-      <el-avatar :size="46" :src="userStore.avatar || undefined">
+      <el-avatar :size="32" :src="userStore.avatar || undefined">
         <el-icon><User /></el-icon>
       </el-avatar>
-      <div class="user-details">
-        <span class="username">{{ userStore.name || $t('layout.admin') }}</span>
-        <el-icon class="arrow-icon"><ArrowDown /></el-icon>
-      </div>
+      <span class="username">{{ userStore.name || $t('layout.admin') }}</span>
+      <el-icon class="arrow-icon"><ArrowDown /></el-icon>
     </div>
     <template #dropdown>
       <el-dropdown-menu>
@@ -27,30 +25,19 @@ import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useMallUserStore } from '@/store';
 
-// 路由和store
 const router = useRouter();
 const userStore = useMallUserStore();
 const { t: $t } = useI18n();
 
-// 处理下拉菜单命令
 const handleCommand = async (command: string) => {
-  switch (command) {
-    case 'logout':
-      await ElMessageBox.confirm($t('layout.logoutConfirm'), $t('layout.tip'), {
-        confirmButtonText: $t('common.confirm'),
-        cancelButtonText: $t('common.cancel'),
-        type: 'warning',
+  if (command === 'logout') {
+    await ElMessageBox.confirm($t('layout.logoutConfirm'))
+      .then(async () => {
+        await userStore.logoutAction();
+        ElMessage.success($t('layout.logoutSuccess'));
+        router.push('/login');
       })
-        .then(async () => {
-          // 执行退出登录
-          await userStore.logoutAction();
-          ElMessage.success($t('layout.logoutSuccess'));
-          router.push('/login');
-        })
-        .catch(() => {
-          // 用户取消操作
-        });
-      break;
+      .catch(() => {});
   }
 };
 </script>
@@ -59,37 +46,38 @@ const handleCommand = async (command: string) => {
 .user-info {
   display: flex;
   align-items: center;
+  padding: 5px 10px;
+  transition: background-color 0.2s;
+  border-radius: 6px;
   cursor: pointer;
+  gap: 6px;
 
   &:focus-visible {
     outline: none;
   }
 
   &:hover {
+    background-color: var(--controlItemBgHover);
+
     .arrow-icon {
       transform: rotate(180deg);
     }
   }
+}
 
-  .user-details {
-    display: flex;
-    align-items: center;
-    padding: 20px 12px;
-    transform: translateX(-10px);
-    border-radius: 100px;
-    background-color: var(--colorBgContainer);
-  }
+.username {
+  max-width: 120px;
+  overflow: hidden;
+  color: var(--colorText);
+  font-size: 14px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-  .username {
-    color: var(--colorText);
-    font-size: 14px;
-    font-weight: 500;
-  }
-
-  .arrow-icon {
-    margin-left: 4px;
-    transition: transform 0.3s;
-    font-size: 14px;
-  }
+.arrow-icon {
+  transition: transform 0.3s;
+  color: var(--colorTextSecondary);
+  font-size: 12px;
 }
 </style>

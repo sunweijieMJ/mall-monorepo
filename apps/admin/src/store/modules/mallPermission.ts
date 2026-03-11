@@ -21,9 +21,6 @@ function hasPermission(menus: MenuItem[], route: RouteRecordRaw): boolean {
         if (currMenu.title != null && currMenu.title !== '') {
           route.meta.title = currMenu.title;
         }
-        if (currMenu.icon != null && currMenu.icon !== '') {
-          route.meta.icon = currMenu.icon;
-        }
         if (currMenu.hidden != null) {
           route.meta.hidden = currMenu.hidden !== 0;
         }

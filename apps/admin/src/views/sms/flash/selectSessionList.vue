@@ -5,7 +5,7 @@
 <template>
   <div class="app-container">
     <el-card shadow="never" class="operate-container">
-      <i class="el-icon-tickets"></i>
+      <el-icon><Tickets /></el-icon>
       <span>数据列表</span>
     </el-card>
     <div class="table-container">
@@ -46,6 +46,7 @@
 </template>
 
 <script setup lang="ts">
+import { Tickets } from '@element-plus/icons-vue';
 import { type ElTable } from 'element-plus';
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';

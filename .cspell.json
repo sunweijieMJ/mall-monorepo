@@ -18,6 +18,11 @@
     "softwareTerms"
   ],
   "words": [
+    "CLS",
+    "FCP",
+    "INP",
+    "LCP",
+    "TTFB",
     "sku",
     "dto",
     "uniapp",

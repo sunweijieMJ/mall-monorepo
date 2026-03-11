@@ -5,7 +5,7 @@
 <template>
   <div class="app-container">
     <el-card class="operate-container" shadow="never">
-      <i class="el-icon-tickets"></i>
+      <el-icon><Tickets /></el-icon>
       <span>数据列表</span>
       <el-button
         class="btn-add"
@@ -186,7 +186,7 @@
 </template>
 
 <script setup lang="ts">
-import { Search } from '@element-plus/icons-vue';
+import { Search, Tickets } from '@element-plus/icons-vue';
 import {
   ElMessage,
   ElMessageBox,

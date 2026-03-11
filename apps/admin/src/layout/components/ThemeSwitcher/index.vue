@@ -11,7 +11,6 @@
 
 <script setup lang="ts">
 import { Moon, Sunny } from '@element-plus/icons-vue';
-import { ElButton, ElTooltip } from 'element-plus';
 import { toRefs } from 'vue';
 import { useGlobalStore } from '@/store';
 
@@ -27,12 +26,11 @@ const { toggleTheme } = globalStore;
   justify-content: center;
   width: 36px;
   height: 36px;
-  transition: all 0.3s ease;
+  transition: background-color 0.2s;
   border-radius: 6px;
 
   &:hover {
-    background-color: var(--el-color-primary-light-9);
-    color: var(--el-color-primary);
+    background-color: var(--controlItemBgHover);
   }
 
   :deep(.el-icon) {

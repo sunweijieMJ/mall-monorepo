@@ -1,119 +1,106 @@
+<!--
+  侧边栏组件
+-->
 <template>
-  <div class="layout-menu">
-    <div class="side-menu">
-      <div
-        v-for="item in menuItems"
-        :key="item.key"
-        class="menu-item"
-        :class="{ active: activeMenu === item.key }"
-        :title="item.title"
-        @click="handleMenuClick(item.key)"
-      >
-        <el-icon>
-          <component :is="item.icon" />
-        </el-icon>
-      </div>
+  <aside class="layout-menu">
+    <!-- 折叠/展开按钮 -->
+    <div class="menu-toggle" @click="toggleSideBar">
+      <el-icon>
+        <Expand v-if="isCollapse" />
+        <Fold v-else />
+      </el-icon>
     </div>
-  </div>
+
+    <!-- 菜单滚动容器 -->
+    <el-scrollbar wrap-class="scrollbar-wrapper">
+      <MenuItem
+        :routes="routes"
+        :is-collapse="isCollapse"
+        :active-menu="activeMenu"
+      />
+    </el-scrollbar>
+  </aside>
 </template>
 
 <script setup lang="ts">
-import {
-  PieChart,
-  Calendar,
-  UserFilled,
-  Medal,
-  FirstAidKit,
-} from '@element-plus/icons-vue';
-import { ref } from 'vue';
+import { Expand, Fold } from '@element-plus/icons-vue';
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+import MenuItem from './MenuItem.vue';
+import { useMallAppStore } from '@/store/modules/mallApp';
+import { useMallPermissionStore } from '@/store/modules/mallPermission';
 
-interface MenuItem {
-  key: string;
-  title: string;
-  icon: string;
-}
+const route = useRoute();
+const appStore = useMallAppStore();
+const permissionStore = useMallPermissionStore();
 
-const menuItems: MenuItem[] = [
-  {
-    key: 'dashboard',
-    title: '仪表盘',
-    icon: 'PieChart',
-  },
-  {
-    key: 'labAppointment',
-    title: '实验室预约',
-    icon: 'Calendar',
-  },
-  {
-    key: 'internship',
-    title: '实习管理',
-    icon: 'UserFilled',
-  },
-  {
-    key: 'competition',
-    title: '竞赛管理',
-    icon: 'Medal',
-  },
-  {
-    key: 'inventory',
-    title: '库存管理',
-    icon: 'FirstAidKit',
-  },
-];
+const routes = computed(() => permissionStore.routes);
 
-const activeMenu = ref('dashboard');
+const activeMenu = computed(() => {
+  const { meta, path } = route;
+  return (meta?.activeMenu as string) || path;
+});
 
-const emit = defineEmits(['menuChange']);
+const isCollapse = computed(() => !appStore.sidebar.opened);
 
-const handleMenuClick = (menu: string) => {
-  activeMenu.value = menu;
-  emit('menuChange', menu);
+const toggleSideBar = () => {
+  appStore.toggleSidebar();
 };
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .layout-menu {
   display: flex;
-  align-items: center;
-  height: 100%;
-  padding: 0 20px;
-}
-
-.side-menu {
-  display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 45px;
-  padding: 4px;
-  border-radius: 100px;
-  gap: 4px;
+  height: 100%;
+  overflow: hidden;
+  border-right: 1px solid var(--colorBorderSecondary);
+  background-color: var(--colorBgContainer);
+
+  .el-scrollbar {
+    flex: 1;
+
+    :deep(.scrollbar-wrapper) {
+      overflow-x: hidden !important;
+
+      .el-scrollbar__view {
+        height: 100%;
+      }
+    }
+
+    :deep(.el-menu) {
+      height: 100%;
+      border: none;
+
+      // 折叠状态：强制隐藏文字，防止过渡期间文字溢出；箭头移到右下角
+      &.el-menu--collapse {
+        width: 64px !important;
+
+        span {
+          display: none;
+        }
+
+        .el-sub-menu__icon-arrow {
+          display: none;
+        }
+      }
+    }
+  }
 }
 
-.menu-item {
+.menu-toggle {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
+  height: 50px;
+  transition: background-color 0.2s;
+  color: var(--colorIcon);
+  font-size: 20px;
   cursor: pointer;
 
-  .el-icon {
-    color: #000;
-    font-size: 18px;
-  }
-
   &:hover {
-    background-color: #f5f7fa;
-  }
-
-  &.active {
-    background-color: #3dd7e3;
-
-    .el-icon {
-      color: #fff;
-    }
+    background-color: var(--controlItemBgHover);
   }
 }
 </style>

@@ -1,34 +1,26 @@
 <template>
   <header class="layout-header">
-    <!-- 左侧Logo区域 -->
+    <!-- 左侧 Logo -->
     <div class="header-left">
       <div class="logo" @click="handleLogoClick">
-        <LogoIcon v-if="headerVisible.logoIcon" />
-        <LogoTitle v-if="headerVisible.logoTitle" :title="logoTitle" />
+        <AppLogo
+          :show-icon="headerVisible.logoIcon"
+          :show-title="headerVisible.logoTitle"
+          :title="logoTitle"
+        />
       </div>
     </div>
 
-    <!-- 中间菜单区域 -->
+    <!-- 中间面包屑 -->
     <div class="header-center">
-      <nav class="menu-nav">
-        <slot name="menu">
-          <!-- 默认菜单可以在这里添加，或者通过slot传入 -->
-        </slot>
-      </nav>
+      <LayoutBreadcrumb />
     </div>
 
     <!-- 右侧工具栏 -->
     <div class="header-right">
-      <!-- 主题切换 -->
       <ThemeSwitcher v-if="headerVisible.themeSwitch" />
-
-      <!-- 语言切换 -->
       <LanguageSwitcher v-if="headerVisible.localeSwitch" />
-
-      <!-- 设置按钮 -->
       <SettingButton v-if="headerVisible.setting && globalStore.advanceMode" />
-
-      <!-- 用户头像 -->
       <HeaderAvatar v-if="headerVisible.avatar" />
     </div>
   </header>
@@ -37,19 +29,17 @@
 <script setup lang="ts">
 import { ElMessage } from 'element-plus';
 import { useRouter } from 'vue-router';
-import { useHeaderControl } from '../../useLayoutContext.ts';
+import { useHeaderControl } from '../../useLayoutContext';
+import AppLogo from '../AppLogo/index.vue';
 import HeaderAvatar from '../HeaderAvatar/index.vue';
 import LanguageSwitcher from '../LanguageSwitcher/index.vue';
-import LogoIcon from '../LogoIcon/index.vue';
-import LogoTitle from '../LogoTitle/index.vue';
+import LayoutBreadcrumb from '../LayoutBreadcrumb/index.vue';
 import SettingButton from '../SettingButton/index.vue';
 import ThemeSwitcher from '../ThemeSwitcher/index.vue';
-import { useGlobalStore } from '@/store/modules/global';
+import { useGlobalStore } from '@/store';
 
 const router = useRouter();
 const globalStore = useGlobalStore();
-
-// 获取布局可见性状态
 const { headerVisible } = useHeaderControl();
 
 interface Props {
@@ -77,8 +67,10 @@ const handleLogoClick = () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 103px;
-  padding: 0 20px;
+  height: 100%;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--colorBorderSecondary);
+  background-color: var(--colorBgContainer);
 }
 
 .header-left {
@@ -99,20 +91,13 @@ const handleLogoClick = () => {
 }
 
 .header-center {
-  display: flex;
   flex: 1;
-  justify-content: center;
-  padding: 0 24px;
-}
-
-.menu-nav {
-  display: flex;
-  align-items: center;
+  padding: 0 16px;
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 8px;
 }
 </style>
