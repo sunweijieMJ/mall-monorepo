@@ -15,7 +15,7 @@ import type { PluginOption } from 'vite';
 import viteCompression from 'vite-plugin-compression';
 import mkcert from 'vite-plugin-mkcert';
 import { VueMcp } from 'vite-plugin-vue-mcp';
-import { devServer } from './config/devServer';
+import { devServer } from './config';
 
 /**
  * 现代浏览器兼容性填充

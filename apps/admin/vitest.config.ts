@@ -28,11 +28,6 @@ export default defineConfig({
     ],
     // 排除文件
     exclude: [
-      'node_modules',
-      'dist',
-      '.idea',
-      '.git',
-      '.cache',
       '**/node_modules/**',
       '**/dist/**',
       '**/build/**',

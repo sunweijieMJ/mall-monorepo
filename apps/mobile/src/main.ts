@@ -1,5 +1,5 @@
 import { createSSRApp } from 'vue';
-import App from './App.vue';
+import App from './app/App.vue';
 import pinia from './store';
 import { i18n } from './utils/locale';
 import { setupRouterInterceptor } from './utils/routerInterceptor';
