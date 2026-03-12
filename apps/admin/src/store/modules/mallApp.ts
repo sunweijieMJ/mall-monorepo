@@ -73,7 +73,7 @@ export const useMallAppStore = defineStore(
     persist: {
       key: 'mall-app',
       storage: localStorage,
-      paths: ['sidebar.opened'],
+      pick: ['sidebar.opened'],
     },
   },
 );

@@ -10,6 +10,10 @@ declare module 'vue-router' {
     hidden?: boolean;
     sort?: number;
     link?: string;
+    /** 固定页签，不可关闭（如首页） */
+    affix?: boolean;
+    /** 禁止 keep-alive 缓存 */
+    noCache?: boolean;
   }
 }
 

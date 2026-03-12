@@ -36,7 +36,7 @@ export const mallConstantRoutes: RouteRecordRaw[] = [
         path: 'home',
         name: 'home',
         component: () => import('@/views/home/index.vue'),
-        meta: { title: '仪表盘', icon: DataAnalysis },
+        meta: { title: '仪表盘', icon: DataAnalysis, affix: true },
       },
     ],
   },

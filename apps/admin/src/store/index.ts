@@ -2,6 +2,7 @@ import { createPersistedPinia } from './plugins/persist';
 
 export * from './modules/mallUser';
 export * from './modules/global';
+export * from './modules/tabView';
 export * from './modules/mallPermission';
 export * from './plugins/persist';
 
