@@ -9,7 +9,7 @@
 </template>
 <script setup lang="ts">
 import { ElConfigProvider } from 'element-plus';
-import { computed, watchEffect, onMounted, toRefs, ref } from 'vue';
+import { computed, watch, watchEffect, onMounted, toRefs, ref } from 'vue';
 import ErrorBoundary from '@/components/ErrorBoundary/index.vue';
 import SentryProvider from '@/components/SentryProvider/index.vue';
 import { provideLayoutContext } from '@/layout/useLayoutContext';
@@ -20,7 +20,7 @@ import { getElementPlusLocale } from '@/utils/locale';
 
 const globalStore = useGlobalStore();
 const { currentLocale, currentTheme } = toRefs(globalStore);
-const { initLocale, initTheme } = globalStore;
+const { initLocale, initTheme, applyCustomTheme } = globalStore;
 
 // SentryProvider 引用
 const sentryProviderRef = ref<InstanceType<typeof SentryProvider>>();
@@ -59,15 +59,18 @@ watchEffect(async () => {
   dayjs.locale(currentLocale.value);
 });
 
-// 监听主题变化
-watchEffect(() => {
-  const html = document.documentElement;
-  const theme = currentTheme.value;
-  // 切换主题
-  html.setAttribute('theme', theme);
-  html.classList.remove('light', 'dark');
-  html.classList.add(theme);
-});
+// 监听主题变化，仅依赖 currentTheme（避免 applyCustomTheme 内部读取 customThemeVars 导致误追踪）
+watch(
+  currentTheme,
+  (theme) => {
+    const html = document.documentElement;
+    html.setAttribute('theme', theme);
+    html.classList.remove('light', 'dark');
+    html.classList.add(theme);
+    applyCustomTheme();
+  },
+  { immediate: true },
+);
 </script>
 <style lang="scss">
 @use './index';

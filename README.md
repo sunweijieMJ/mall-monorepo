@@ -18,7 +18,7 @@
 │   └── typescript-config/       #   TypeScript 共享配置 (@kit/typescript-config)
 │
 ├── scripts/                     # 工程脚本
-│   ├── cssVars/                 #   CSS 变量检查脚本
+│   ├── css/                 #   CSS 变量检查脚本
 │   └── husky/                   #   Git Hooks 脚本
 │
 ├── typings/                     # 全局 TypeScript 类型声明

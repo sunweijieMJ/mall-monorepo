@@ -2,6 +2,12 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { DEFAULT_LOCALE, DEFAULT_THEME_STYLE } from '@/constants/system';
 import type { LocaleKey, ThemeStyleKey } from '@/interface/system';
+import type { ThemeData, ThemeVars } from '@/utils/theme';
+import {
+  applyThemeVarsToDOM,
+  clearCustomThemeVars,
+  getDefaultThemeVars,
+} from '@/utils/theme';
 
 export const useGlobalStore = defineStore(
   'global',
@@ -58,10 +64,70 @@ export const useGlobalStore = defineStore(
       }
     };
 
+    // ==================== 自定义主题变量 ====================
+    const customThemeVars = ref<ThemeData>({ light: {}, dark: {} });
+
+    /** 应用自定义主题到 DOM（先清除所有旧 inline styles，再应用当前主题的覆盖） */
+    const applyCustomTheme = () => {
+      // 清除所有主题的 inline styles，避免切换主题时残留
+      for (const vars of Object.values(customThemeVars.value)) {
+        clearCustomThemeVars(vars);
+      }
+      // 应用当前主题的自定义变量
+      const customVars = customThemeVars.value[currentTheme.value];
+      if (Object.keys(customVars).length > 0) {
+        applyThemeVarsToDOM(customVars);
+      }
+    };
+
+    /** 设置单个主题变量 */
+    const setThemeVar = (
+      varName: string,
+      value: string,
+      theme?: ThemeStyleKey,
+    ) => {
+      const themeKey = theme ?? currentTheme.value;
+      customThemeVars.value[themeKey][varName] = value;
+    };
+
+    /** 批量设置主题变量 */
+    const setThemeVars = (vars: ThemeVars, theme?: ThemeStyleKey) => {
+      const themeKey = theme ?? currentTheme.value;
+      customThemeVars.value[themeKey] = {
+        ...customThemeVars.value[themeKey],
+        ...vars,
+      };
+    };
+
+    /** 删除单个自定义变量（恢复为默认值） */
+    const removeThemeVar = (varName: string, theme?: ThemeStyleKey) => {
+      const themeKey = theme ?? currentTheme.value;
+      delete customThemeVars.value[themeKey][varName];
+      if (themeKey === currentTheme.value) {
+        document.documentElement.style.removeProperty(`--${varName}`);
+      }
+    };
+
+    /** 重置自定义主题 */
+    const resetCustomTheme = (theme?: ThemeStyleKey) => {
+      const themeKey = theme ?? currentTheme.value;
+      const currentCustomVars = customThemeVars.value[themeKey];
+      clearCustomThemeVars(currentCustomVars);
+      customThemeVars.value[themeKey] = {};
+    };
+
+    /** 获取合并后的主题变量（默认 + 自定义覆盖） */
+    const getMergedThemeVars = (theme?: ThemeStyleKey): ThemeVars => {
+      const themeKey = theme ?? currentTheme.value;
+      const defaults = getDefaultThemeVars(themeKey);
+      const custom = customThemeVars.value[themeKey];
+      return { ...defaults, ...custom };
+    };
+
     // ==================== 高级模式相关 ====================
     const advanceMode = ref<boolean>(false);
     const clickCount = ref<number>(0);
-    const clickTimer = ref<NodeJS.Timeout | null>(null);
+    const clickTimer = ref<ReturnType<typeof setTimeout> | null>(null);
 
     /**
      * 切换高级模式
@@ -107,6 +173,15 @@ export const useGlobalStore = defineStore(
       toggleTheme,
       setTheme,
       initTheme,
+
+      // 自定义主题相关
+      customThemeVars,
+      applyCustomTheme,
+      setThemeVar,
+      setThemeVars,
+      removeThemeVar,
+      resetCustomTheme,
+      getMergedThemeVars,
 
       // 高级模式相关
       advanceMode,
