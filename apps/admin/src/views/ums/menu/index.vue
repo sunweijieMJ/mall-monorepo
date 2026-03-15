@@ -1,32 +1,39 @@
 <!--
-  菜单列表页面
+  菜单列表页面 — 懒加载树形表格 + 搜索
 -->
 <template>
   <div class="app-container">
+    <!-- 筛选搜索 -->
+    <FilterContainer @search="handleSearch" @reset="handleReset">
+      <el-form :inline="true" :model="searchForm" label-width="140px">
+        <el-form-item label="菜单名称：">
+          <el-input
+            v-model="searchForm.keyword"
+            class="input-width"
+            placeholder="菜单名称"
+            clearable
+          />
+        </el-form-item>
+      </el-form>
+    </FilterContainer>
+
     <!-- 操作按钮 -->
     <OperateContainer>
       <el-button type="primary" @click="handleAdd">添加</el-button>
     </OperateContainer>
 
-    <!-- 数据列表 -->
-    <AppTable
-      v-model:current-page="listQuery.pageNum"
-      v-model:page-size="listQuery.pageSize"
-      :data="list"
-      :loading="listLoading"
-      :total="total"
-      :page-sizes="[5, 10, 15]"
-      @size-change="handleSizeChange"
-      @page-change="handleCurrentChange"
+    <!-- 搜索模式：全量树过滤 -->
+    <el-table
+      v-if="isSearchMode"
+      v-loading="listLoading"
+      :data="filteredTreeList"
+      row-key="id"
+      :tree-props="{ children: 'children' }"
+      border
+      default-expand-all
     >
-      <el-table-column label="编号" width="100" align="center">
-        <template #default="{ row }">{{ row.id }}</template>
-      </el-table-column>
-      <el-table-column label="菜单名称" align="center">
+      <el-table-column label="菜单名称" min-width="180">
         <template #default="{ row }">{{ row.title }}</template>
-      </el-table-column>
-      <el-table-column label="菜单级数" width="100" align="center">
-        <template #default="{ row }">{{ formatLevel(row.level) }}</template>
       </el-table-column>
       <el-table-column label="前端名称" align="center">
         <template #default="{ row }">{{ row.name }}</template>
@@ -35,100 +42,123 @@
         <template #default="{ row }">{{ row.icon }}</template>
       </el-table-column>
       <el-table-column label="是否显示" width="100" align="center">
-        <template #default="{ row, $index }">
+        <template #default="{ row }">
           <el-switch
             v-model="row.hidden"
             :active-value="0"
             :inactive-value="1"
-            @change="handleHiddenChange($index, row)"
+            @change="handleHiddenChange(row)"
           />
         </template>
       </el-table-column>
       <el-table-column label="排序" width="100" align="center">
         <template #default="{ row }">{{ row.sort }}</template>
       </el-table-column>
-      <el-table-column label="设置" width="120" align="center">
-        <template #default="{ row, $index }">
-          <el-button
-            link
-            type="primary"
-            :disabled="row.level !== 0"
-            @click="handleShowNextLevel($index, row)"
-          >
-            查看下级
-          </el-button>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" width="140" align="center">
-        <template #default="{ row, $index }">
-          <el-button link type="primary" @click="handleUpdate($index, row)">
+      <el-table-column label="操作" width="160" align="center" fixed="right">
+        <template #default="{ row }">
+          <el-button link type="primary" @click="handleUpdate(row)">
             编辑
           </el-button>
-          <el-button link type="danger" @click="handleDelete($index, row)">
+          <el-button link type="danger" @click="handleDelete(row)">
             删除
           </el-button>
         </template>
       </el-table-column>
-    </AppTable>
+    </el-table>
+
+    <!-- 默认模式：懒加载 -->
+    <el-table
+      v-else
+      ref="tableRef"
+      v-loading="listLoading"
+      :data="rootList"
+      row-key="id"
+      lazy
+      :load="loadChildren"
+      :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
+      border
+    >
+      <el-table-column label="菜单名称" min-width="180">
+        <template #default="{ row }">{{ row.title }}</template>
+      </el-table-column>
+      <el-table-column label="前端名称" align="center">
+        <template #default="{ row }">{{ row.name }}</template>
+      </el-table-column>
+      <el-table-column label="前端图标" width="100" align="center">
+        <template #default="{ row }">{{ row.icon }}</template>
+      </el-table-column>
+      <el-table-column label="是否显示" width="100" align="center">
+        <template #default="{ row }">
+          <el-switch
+            v-model="row.hidden"
+            :active-value="0"
+            :inactive-value="1"
+            @change="handleHiddenChange(row)"
+          />
+        </template>
+      </el-table-column>
+      <el-table-column label="排序" width="100" align="center">
+        <template #default="{ row }">{{ row.sort }}</template>
+      </el-table-column>
+      <el-table-column label="操作" width="160" align="center" fixed="right">
+        <template #default="{ row }">
+          <el-button link type="primary" @click="handleUpdate(row)">
+            编辑
+          </el-button>
+          <el-button link type="danger" @click="handleDelete(row)">
+            删除
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
 
     <!-- 新增/编辑弹窗 -->
     <MenuFormDialog
       v-model="dialogVisible"
       :is-edit="isEdit"
       :edit-data="currentMenu"
-      @success="getList"
+      @success="handleFormSuccess"
     />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { ref, reactive, onMounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, onMounted } from 'vue';
 import MenuFormDialog from './components/MenuFormDialog.vue';
-import type { AdminMenuVo } from '@/api';
-import AppTable from '@/components/List/AppTable.vue';
+import type { AdminMenuVo, AdminMenuTreeNodeVo } from '@/api';
+import FilterContainer from '@/components/List/FilterContainer.vue';
 import OperateContainer from '@/components/List/OperateContainer.vue';
 import { useMenuStore } from '@/store/modules/menu';
 
-const route = useRoute();
-const router = useRouter();
 const menuStore = useMenuStore();
 
-const list = ref<AdminMenuVo[]>([]);
-const total = ref(0);
 const listLoading = ref(false);
-const parentId = ref(0);
 const dialogVisible = ref(false);
 const isEdit = ref(false);
 const currentMenu = ref<AdminMenuVo | null>(null);
 
-const listQuery = reactive({
-  pageNum: 1,
-  pageSize: 5,
+// 懒加载模式数据
+const rootList = ref<(AdminMenuVo & { hasChildren: boolean })[]>([]);
+
+// 搜索模式数据
+const isSearchMode = ref(false);
+const fullTreeList = ref<AdminMenuTreeNodeVo[]>([]);
+const filteredTreeList = ref<AdminMenuTreeNodeVo[]>([]);
+
+const searchForm = ref({
+  keyword: '',
 });
 
-const formatLevel = (level?: number) => {
-  if (level === 0) return '一级';
-  if (level === 1) return '二级';
-  return level;
-};
-
-const resetParentId = () => {
-  listQuery.pageNum = 1;
-  if (route.query.parentId != null) {
-    parentId.value = Number(route.query.parentId);
-  } else {
-    parentId.value = 0;
-  }
-};
-
-const getList = async () => {
+// 获取顶层菜单列表（懒加载根节点）
+const getRootList = async () => {
   listLoading.value = true;
   try {
-    await menuStore.getList({ parentId: parentId.value, ...listQuery });
-    list.value = menuStore.list;
-    total.value = menuStore.total;
+    await menuStore.getList({ parentId: 0, pageSize: 100, pageNum: 1 });
+    rootList.value = menuStore.list.map((item) => ({
+      ...item,
+      hasChildren: item.level === 0,
+    }));
   } catch (error) {
     console.error('获取列表失败:', error);
     ElMessage.error('获取列表失败');
@@ -137,45 +167,104 @@ const getList = async () => {
   }
 };
 
+// 懒加载子菜单
+const loadChildren = async (
+  row: AdminMenuVo,
+  _treeNode: any,
+  resolve: (data: any[]) => void,
+) => {
+  try {
+    await menuStore.getList({ parentId: row.id, pageSize: 100, pageNum: 1 });
+    const children = menuStore.list.map((item) => ({
+      ...item,
+      hasChildren: item.level === 0, // 只有一级菜单才有子节点
+    }));
+    resolve(children);
+  } catch (error) {
+    console.error('加载子菜单失败:', error);
+    resolve([]);
+  }
+};
+
+// 搜索：加载全量树并过滤
+const handleSearch = async () => {
+  const keyword = searchForm.value.keyword?.trim();
+  if (!keyword) {
+    isSearchMode.value = false;
+    await getRootList();
+    return;
+  }
+
+  isSearchMode.value = true;
+  listLoading.value = true;
+  try {
+    await menuStore.getTreeList();
+    fullTreeList.value = menuStore.treeList as AdminMenuTreeNodeVo[];
+    filteredTreeList.value = filterTree(fullTreeList.value, keyword);
+  } catch (error) {
+    console.error('搜索失败:', error);
+    ElMessage.error('搜索失败');
+  } finally {
+    listLoading.value = false;
+  }
+};
+
+// 树过滤：保留匹配节点及其父链
+const filterTree = (
+  tree: AdminMenuTreeNodeVo[],
+  keyword: string,
+): AdminMenuTreeNodeVo[] => {
+  const result: AdminMenuTreeNodeVo[] = [];
+  for (const node of tree) {
+    const matchedChildren = node.children
+      ? filterTree(node.children, keyword)
+      : [];
+    const selfMatch =
+      node.title?.toLowerCase().includes(keyword.toLowerCase()) ||
+      node.name?.toLowerCase().includes(keyword.toLowerCase());
+
+    if (selfMatch || matchedChildren.length > 0) {
+      result.push({
+        ...node,
+        children: matchedChildren.length > 0 ? matchedChildren : node.children,
+      });
+    }
+  }
+  return result;
+};
+
+const handleReset = () => {
+  searchForm.value.keyword = '';
+  isSearchMode.value = false;
+  getRootList();
+};
+
 const handleAdd = () => {
   isEdit.value = false;
   currentMenu.value = null;
   dialogVisible.value = true;
 };
 
-const handleSizeChange = (val: number) => {
-  listQuery.pageNum = 1;
-  listQuery.pageSize = val;
-  getList();
-};
-
-const handleCurrentChange = (val: number) => {
-  listQuery.pageNum = val;
-  getList();
-};
-
-const handleHiddenChange = async (_index: number, row: AdminMenuVo) => {
+const handleHiddenChange = async (row: AdminMenuVo) => {
+  const originHidden = row.hidden === 0 ? 1 : 0;
   try {
     await menuStore.updateHidden(row.id, { hidden: row.hidden });
     ElMessage.success('修改成功');
   } catch (error) {
+    // 失败时回滚开关状态
+    row.hidden = originHidden;
     console.error('修改失败:', error);
     ElMessage.error('修改失败');
-    await getList();
   }
 };
 
-const handleShowNextLevel = (_index: number, row: AdminMenuVo) => {
-  router.push({ path: '/ums/menu', query: { parentId: String(row.id) } });
-};
-
-const handleUpdate = (_index: number, row: AdminMenuVo) => {
+const handleUpdate = (row: AdminMenuVo) => {
   isEdit.value = true;
   currentMenu.value = row;
   dialogVisible.value = true;
 };
 
-const handleDelete = async (_index: number, row: AdminMenuVo) => {
+const handleDelete = async (row: AdminMenuVo) => {
   try {
     await ElMessageBox.confirm('是否要删除该菜单?', '提示', {
       confirmButtonText: '确定',
@@ -185,7 +274,12 @@ const handleDelete = async (_index: number, row: AdminMenuVo) => {
 
     await menuStore.deleteItem(row.id);
     ElMessage.success('删除成功');
-    await getList();
+    // 删除后刷新
+    if (isSearchMode.value) {
+      await handleSearch();
+    } else {
+      await getRootList();
+    }
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('删除失败:', error);
@@ -194,16 +288,21 @@ const handleDelete = async (_index: number, row: AdminMenuVo) => {
   }
 };
 
-watch(
-  () => route.query,
-  () => {
-    resetParentId();
-    getList();
-  },
-);
+const handleFormSuccess = () => {
+  if (isSearchMode.value) {
+    handleSearch();
+  } else {
+    getRootList();
+  }
+};
 
 onMounted(() => {
-  resetParentId();
-  getList();
+  getRootList();
 });
 </script>
+
+<style scoped lang="scss">
+.input-width {
+  width: 203px;
+}
+</style>

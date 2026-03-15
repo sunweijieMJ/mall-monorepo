@@ -6,21 +6,21 @@
   <AppDialog
     :model-value="modelValue"
     :title="isEdit ? '编辑菜单' : '添加菜单'"
-    width="560px"
+    width="520px"
     :confirm-loading="submitLoading"
     @update:model-value="emit('update:modelValue', $event)"
     @confirm="handleSubmit"
     @closed="resetForm"
   >
-    <el-form ref="menuFormRef" :model="menu" :rules="rules" label-width="150px">
+    <el-form ref="menuFormRef" :model="menu" :rules="rules" label-width="100px">
       <el-form-item label="菜单名称：" prop="title">
-        <el-input v-model="menu.title" style="width: 280px" />
+        <el-input v-model="menu.title" class="form-input" />
       </el-form-item>
       <el-form-item label="上级菜单：">
         <el-select
           v-model="menu.parentId"
           placeholder="请选择菜单"
-          style="width: 280px"
+          class="form-input"
         >
           <el-option
             v-for="item in selectMenuList"
@@ -31,10 +31,10 @@
         </el-select>
       </el-form-item>
       <el-form-item label="前端名称：" prop="name">
-        <el-input v-model="menu.name" style="width: 280px" />
+        <el-input v-model="menu.name" class="form-input" />
       </el-form-item>
       <el-form-item label="前端图标：" prop="icon">
-        <el-input v-model="menu.icon" style="width: 220px" />
+        <el-input v-model="menu.icon" class="form-input" />
         <span style="margin-left: 8px">{{ menu.icon }}</span>
       </el-form-item>
       <el-form-item label="是否显示：">
@@ -44,7 +44,7 @@
         </el-radio-group>
       </el-form-item>
       <el-form-item label="排序：">
-        <el-input v-model.number="menu.sort" style="width: 280px" />
+        <el-input v-model.number="menu.sort" class="form-input" />
       </el-form-item>
     </el-form>
   </AppDialog>
@@ -77,7 +77,7 @@ const defaultMenu = {
   parentId: 0,
   name: '',
   icon: '',
-  hidden: 0,
+  hidden: 0 as const,
   sort: 0,
 };
 
@@ -154,3 +154,9 @@ const resetForm = () => {
   menuFormRef.value?.clearValidate();
 };
 </script>
+
+<style scoped lang="scss">
+.form-input {
+  width: 280px;
+}
+</style>

@@ -4,33 +4,9 @@
  * - hidden: true 不在侧边栏显示
  * - name 用于 <keep-alive> 缓存
  * - meta.title 侧边栏和面包屑显示的标题
- * - meta.icon 侧边栏显示的图标
+ * - meta.icon 由后端菜单配置，通过 iconMap 映射为组件
  */
 
-import {
-  Goods,
-  List,
-  CirclePlus,
-  Menu,
-  SetUp,
-  Medal,
-  Document,
-  Setting,
-  RefreshLeft,
-  ChatDotRound,
-  MagicStick,
-  Lightning,
-  Discount,
-  Star,
-  TrendCharts,
-  Notebook,
-  PictureFilled,
-  Lock,
-  UserFilled,
-  Avatar,
-  Grid,
-  Collection,
-} from '@element-plus/icons-vue';
 import type { RouteRecordRaw } from 'vue-router';
 import Layout from '@/layout/index.vue';
 
@@ -41,31 +17,31 @@ export const mallAsyncRoutes: RouteRecordRaw[] = [
     component: Layout,
     redirect: '/pms/product',
     name: 'PMS',
-    meta: { title: '商品', icon: Goods },
+    meta: { title: '商品' },
     children: [
       {
         path: 'product',
         name: 'Product',
         component: () => import('@/views/pms/product/index.vue'),
-        meta: { title: '商品列表', icon: List },
+        meta: { title: '商品列表' },
       },
       {
         path: 'addProduct',
         name: 'AddProduct',
         component: () => import('@/views/pms/product/add.vue'),
-        meta: { title: '添加商品', icon: CirclePlus },
+        meta: { title: '添加商品' },
       },
       {
         path: 'updateProduct',
         name: 'UpdateProduct',
         component: () => import('@/views/pms/product/update.vue'),
-        meta: { title: '修改商品', icon: CirclePlus, hidden: true },
+        meta: { title: '修改商品', hidden: true },
       },
       {
         path: 'productCate',
         name: 'ProductCate',
         component: () => import('@/views/pms/productCate/index.vue'),
-        meta: { title: '商品分类', icon: Menu },
+        meta: { title: '商品分类' },
       },
       {
         path: 'addProductCate',
@@ -83,7 +59,7 @@ export const mallAsyncRoutes: RouteRecordRaw[] = [
         path: 'productAttr',
         name: 'ProductAttr',
         component: () => import('@/views/pms/productAttr/index.vue'),
-        meta: { title: '商品类型', icon: SetUp },
+        meta: { title: '商品类型' },
       },
       {
         path: 'productAttrList',
@@ -108,7 +84,7 @@ export const mallAsyncRoutes: RouteRecordRaw[] = [
         path: 'brand',
         name: 'Brand',
         component: () => import('@/views/pms/brand/index.vue'),
-        meta: { title: '品牌管理', icon: Medal },
+        meta: { title: '品牌管理' },
       },
       {
         path: 'addBrand',
@@ -131,13 +107,13 @@ export const mallAsyncRoutes: RouteRecordRaw[] = [
     component: Layout,
     redirect: '/oms/order',
     name: 'OMS',
-    meta: { title: '订单', icon: Document },
+    meta: { title: '订单' },
     children: [
       {
         path: 'order',
         name: 'Order',
         component: () => import('@/views/oms/order/index.vue'),
-        meta: { title: '订单列表', icon: List },
+        meta: { title: '订单列表' },
       },
       {
         path: 'orderDetail',
@@ -155,19 +131,19 @@ export const mallAsyncRoutes: RouteRecordRaw[] = [
         path: 'orderSetting',
         name: 'OrderSetting',
         component: () => import('@/views/oms/order/setting.vue'),
-        meta: { title: '订单设置', icon: Setting },
+        meta: { title: '订单设置' },
       },
       {
         path: 'returnApply',
         name: 'ReturnApply',
         component: () => import('@/views/oms/apply/index.vue'),
-        meta: { title: '退货申请处理', icon: RefreshLeft },
+        meta: { title: '退货申请处理' },
       },
       {
         path: 'returnReason',
         name: 'ReturnReason',
         component: () => import('@/views/oms/apply/reason.vue'),
-        meta: { title: '退货原因设置', icon: ChatDotRound },
+        meta: { title: '退货原因设置' },
       },
       {
         path: 'returnApplyDetail',
@@ -184,13 +160,13 @@ export const mallAsyncRoutes: RouteRecordRaw[] = [
     component: Layout,
     redirect: '/sms/coupon',
     name: 'SMS',
-    meta: { title: '营销', icon: MagicStick },
+    meta: { title: '营销' },
     children: [
       {
         path: 'flash',
         name: 'Flash',
         component: () => import('@/views/sms/flash/index.vue'),
-        meta: { title: '秒杀活动列表', icon: Lightning },
+        meta: { title: '秒杀活动列表' },
       },
       {
         path: 'flashSession',
@@ -214,7 +190,7 @@ export const mallAsyncRoutes: RouteRecordRaw[] = [
         path: 'coupon',
         name: 'Coupon',
         component: () => import('@/views/sms/coupon/index.vue'),
-        meta: { title: '优惠券列表', icon: Discount },
+        meta: { title: '优惠券列表' },
       },
       {
         path: 'addCoupon',
@@ -238,31 +214,31 @@ export const mallAsyncRoutes: RouteRecordRaw[] = [
         path: 'brand',
         name: 'HomeBrand',
         component: () => import('@/views/sms/brand/index.vue'),
-        meta: { title: '品牌推荐', icon: Medal },
+        meta: { title: '品牌推荐' },
       },
       {
         path: 'new',
         name: 'HomeNew',
         component: () => import('@/views/sms/new/index.vue'),
-        meta: { title: '新品推荐', icon: Star },
+        meta: { title: '新品推荐' },
       },
       {
         path: 'hot',
         name: 'HomeHot',
         component: () => import('@/views/sms/hot/index.vue'),
-        meta: { title: '人气推荐', icon: TrendCharts },
+        meta: { title: '人气推荐' },
       },
       {
         path: 'subject',
         name: 'HomeSubject',
         component: () => import('@/views/sms/subject/index.vue'),
-        meta: { title: '专题推荐', icon: Notebook },
+        meta: { title: '专题推荐' },
       },
       {
         path: 'advertise',
         name: 'HomeAdvertise',
         component: () => import('@/views/sms/advertise/index.vue'),
-        meta: { title: '广告列表', icon: PictureFilled },
+        meta: { title: '广告列表' },
       },
       {
         path: 'addAdvertise',
@@ -285,19 +261,19 @@ export const mallAsyncRoutes: RouteRecordRaw[] = [
     component: Layout,
     redirect: '/ums/admin',
     name: 'UMS',
-    meta: { title: '权限', icon: Lock },
+    meta: { title: '权限' },
     children: [
       {
         path: 'admin',
         name: 'Admin',
         component: () => import('@/views/ums/admin/index.vue'),
-        meta: { title: '用户列表', icon: UserFilled },
+        meta: { title: '用户列表' },
       },
       {
         path: 'role',
         name: 'Role',
         component: () => import('@/views/ums/role/index.vue'),
-        meta: { title: '角色列表', icon: Avatar },
+        meta: { title: '角色列表' },
       },
       {
         path: 'allocMenu',
@@ -315,13 +291,13 @@ export const mallAsyncRoutes: RouteRecordRaw[] = [
         path: 'menu',
         name: 'Menu',
         component: () => import('@/views/ums/menu/index.vue'),
-        meta: { title: '菜单列表', icon: Grid },
+        meta: { title: '菜单列表' },
       },
       {
         path: 'resource',
         name: 'Resource',
         component: () => import('@/views/ums/resource/index.vue'),
-        meta: { title: '资源列表', icon: Collection },
+        meta: { title: '资源列表' },
       },
       {
         path: 'resourceCategory',

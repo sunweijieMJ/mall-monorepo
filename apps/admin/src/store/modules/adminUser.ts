@@ -13,6 +13,7 @@ import {
   adminUserControllerUpdateRoleV1,
   adminUserControllerGetRoleListV1,
   adminAuthControllerRegisterV1,
+  adminUserControllerResetPasswordV1,
 } from '@/api';
 
 export const useAdminUserStore = defineStore('adminUser', () => {
@@ -40,6 +41,8 @@ export const useAdminUserStore = defineStore('adminUser', () => {
     adminUserControllerUpdateRoleV1(id, dto);
   const getRoles = (id: number) => adminUserControllerGetRoleListV1(id);
   const register = (dto: any) => adminAuthControllerRegisterV1(dto);
+  const resetPassword = (id: number, dto: any) =>
+    adminUserControllerResetPasswordV1(id, dto);
 
   return {
     list,
@@ -53,5 +56,6 @@ export const useAdminUserStore = defineStore('adminUser', () => {
     assignRoles,
     getRoles,
     register,
+    resetPassword,
   };
 });

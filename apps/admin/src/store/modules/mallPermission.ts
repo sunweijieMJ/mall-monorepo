@@ -8,6 +8,7 @@ import { ref } from 'vue';
 import type { RouteRecordRaw } from 'vue-router';
 import type { MenuItem } from '@/interface';
 import { mallConstantRoutes } from '@/router/routes';
+import { resolveIcon } from '@/utils/iconMap';
 
 /**
  * 判断是否有权限访问该菜单
@@ -20,6 +21,12 @@ function hasPermission(menus: MenuItem[], route: RouteRecordRaw): boolean {
       if (route.meta) {
         if (currMenu.title != null && currMenu.title !== '') {
           route.meta.title = currMenu.title;
+        }
+        if (currMenu.icon != null) {
+          const iconComp = resolveIcon(currMenu.icon);
+          if (iconComp) {
+            route.meta.icon = iconComp;
+          }
         }
         if (currMenu.hidden != null) {
           route.meta.hidden = currMenu.hidden !== 0;

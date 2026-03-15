@@ -2,7 +2,7 @@
   <el-tooltip :content="$t('layout.themeSwitch')" placement="bottom">
     <el-button
       link
-      :icon="currentTheme === 'dark' ? Moon : Sunny"
+      :icon="currentTheme === 'dark' ? Sunny : Moon"
       class="theme-switcher-btn"
       @click="toggleTheme"
     />

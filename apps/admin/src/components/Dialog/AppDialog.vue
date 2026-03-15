@@ -55,3 +55,33 @@ const handleCancel = () => {
   emit('cancel');
 };
 </script>
+
+<style scoped lang="scss">
+:deep(.el-dialog) {
+  border-radius: 12px;
+
+  .el-dialog__header {
+    margin-right: 0;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--el-border-color-lighter);
+
+    .el-dialog__title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+  }
+
+  .el-dialog__body {
+    padding: 24px;
+  }
+
+  .el-dialog__footer {
+    padding: 12px 24px 20px;
+    border-top: 1px solid var(--el-border-color-lighter);
+
+    .el-button + .el-button {
+      margin-left: 12px;
+    }
+  }
+}
+</style>

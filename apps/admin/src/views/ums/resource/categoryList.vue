@@ -37,58 +37,32 @@
     </AppTable>
 
     <!-- 添加/编辑对话框 -->
-    <AppDialog
+    <CategoryFormDialog
       v-model="dialogVisible"
-      :title="isEdit ? '编辑分类' : '添加分类'"
-      :confirm-loading="submitLoading"
-      @confirm="handleDialogConfirm"
-    >
-      <el-form
-        ref="resourceCategoryFormRef"
-        :model="resourceCategory"
-        label-width="150px"
-      >
-        <el-form-item label="名称：">
-          <el-input v-model="resourceCategory.name" style="width: 250px" />
-        </el-form-item>
-        <el-form-item label="排序：">
-          <el-input
-            v-model.number="resourceCategory.sort"
-            style="width: 250px"
-          />
-        </el-form-item>
-      </el-form>
-    </AppDialog>
+      :is-edit="isEdit"
+      :edit-data="editData"
+      @success="getList"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ElMessage, ElMessageBox, type ElForm } from 'element-plus';
-import { ref, reactive, onMounted } from 'vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { ref, onMounted } from 'vue';
+import CategoryFormDialog from './components/CategoryFormDialog.vue';
 import type { AdminResourceCategoryVo } from '@/api';
-import AppDialog from '@/components/Dialog/AppDialog.vue';
 import AppTable from '@/components/List/AppTable.vue';
 import OperateContainer from '@/components/List/OperateContainer.vue';
 import { useResourceStore } from '@/store';
 import { formatDate } from '@/utils/date';
 
-const resourceCategoryFormRef = ref<InstanceType<typeof ElForm>>();
 const resourceStore = useResourceStore();
 
 const list = ref<AdminResourceCategoryVo[]>([]);
 const listLoading = ref(false);
 const dialogVisible = ref(false);
-const submitLoading = ref(false);
 const isEdit = ref(false);
-
-const defaultResourceCategory = {
-  name: '',
-  sort: 0,
-};
-
-const resourceCategory = reactive<Partial<AdminResourceCategoryVo>>({
-  ...defaultResourceCategory,
-});
+const editData = ref<Partial<AdminResourceCategoryVo> | null>(null);
 
 const formatDateTime = (time?: string | number) => {
   if (!time) return 'N/A';
@@ -110,15 +84,15 @@ const getList = async () => {
 };
 
 const handleAdd = () => {
-  dialogVisible.value = true;
   isEdit.value = false;
-  Object.assign(resourceCategory, defaultResourceCategory);
+  editData.value = null;
+  dialogVisible.value = true;
 };
 
 const handleUpdate = (_index: number, row: AdminResourceCategoryVo) => {
-  dialogVisible.value = true;
   isEdit.value = true;
-  Object.assign(resourceCategory, row);
+  editData.value = row;
+  dialogVisible.value = true;
 };
 
 const handleDelete = async (_index: number, row: AdminResourceCategoryVo) => {
@@ -137,29 +111,6 @@ const handleDelete = async (_index: number, row: AdminResourceCategoryVo) => {
       console.error('删除失败:', error);
       ElMessage.error('删除失败');
     }
-  }
-};
-
-const handleDialogConfirm = async () => {
-  submitLoading.value = true;
-  try {
-    if (isEdit.value) {
-      await resourceStore.updateCategory(
-        resourceCategory.id!,
-        resourceCategory,
-      );
-      ElMessage.success('修改成功');
-    } else {
-      await resourceStore.createCategory(resourceCategory);
-      ElMessage.success('添加成功');
-    }
-    dialogVisible.value = false;
-    await getList();
-  } catch (error: any) {
-    console.error('操作失败:', error);
-    ElMessage.error('操作失败');
-  } finally {
-    submitLoading.value = false;
   }
 };
 

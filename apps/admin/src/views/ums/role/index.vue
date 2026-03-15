@@ -59,12 +59,12 @@
           />
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="200" align="center">
+      <el-table-column label="操作" width="280" align="center" fixed="right">
         <template #default="{ row, $index }">
-          <el-button size="small" @click="handleSelectMenu($index, row)">
+          <el-button size="small" @click="handleSelectMenu(row)">
             分配菜单
           </el-button>
-          <el-button size="small" @click="handleSelectResource($index, row)">
+          <el-button size="small" @click="handleSelectResource(row)">
             分配资源
           </el-button>
           <el-button link type="primary" @click="handleUpdate($index, row)">
@@ -78,64 +78,43 @@
     </AppTable>
 
     <!-- 添加/编辑对话框 -->
-    <AppDialog
+    <RoleFormDialog
       v-model="dialogVisible"
-      :title="isEdit ? '编辑角色' : '添加角色'"
-      width="40%"
-      :confirm-loading="submitLoading"
-      @confirm="handleDialogConfirm"
-    >
-      <el-form ref="roleFormRef" :model="role" label-width="150px">
-        <el-form-item label="角色名称：">
-          <el-input v-model="role.name" style="width: 250px" />
-        </el-form-item>
-        <el-form-item label="描述：">
-          <el-input
-            v-model="role.description"
-            type="textarea"
-            :rows="5"
-            style="width: 250px"
-          />
-        </el-form-item>
-        <el-form-item label="是否启用：">
-          <el-radio-group v-model="role.status">
-            <el-radio :value="1">是</el-radio>
-            <el-radio :value="0">否</el-radio>
-          </el-radio-group>
-        </el-form-item>
-      </el-form>
-    </AppDialog>
+      :is-edit="isEdit"
+      :edit-data="editData"
+      @success="getList"
+    />
+
+    <!-- 分配菜单弹窗 -->
+    <AllocMenuDialog v-model="allocMenuVisible" :role-id="currentRoleId" />
+
+    <!-- 分配资源弹窗 -->
+    <AllocResourceDialog
+      v-model="allocResourceVisible"
+      :role-id="currentRoleId"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ElMessage, ElMessageBox, type FormInstance } from 'element-plus';
-import { ref, reactive, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { ref, computed, onMounted } from 'vue';
+import AllocMenuDialog from './components/AllocMenuDialog.vue';
+import AllocResourceDialog from './components/AllocResourceDialog.vue';
+import RoleFormDialog from './components/RoleFormDialog.vue';
 import type { AdminRoleVo } from '@/api';
-import AppDialog from '@/components/Dialog/AppDialog.vue';
 import AppTable from '@/components/List/AppTable.vue';
 import FilterContainer from '@/components/List/FilterContainer.vue';
 import OperateContainer from '@/components/List/OperateContainer.vue';
 import { useListPage } from '@/composables/useListPage';
 import { useRoleStore } from '@/store/modules/role';
 
-const router = useRouter();
 const roleStore = useRoleStore();
-const roleFormRef = ref<FormInstance>();
 
 const defaultListQuery = {
   pageNum: 1,
   pageSize: 5,
   keyword: null as string | null,
-};
-
-const defaultRole: Partial<AdminRoleVo> = {
-  id: undefined,
-  name: '',
-  description: '',
-  adminCount: 0,
-  status: 1 as any,
 };
 
 const {
@@ -156,9 +135,12 @@ const {
 );
 
 const dialogVisible = ref(false);
-const submitLoading = ref(false);
-const role = reactive<Partial<AdminRoleVo>>({ ...defaultRole });
 const isEdit = ref(false);
+const editData = ref<Partial<AdminRoleVo> | null>(null);
+
+const allocMenuVisible = ref(false);
+const allocResourceVisible = ref(false);
+const currentRoleId = ref(0);
 
 const formatDateTime = (time?: string) => {
   if (!time) return 'N/A';
@@ -174,9 +156,15 @@ const formatDateTime = (time?: string) => {
 };
 
 const handleAdd = () => {
-  dialogVisible.value = true;
   isEdit.value = false;
-  Object.assign(role, defaultRole);
+  editData.value = null;
+  dialogVisible.value = true;
+};
+
+const handleUpdate = (_index: number, row: AdminRoleVo) => {
+  isEdit.value = true;
+  editData.value = row;
+  dialogVisible.value = true;
 };
 
 const handleStatusChange = async (_index: number, row: AdminRoleVo) => {
@@ -219,44 +207,14 @@ const handleDelete = async (_index: number, row: AdminRoleVo) => {
   }
 };
 
-const handleUpdate = (_index: number, row: AdminRoleVo) => {
-  dialogVisible.value = true;
-  isEdit.value = true;
-  Object.assign(role, row);
+const handleSelectMenu = (row: AdminRoleVo) => {
+  currentRoleId.value = row.id!;
+  allocMenuVisible.value = true;
 };
 
-const handleDialogConfirm = async () => {
-  submitLoading.value = true;
-  try {
-    if (isEdit.value) {
-      await roleStore.update(role.id!, role as any);
-      ElMessage.success('修改成功');
-    } else {
-      await roleStore.create(role as any);
-      ElMessage.success('添加成功');
-    }
-    dialogVisible.value = false;
-    await getList();
-  } catch (error) {
-    console.error('操作失败:', error);
-    ElMessage.error('操作失败');
-  } finally {
-    submitLoading.value = false;
-  }
-};
-
-const handleSelectMenu = (_index: number, row: AdminRoleVo) => {
-  router.push({
-    path: '/ums/allocMenu',
-    query: { roleId: String(row.id) },
-  });
-};
-
-const handleSelectResource = (_index: number, row: AdminRoleVo) => {
-  router.push({
-    path: '/ums/allocResource',
-    query: { roleId: String(row.id) },
-  });
+const handleSelectResource = (row: AdminRoleVo) => {
+  currentRoleId.value = row.id!;
+  allocResourceVisible.value = true;
 };
 
 onMounted(() => {

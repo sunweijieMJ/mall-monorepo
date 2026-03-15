@@ -3,9 +3,9 @@
  * 包括公共页面和需要登录的本地功能页
  */
 
-import { HomeFilled, DataAnalysis, Setting } from '@element-plus/icons-vue';
 import type { RouteRecordRaw } from 'vue-router';
 import Layout from '@/layout/index.vue';
+import { resolveIcon } from '@/utils/iconMap';
 
 export const mallConstantRoutes: RouteRecordRaw[] = [
   {
@@ -30,13 +30,17 @@ export const mallConstantRoutes: RouteRecordRaw[] = [
     path: '/',
     component: Layout,
     redirect: '/home',
-    meta: { title: '首页', icon: HomeFilled },
+    meta: { title: '首页', icon: resolveIcon('HomeFilled') },
     children: [
       {
         path: 'home',
         name: 'home',
         component: () => import('@/views/home/index.vue'),
-        meta: { title: '仪表盘', icon: DataAnalysis, affix: true },
+        meta: {
+          title: '仪表盘',
+          icon: resolveIcon('DataAnalysis'),
+          affix: true,
+        },
       },
     ],
   },
@@ -46,7 +50,7 @@ export const mallConstantRoutes: RouteRecordRaw[] = [
     component: Layout,
     redirect: '/setting/frontend',
     name: 'Setting',
-    meta: { title: '系统设置', icon: Setting, hidden: true },
+    meta: { title: '系统设置', icon: resolveIcon('Setting'), hidden: true },
     children: [
       {
         path: '',

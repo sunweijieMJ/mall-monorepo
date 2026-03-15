@@ -10,7 +10,7 @@
       </div>
       <div class="filter-actions">
         <el-button @click="emit('reset')">重置</el-button>
-        <el-button type="primary" @click="emit('search')">查询搜索</el-button>
+        <el-button type="primary" @click="emit('search')">搜索</el-button>
       </div>
     </div>
   </el-card>

@@ -63,7 +63,7 @@
           />
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="180" align="center">
+      <el-table-column label="操作" width="220" align="center" fixed="right">
         <template #default="{ row, $index }">
           <el-button size="small" @click="handleSelectRole($index, row)">
             分配角色
@@ -79,108 +79,40 @@
     </AppTable>
 
     <!-- 添加/编辑对话框 -->
-    <AppDialog
+    <AdminFormDialog
       v-model="dialogVisible"
-      :title="isEdit ? '编辑用户' : '添加用户'"
-      width="40%"
-      :confirm-loading="submitLoading"
-      @confirm="handleDialogConfirm"
-    >
-      <el-form
-        ref="adminFormRef"
-        :model="admin"
-        :rules="formRules"
-        label-width="150px"
-      >
-        <el-form-item label="帐号：" prop="username">
-          <el-input v-model="admin.username" style="width: 250px" />
-        </el-form-item>
-        <el-form-item label="姓名：">
-          <el-input v-model="admin.nickName" style="width: 250px" />
-        </el-form-item>
-        <el-form-item label="邮箱：" prop="email">
-          <el-input v-model="admin.email" style="width: 250px" />
-        </el-form-item>
-        <el-form-item v-if="!isEdit" label="密码：" prop="password">
-          <el-input
-            v-model="admin.password"
-            type="password"
-            style="width: 250px"
-          />
-        </el-form-item>
-        <el-form-item label="备注：">
-          <el-input
-            v-model="admin.note"
-            type="textarea"
-            :rows="5"
-            style="width: 250px"
-          />
-        </el-form-item>
-        <el-form-item label="是否启用：">
-          <el-radio-group v-model="admin.status">
-            <el-radio :value="1">是</el-radio>
-            <el-radio :value="0">否</el-radio>
-          </el-radio-group>
-        </el-form-item>
-      </el-form>
-    </AppDialog>
+      :is-edit="isEdit"
+      :edit-data="editData"
+      @success="getList"
+    />
 
     <!-- 分配角色对话框 -->
-    <AppDialog
+    <RoleAssignDialog
       v-model="allocDialogVisible"
-      title="分配角色"
-      width="30%"
-      :confirm-loading="allocLoading"
-      @confirm="handleAllocDialogConfirm"
-    >
-      <el-select
-        v-model="allocRoleIds"
-        multiple
-        placeholder="请选择"
-        style="width: 80%"
-      >
-        <el-option
-          v-for="item in allRoleList"
-          :key="item.id"
-          :label="item.name"
-          :value="item.id"
-        />
-      </el-select>
-    </AppDialog>
+      :admin-id="allocAdminId"
+      @success="getList"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ElMessage, ElMessageBox, type FormInstance } from 'element-plus';
-import { ref, reactive, computed, onMounted } from 'vue';
-import type { AdminUserVo, AdminRoleVo } from '@/api';
-import AppDialog from '@/components/Dialog/AppDialog.vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { ref, computed, onMounted } from 'vue';
+import AdminFormDialog from './components/AdminFormDialog.vue';
+import RoleAssignDialog from './components/RoleAssignDialog.vue';
+import type { AdminUserVo } from '@/api';
 import AppTable from '@/components/List/AppTable.vue';
 import FilterContainer from '@/components/List/FilterContainer.vue';
 import OperateContainer from '@/components/List/OperateContainer.vue';
 import { useListPage } from '@/composables/useListPage';
 import { useAdminUserStore } from '@/store/modules/adminUser';
-import { useRoleStore } from '@/store/modules/role';
 
 const adminUserStore = useAdminUserStore();
-const roleStore = useRoleStore();
-
-const adminFormRef = ref<FormInstance>();
 
 const defaultListQuery = {
   pageNum: 1,
   pageSize: 10,
   keyword: null as string | null,
-};
-
-const defaultAdmin: Partial<AdminUserVo> & { password?: string } = {
-  id: undefined,
-  username: '',
-  password: '',
-  nickName: '',
-  email: '',
-  note: '',
-  status: 1 as any,
 };
 
 const {
@@ -200,26 +132,13 @@ const {
   computed(() => adminUserStore.total),
 );
 
+// 编辑弹窗
 const dialogVisible = ref(false);
-const submitLoading = ref(false);
-const admin = reactive<Partial<AdminUserVo> & { password?: string }>({
-  ...defaultAdmin,
-});
 const isEdit = ref(false);
+const editData = ref<Partial<AdminUserVo> | null>(null);
 
-// 表单校验规则
-const formRules = computed(() => ({
-  username: [{ required: true, message: '请输入帐号', trigger: 'blur' }],
-  email: [{ type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }],
-  password: isEdit.value
-    ? []
-    : [{ required: true, message: '请输入密码', trigger: 'blur' }],
-}));
-
+// 分配角色弹窗
 const allocDialogVisible = ref(false);
-const allocLoading = ref(false);
-const allocRoleIds = ref<number[]>([]);
-const allRoleList = ref<AdminRoleVo[]>([]);
 const allocAdminId = ref<number>();
 
 const formatDateTime = (time?: string) => {
@@ -236,10 +155,20 @@ const formatDateTime = (time?: string) => {
 };
 
 const handleAdd = () => {
-  dialogVisible.value = true;
   isEdit.value = false;
-  Object.assign(admin, defaultAdmin);
-  adminFormRef.value?.clearValidate();
+  editData.value = null;
+  dialogVisible.value = true;
+};
+
+const handleUpdate = (_index: number, row: AdminUserVo) => {
+  isEdit.value = true;
+  editData.value = row;
+  dialogVisible.value = true;
+};
+
+const handleSelectRole = (_index: number, row: AdminUserVo) => {
+  allocAdminId.value = row.id;
+  allocDialogVisible.value = true;
 };
 
 const handleStatusChange = async (_index: number, row: AdminUserVo) => {
@@ -282,82 +211,8 @@ const handleDelete = async (_index: number, row: AdminUserVo) => {
   }
 };
 
-const handleUpdate = (_index: number, row: AdminUserVo) => {
-  dialogVisible.value = true;
-  isEdit.value = true;
-  Object.assign(admin, row);
-  adminFormRef.value?.clearValidate();
-};
-
-const handleDialogConfirm = async () => {
-  const valid = await adminFormRef.value?.validate().catch(() => false);
-  if (!valid) return;
-
-  submitLoading.value = true;
-  try {
-    if (isEdit.value) {
-      await adminUserStore.update(admin.id!, admin as any);
-      ElMessage.success('修改成功');
-    } else {
-      await adminUserStore.register(admin as any);
-      ElMessage.success('添加成功');
-    }
-    dialogVisible.value = false;
-    await getList();
-  } catch (error) {
-    console.error('操作失败:', error);
-    ElMessage.error('操作失败');
-  } finally {
-    submitLoading.value = false;
-  }
-};
-
-const handleAllocDialogConfirm = async () => {
-  allocLoading.value = true;
-  try {
-    await adminUserStore.assignRoles(allocAdminId.value!, {
-      roleIds: allocRoleIds.value,
-    });
-    ElMessage.success('分配成功');
-    allocDialogVisible.value = false;
-  } catch (error) {
-    console.error('分配失败:', error);
-    ElMessage.error('分配失败');
-  } finally {
-    allocLoading.value = false;
-  }
-};
-
-const handleSelectRole = async (_index: number, row: AdminUserVo) => {
-  allocAdminId.value = row.id;
-  allocDialogVisible.value = true;
-  await getRoleListByAdmin(row.id!);
-};
-
-const getAllRoleList = async () => {
-  try {
-    await roleStore.getAllList();
-    allRoleList.value = roleStore.allRoles;
-  } catch (error) {
-    console.error('获取角色列表失败:', error);
-  }
-};
-
-const getRoleListByAdmin = async (adminId: number) => {
-  try {
-    const allocRoleList = (await adminUserStore.getRoles(adminId)) as any;
-    allocRoleIds.value = [];
-    if (allocRoleList && allocRoleList.length > 0) {
-      allocRoleIds.value = allocRoleList.map((item: any) => item.id!);
-    }
-  } catch (error) {
-    console.error('获取管理员角色失败:', error);
-  }
-};
-
 onMounted(() => {
   getList();
-  getAllRoleList();
 });
 </script>
 
