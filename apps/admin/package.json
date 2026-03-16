@@ -76,7 +76,7 @@
     "prettier": "*",
     "rimraf": "*",
     "rollup-plugin-visualizer": "^7.0.1",
-    "sass": "^1.97.3",
+    "sass": "^1.98.0",
     "stylelint": "*",
     "tsx": "*",
     "typescript": "*",
