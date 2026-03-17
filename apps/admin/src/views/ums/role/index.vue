@@ -50,12 +50,10 @@
         </template>
       </el-table-column>
       <el-table-column label="是否启用" width="140" align="center">
-        <template #default="{ row, $index }">
-          <el-switch
+        <template #default="{ row }">
+          <StatusSwitch
             v-model="row.status"
-            :active-value="1"
-            :inactive-value="0"
-            @change="handleStatusChange($index, row)"
+            @update:model-value="handleStatusChange(row)"
           />
         </template>
       </el-table-column>
@@ -70,7 +68,7 @@
           <el-button link type="primary" @click="handleUpdate($index, row)">
             编辑
           </el-button>
-          <el-button link type="danger" @click="handleDelete($index, row)">
+          <el-button link type="danger" @click="handleDelete(row.id!)">
             删除
           </el-button>
         </template>
@@ -97,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { ElMessage } from 'element-plus';
 import { ref, computed, onMounted } from 'vue';
 import AllocMenuDialog from './components/AllocMenuDialog.vue';
 import AllocResourceDialog from './components/AllocResourceDialog.vue';
@@ -106,8 +104,11 @@ import type { AdminRoleVo } from '@/api';
 import AppTable from '@/components/List/AppTable.vue';
 import FilterContainer from '@/components/List/FilterContainer.vue';
 import OperateContainer from '@/components/List/OperateContainer.vue';
+import StatusSwitch from '@/components/StatusSwitch.vue';
+import { useDeleteConfirm } from '@/composables/useDeleteConfirm';
 import { useListPage } from '@/composables/useListPage';
 import { useRoleStore } from '@/store/modules/role';
+import { formatDateTime } from '@/utils/format';
 
 const roleStore = useRoleStore();
 
@@ -142,19 +143,6 @@ const allocMenuVisible = ref(false);
 const allocResourceVisible = ref(false);
 const currentRoleId = ref(0);
 
-const formatDateTime = (time?: string) => {
-  if (!time) return 'N/A';
-  const date = new Date(time);
-  return date.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  });
-};
-
 const handleAdd = () => {
   isEdit.value = false;
   editData.value = null;
@@ -167,45 +155,22 @@ const handleUpdate = (_index: number, row: AdminRoleVo) => {
   dialogVisible.value = true;
 };
 
-const handleStatusChange = async (_index: number, row: AdminRoleVo) => {
+const handleStatusChange = async (row: AdminRoleVo) => {
   try {
-    await ElMessageBox.confirm('是否要修改该状态?', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    });
-
     await roleStore.updateStatus(row.id!, { status: row.status });
     ElMessage.success('修改成功');
   } catch (error) {
-    if (error !== 'cancel') {
-      console.error('修改状态失败:', error);
-      row.status = (row.status === 0 ? 1 : 0) as any;
-      ElMessage.error('修改失败');
-    } else {
-      await getList();
-    }
+    console.error('修改状态失败:', error);
+    row.status = (row.status === 0 ? 1 : 0) as any;
+    ElMessage.error('修改失败');
   }
 };
 
-const handleDelete = async (_index: number, row: AdminRoleVo) => {
-  try {
-    await ElMessageBox.confirm('是否要删除该角色?', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    });
-
-    await roleStore.batchDelete([row.id!]);
-    ElMessage.success('删除成功');
-    await getList();
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('删除失败:', error);
-      ElMessage.error('删除失败');
-    }
-  }
-};
+const { handleDelete } = useDeleteConfirm(
+  '角色',
+  (id: number) => roleStore.batchDelete([id]),
+  getList,
+);
 
 const handleSelectMenu = (row: AdminRoleVo) => {
   currentRoleId.value = row.id!;
