@@ -54,7 +54,7 @@ import type { AdminResourceCategoryVo } from '@/api';
 import AppTable from '@/components/List/AppTable.vue';
 import OperateContainer from '@/components/List/OperateContainer.vue';
 import { useResourceStore } from '@/store';
-import { formatDate } from '@/utils/date';
+import { formatDate } from '@/utils/format';
 
 const resourceStore = useResourceStore();
 

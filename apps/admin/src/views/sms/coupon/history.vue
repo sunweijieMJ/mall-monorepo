@@ -17,25 +17,17 @@
       <el-row>
         <el-col :span="4" class="table-cell">{{ coupon.name }}</el-col>
         <el-col :span="4" class="table-cell">
-          {{
-            formatType(coupon.type)
-          }}
+          {{ formatType(coupon.type) }}
         </el-col>
         <el-col :span="4" class="table-cell">
-          {{
-            formatUseType(coupon.useType)
-          }}
+          {{ formatUseType(coupon.useType) }}
         </el-col>
-        <el-col :span="4" class="table-cell"
-        >
+        <el-col :span="4" class="table-cell">
           满{{ coupon.minPoint }}元可用
-        </el-col
-        >
+        </el-col>
         <el-col :span="4" class="table-cell">{{ coupon.amount }}元</el-col>
         <el-col :span="4" class="table-cell">
-          {{
-            formatStatus(coupon.endTime)
-          }}
+          {{ formatStatus(coupon.endTime) }}
         </el-col>
       </el-row>
       <el-row>
@@ -53,15 +45,11 @@
         <el-col :span="4" class="table-cell">{{ coupon.publishCount }}</el-col>
         <el-col :span="4" class="table-cell">{{ coupon.receiveCount }}</el-col>
         <el-col :span="4" class="table-cell">
-          {{
-            (coupon.publishCount || 0) - (coupon.receiveCount || 0)
-          }}
+          {{ (coupon.publishCount || 0) - (coupon.receiveCount || 0) }}
         </el-col>
         <el-col :span="4" class="table-cell">{{ coupon.useCount }}</el-col>
         <el-col :span="4" class="table-cell">
-          {{
-            (coupon.publishCount || 0) - (coupon.useCount || 0)
-          }}
+          {{ (coupon.publishCount || 0) - (coupon.useCount || 0) }}
         </el-col>
       </el-row>
     </div>
@@ -130,23 +118,17 @@
         </el-table-column>
         <el-table-column label="领取方式" width="100" align="center">
           <template #default="{ row }">
-            {{
-              formatGetType(row.getType)
-            }}
+            {{ formatGetType(row.getType) }}
           </template>
         </el-table-column>
         <el-table-column label="领取时间" width="160" align="center">
           <template #default="{ row }">
-            {{
-              formatTime(row.createTime)
-            }}
+            {{ formatTime(row.createTime) }}
           </template>
         </el-table-column>
         <el-table-column label="当前状态" width="140" align="center">
           <template #default="{ row }">
-            {{
-              formatCouponHistoryUseType(row.useStatus)
-            }}
+            {{ formatCouponHistoryUseType(row.useStatus) }}
           </template>
         </el-table-column>
         <el-table-column label="使用时间" width="160" align="center">
@@ -154,9 +136,7 @@
         </el-table-column>
         <el-table-column label="订单编号" align="center">
           <template #default="{ row }">
-            {{
-              row.orderSn === null ? 'N/A' : row.orderSn
-            }}
+            {{ row.orderSn === null ? 'N/A' : row.orderSn }}
           </template>
         </el-table-column>
       </el-table>
@@ -185,7 +165,7 @@ import { ref, reactive, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import type { CouponVo, CouponHistoryVo } from '@/api';
 import { useCouponStore } from '@/store';
-import { formatDate as formatDateUtil } from '@/utils/date';
+import { formatDate as formatDateUtil } from '@/utils/format';
 
 const route = useRoute();
 const couponStore = useCouponStore();

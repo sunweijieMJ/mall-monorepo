@@ -52,7 +52,7 @@ import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import type { FlashSessionWithCountVo } from '@/api';
 import { useFlashPromotionStore } from '@/store';
-import { formatDate } from '@/utils/date';
+import { formatDate } from '@/utils/format';
 
 const route = useRoute();
 const router = useRouter();

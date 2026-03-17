@@ -43,11 +43,9 @@
 
         <!-- 待付款状态操作按钮 -->
         <div v-show="order.status === 0" class="operate-button-container">
-          <el-button @click="showUpdateReceiverDialog"
-          >
+          <el-button @click="showUpdateReceiverDialog">
             修改收货人信息
-          </el-button
-          >
+          </el-button>
           <el-button @click="showUpdateMoneyDialog">修改费用信息</el-button>
           <el-button @click="showMessageDialog">发送站内信</el-button>
           <el-button @click="showCloseOrderDialog">关闭订单</el-button>
@@ -56,11 +54,9 @@
 
         <!-- 待发货状态操作按钮 -->
         <div v-show="order.status === 1" class="operate-button-container">
-          <el-button @click="showUpdateReceiverDialog"
-          >
+          <el-button @click="showUpdateReceiverDialog">
             修改收货人信息
-          </el-button
-          >
+          </el-button>
           <el-button @click="showMessageDialog">发送站内信</el-button>
           <el-button>取消订单</el-button>
           <el-button @click="showMarkOrderDialog">备注订单</el-button>
@@ -103,24 +99,16 @@
           <el-col :span="4" class="table-cell">{{ order.orderSn }}</el-col>
           <el-col :span="4" class="table-cell">暂无</el-col>
           <el-col :span="4" class="table-cell">
-            {{
-              order.memberUsername
-            }}
+            {{ order.memberUsername }}
           </el-col>
           <el-col :span="4" class="table-cell">
-            {{
-              formatPayType(order.payType)
-            }}
+            {{ formatPayType(order.payType) }}
           </el-col>
           <el-col :span="4" class="table-cell">
-            {{
-              formatSourceType(order.sourceType)
-            }}
+            {{ formatSourceType(order.sourceType) }}
           </el-col>
           <el-col :span="4" class="table-cell">
-            {{
-              formatOrderType(order.orderType)
-            }}
+            {{ formatOrderType(order.orderType) }}
           </el-col>
         </el-row>
         <el-row>
@@ -133,20 +121,14 @@
         </el-row>
         <el-row>
           <el-col :span="4" class="table-cell">
-            {{
-              formatNull(order.deliveryCompany)
-            }}
+            {{ formatNull(order.deliveryCompany) }}
           </el-col>
           <el-col :span="4" class="table-cell">
-            {{
-              formatNull(order.deliverySn)
-            }}
+            {{ formatNull(order.deliverySn) }}
           </el-col>
-          <el-col :span="4" class="table-cell"
-          >
+          <el-col :span="4" class="table-cell">
             {{ order.autoConfirmDay }}天
-          </el-col
-          >
+          </el-col>
           <el-col :span="4" class="table-cell">{{ order.integration }}</el-col>
           <el-col :span="4" class="table-cell">{{ order.growth }}</el-col>
           <el-col :span="4" class="table-cell">
@@ -182,19 +164,13 @@
         <el-row>
           <el-col :span="6" class="table-cell">{{ order.receiverName }}</el-col>
           <el-col :span="6" class="table-cell">
-            {{
-              order.receiverPhone
-            }}
+            {{ order.receiverPhone }}
           </el-col>
           <el-col :span="6" class="table-cell">
-            {{
-              order.receiverPostCode
-            }}
+            {{ order.receiverPostCode }}
           </el-col>
           <el-col :span="6" class="table-cell">
-            {{
-              formatAddress(order)
-            }}
+            {{ formatAddress(order) }}
           </el-col>
         </el-row>
       </div>
@@ -231,9 +207,7 @@
         </el-table-column>
         <el-table-column label="属性" width="120" align="center">
           <template #default="{ row }">
-            {{
-              formatProductAttr(row.productAttr)
-            }}
+            {{ formatProductAttr(row.productAttr) }}
           </template>
         </el-table-column>
         <el-table-column label="数量" width="120" align="center">
@@ -264,26 +238,18 @@
           <el-col :span="6" class="table-cell-title">积分抵扣</el-col>
         </el-row>
         <el-row>
-          <el-col :span="6" class="table-cell"
-          >
+          <el-col :span="6" class="table-cell">
             ￥{{ order.totalAmount }}
-          </el-col
-          >
-          <el-col :span="6" class="table-cell"
-          >
+          </el-col>
+          <el-col :span="6" class="table-cell">
             ￥{{ order.freightAmount }}
-          </el-col
-          >
-          <el-col :span="6" class="table-cell"
-          >
+          </el-col>
+          <el-col :span="6" class="table-cell">
             -￥{{ order.couponAmount }}
-          </el-col
-          >
-          <el-col :span="6" class="table-cell"
-          >
+          </el-col>
+          <el-col :span="6" class="table-cell">
             -￥{{ order.integrationAmount }}
-          </el-col
-          >
+          </el-col>
         </el-row>
         <el-row>
           <el-col :span="6" class="table-cell-title">活动优惠</el-col>
@@ -292,16 +258,12 @@
           <el-col :span="6" class="table-cell-title">应付款金额</el-col>
         </el-row>
         <el-row>
-          <el-col :span="6" class="table-cell"
-          >
+          <el-col :span="6" class="table-cell">
             -￥{{ order.promotionAmount }}
-          </el-col
-          >
-          <el-col :span="6" class="table-cell"
-          >
+          </el-col>
+          <el-col :span="6" class="table-cell">
             -￥{{ order.discountAmount }}
-          </el-col
-          >
+          </el-col>
           <el-col :span="6" class="table-cell">
             <span class="color-danger">
               ￥{{
@@ -343,30 +305,22 @@
         </el-table-column>
         <el-table-column label="操作时间" width="160" align="center">
           <template #default="{ row }">
-            {{
-              formatTime(row.createTime)
-            }}
+            {{ formatTime(row.createTime) }}
           </template>
         </el-table-column>
         <el-table-column label="订单状态" width="120" align="center">
           <template #default="{ row }">
-            {{
-              formatStatus(row.orderStatus)
-            }}
+            {{ formatStatus(row.orderStatus) }}
           </template>
         </el-table-column>
         <el-table-column label="付款状态" width="120" align="center">
           <template #default="{ row }">
-            {{
-              formatPayStatus(row.orderStatus)
-            }}
+            {{ formatPayStatus(row.orderStatus) }}
           </template>
         </el-table-column>
         <el-table-column label="发货状态" width="120" align="center">
           <template #default="{ row }">
-            {{
-              formatDeliverStatus(row.orderStatus)
-            }}
+            {{ formatDeliverStatus(row.orderStatus) }}
           </template>
         </el-table-column>
         <el-table-column label="备注" align="center">
@@ -416,11 +370,9 @@
       </el-form>
       <template #footer>
         <el-button @click="receiverDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="handleUpdateReceiverInfo"
-        >
+        <el-button type="primary" @click="handleUpdateReceiverInfo">
           确 定
-        </el-button
-        >
+        </el-button>
       </template>
     </el-dialog>
 
@@ -434,26 +386,20 @@
           <el-col :span="6" class="table-cell-title">积分抵扣</el-col>
         </el-row>
         <el-row>
-          <el-col :span="6" class="table-cell"
-          >
+          <el-col :span="6" class="table-cell">
             ￥{{ order.totalAmount }}
-          </el-col
-          >
+          </el-col>
           <el-col :span="6" class="table-cell">
             <el-input v-model.number="moneyInfo.freightAmount">
               <template #prepend>￥</template>
             </el-input>
           </el-col>
-          <el-col :span="6" class="table-cell"
-          >
+          <el-col :span="6" class="table-cell">
             -￥{{ order.couponAmount }}
-          </el-col
-          >
-          <el-col :span="6" class="table-cell"
-          >
+          </el-col>
+          <el-col :span="6" class="table-cell">
             -￥{{ order.integrationAmount }}
-          </el-col
-          >
+          </el-col>
         </el-row>
         <el-row>
           <el-col :span="6" class="table-cell-title">活动优惠</el-col>
@@ -462,11 +408,9 @@
           <el-col :span="6" class="table-cell-title">应付款金额</el-col>
         </el-row>
         <el-row>
-          <el-col :span="6" class="table-cell"
-          >
+          <el-col :span="6" class="table-cell">
             -￥{{ order.promotionAmount }}
-          </el-col
-          >
+          </el-col>
           <el-col :span="6" class="table-cell">
             <el-input v-model.number="moneyInfo.discountAmount">
               <template #prepend>-￥</template>
@@ -494,11 +438,9 @@
       </div>
       <template #footer>
         <el-button @click="moneyDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="handleUpdateMoneyInfo"
-        >
+        <el-button type="primary" @click="handleUpdateMoneyInfo">
           确 定
-        </el-button
-        >
+        </el-button>
       </template>
     </el-dialog>
 
@@ -581,7 +523,7 @@ import { ref, reactive, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import type { OrderDetail } from '@/interface';
 import { useOrderStore } from '@/store';
-import { formatDate } from '@/utils/date';
+import { formatDate } from '@/utils/format';
 
 const route = useRoute();
 const router = useRouter();

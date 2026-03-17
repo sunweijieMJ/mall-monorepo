@@ -79,11 +79,9 @@
             style="height: 50px"
           >
             {{ orderReturnApply.orderSn
-            }}<el-button link type="primary" @click="handleViewOrder"
-            >
+            }}<el-button link type="primary" @click="handleViewOrder">
               查看
-            </el-button
-            >
+            </el-button>
           </el-col>
         </el-row>
         <el-row>
@@ -366,7 +364,7 @@ import {
   companyAddressControllerListV1,
 } from '@/api';
 import type { ReturnApplyVo, CompanyAddressVo } from '@/api';
-import { formatDate } from '@/utils/date';
+import { formatDate } from '@/utils/format';
 
 const route = useRoute();
 const router = useRouter();

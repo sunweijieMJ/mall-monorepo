@@ -111,7 +111,7 @@ import {
 import { ref, reactive, onMounted } from 'vue';
 import type { FlashSessionVo } from '@/api';
 import { useFlashPromotionStore } from '@/store';
-import { formatDate } from '@/utils/date';
+import { formatDate } from '@/utils/format';
 
 const flashPromotionStore = useFlashPromotionStore();
 const flashSessionTableRef = ref<InstanceType<typeof ElTable>>();
