@@ -9,12 +9,7 @@
       <span>发货列表</span>
     </el-card>
     <div class="table-container">
-      <el-table
-        ref="deliverOrderTableRef"
-        :data="list"
-        border
-        style="width: 100%"
-      >
+      <el-table :data="list" border style="width: 100%">
         <el-table-column label="订单编号" width="180" align="center">
           <template #default="{ row }">{{ row.orderSn }}</template>
         </el-table-column>
@@ -71,7 +66,6 @@ import { useOrderStore } from '@/store';
 const route = useRoute();
 const router = useRouter();
 const orderStore = useOrderStore();
-const deliverOrderTableRef = ref<InstanceType<typeof ElTable>>();
 
 const defaultLogisticsCompanies = [
   '顺丰快递',

@@ -6,12 +6,7 @@
   <div class="detail-container">
     <el-card shadow="never">
       <span class="font-title-medium">退货商品</span>
-      <el-table
-        ref="productTableRef"
-        :data="productList"
-        border
-        class="standard-margin"
-      >
+      <el-table :data="productList" border class="standard-margin">
         <el-table-column label="商品图片" width="160" align="center">
           <template #default="{ row }">
             <img style="height: 80px" :src="row.productPic" />
@@ -179,6 +174,8 @@
             ￥<el-input
               v-model.number="updateStatusParam.returnAmount"
               :disabled="orderReturnApply.status !== 0"
+              :min="0"
+              :max="totalAmount"
               style="width: 200px; margin-left: 10px"
             />
           </el-col>
@@ -368,7 +365,6 @@ import { formatDate } from '@/utils/format';
 
 const route = useRoute();
 const router = useRouter();
-const productTableRef = ref<InstanceType<typeof ElTable>>();
 
 const id = ref<number>(0);
 const orderReturnApply = reactive<Partial<ReturnApplyVo>>({});
@@ -465,6 +461,22 @@ const getCompanyAddressVoList = async () => {
 
 const handleUpdateStatus = async (status: number) => {
   updateStatusParam.status = status;
+
+  // 验证退款金额
+  if (status === 1 || status === 2) {
+    if (
+      !updateStatusParam.returnAmount ||
+      updateStatusParam.returnAmount <= 0
+    ) {
+      ElMessage.error('请输入有效的退款金额');
+      return;
+    }
+    if (updateStatusParam.returnAmount > totalAmount.value) {
+      ElMessage.error('退款金额不能超过订单金额');
+      return;
+    }
+  }
+
   try {
     await ElMessageBox.confirm('是否要进行此操作?', '提示', {
       confirmButtonText: '确定',

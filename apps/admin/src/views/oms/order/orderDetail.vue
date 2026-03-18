@@ -58,7 +58,7 @@
             修改收货人信息
           </el-button>
           <el-button @click="showMessageDialog">发送站内信</el-button>
-          <el-button>取消订单</el-button>
+          <el-button @click="showCloseOrderDialog">取消订单</el-button>
           <el-button @click="showMarkOrderDialog">备注订单</el-button>
         </div>
 
@@ -183,7 +183,6 @@
         <span class="font-small">商品信息</span>
       </div>
       <el-table
-        ref="orderItemTableRef"
         :data="order.orderItemList"
         border
         style="width: 100%; margin-top: 20px"
@@ -295,7 +294,6 @@
         <span class="font-small">操作信息</span>
       </div>
       <el-table
-        ref="orderHistoryTableRef"
         :data="order.historyList"
         border
         style="width: 100%; margin-top: 20px"
@@ -529,8 +527,6 @@ const route = useRoute();
 const router = useRouter();
 const orderStore = useOrderStore();
 
-const orderItemTableRef = ref<InstanceType<typeof ElTable>>();
-const orderHistoryTableRef = ref<InstanceType<typeof ElTable>>();
 const receiverInfoFormRef = ref<InstanceType<typeof ElForm>>();
 
 const id = ref<number>(0);

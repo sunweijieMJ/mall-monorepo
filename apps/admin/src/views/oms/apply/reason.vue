@@ -14,7 +14,6 @@
     <!-- 数据列表 -->
     <div class="table-container">
       <el-table
-        ref="returnReasonTableRef"
         v-loading="listLoading"
         :data="list"
         style="width: 100%"
@@ -43,9 +42,7 @@
         </el-table-column>
         <el-table-column label="添加时间" width="180" align="center">
           <template #default="{ row }">
-            {{
-              formatCreateTime(row.createTime)
-            }}
+            {{ formatCreateTime(row.createTime) }}
           </template>
         </el-table-column>
         <el-table-column label="操作" width="160" align="center">
@@ -134,7 +131,6 @@ import type { ReturnReasonVo } from '@/api';
 import { useReturnReasonStore } from '@/store';
 
 // 表格引用
-const returnReasonTableRef = ref<InstanceType<typeof ElTable>>();
 const returnReasonStore = useReturnReasonStore();
 
 // 默认查询参数
