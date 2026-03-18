@@ -58,14 +58,14 @@
         </template>
       </el-table-column>
       <el-table-column label="操作" width="280" align="center" fixed="right">
-        <template #default="{ row, $index }">
+        <template #default="{ row }">
           <el-button size="small" @click="handleSelectMenu(row)">
             分配菜单
           </el-button>
           <el-button size="small" @click="handleSelectResource(row)">
             分配资源
           </el-button>
-          <el-button link type="primary" @click="handleUpdate($index, row)">
+          <el-button link type="primary" @click="handleUpdate(row)">
             编辑
           </el-button>
           <el-button link type="danger" @click="handleDelete(row.id!)">
@@ -149,19 +149,20 @@ const handleAdd = () => {
   dialogVisible.value = true;
 };
 
-const handleUpdate = (_index: number, row: AdminRoleVo) => {
+const handleUpdate = (row: AdminRoleVo) => {
   isEdit.value = true;
   editData.value = row;
   dialogVisible.value = true;
 };
 
 const handleStatusChange = async (row: AdminRoleVo) => {
+  const originalStatus = row.status;
   try {
     await roleStore.updateStatus(row.id!, { status: row.status });
     ElMessage.success('修改成功');
   } catch (error) {
     console.error('修改状态失败:', error);
-    row.status = (row.status === 0 ? 1 : 0) as any;
+    row.status = originalStatus;
     ElMessage.error('修改失败');
   }
 };

@@ -43,13 +43,10 @@ const resourceStore = useResourceStore();
 const roleStore = useRoleStore();
 
 const loadTreeData = async () => {
-  const [cateData, resourceData] = await Promise.all([
+  const [categories, resources] = await Promise.all([
     resourceStore.getAllCategories(),
     resourceStore.getAllList(),
   ]);
-
-  const categories = (cateData as any) || [];
-  const resources = (resourceData as any) || [];
 
   // 构建树：分类为父节点，资源为子节点
   return categories.map((cate: AdminResourceCategoryVo) => ({
@@ -68,15 +65,12 @@ const loadTreeData = async () => {
 };
 
 const loadCheckedKeys = async () => {
-  const [resourceData, allocResource] = await Promise.all([
+  const [resources, allocResources] = await Promise.all([
     resourceStore.getAllList(),
     roleStore.getResourceList(props.roleId),
   ]);
 
-  const resources = (resourceData as any) || [];
-  const allocIds = new Set(
-    ((allocResource as any) || []).map((r: any) => r.id),
-  );
+  const allocIds = new Set(allocResources.map((r: AdminResourceVo) => r.id));
 
   // 回显已选中的资源（只勾选叶子节点）
   return resources

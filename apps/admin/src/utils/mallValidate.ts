@@ -82,3 +82,11 @@ export function validatePrice(val: string | number): boolean {
   const reg = /^(0|[1-9]\d*)(\.\d{1,2})?$/;
   return reg.test(String(val));
 }
+
+/**
+ * 验证密码强度（至少8位，包含大小写字母和数字）
+ */
+export function validatePassword(password: string): boolean {
+  const reg = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+  return reg.test(password);
+}

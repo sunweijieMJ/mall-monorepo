@@ -62,11 +62,11 @@
         </template>
       </el-table-column>
       <el-table-column label="操作" width="220" align="center" fixed="right">
-        <template #default="{ row, $index }">
-          <el-button size="small" @click="handleSelectRole($index, row)">
+        <template #default="{ row }">
+          <el-button size="small" @click="handleSelectRole(row)">
             分配角色
           </el-button>
-          <el-button link type="primary" @click="handleUpdate($index, row)">
+          <el-button link type="primary" @click="handleUpdate(row)">
             编辑
           </el-button>
           <el-button link type="danger" @click="handleDelete(row.id!)">
@@ -148,24 +148,25 @@ const handleAdd = () => {
   dialogVisible.value = true;
 };
 
-const handleUpdate = (_index: number, row: AdminUserVo) => {
+const handleUpdate = (row: AdminUserVo) => {
   isEdit.value = true;
   editData.value = row;
   dialogVisible.value = true;
 };
 
-const handleSelectRole = (_index: number, row: AdminUserVo) => {
+const handleSelectRole = (row: AdminUserVo) => {
   allocAdminId.value = row.id;
   allocDialogVisible.value = true;
 };
 
 const handleStatusChange = async (row: AdminUserVo) => {
+  const originalStatus = row.status;
   try {
     await adminUserStore.updateStatus(row.id!, { status: row.status });
     ElMessage.success('修改成功');
   } catch (error) {
     console.error('修改状态失败:', error);
-    row.status = (row.status === 0 ? 1 : 0) as any;
+    row.status = originalStatus;
     ElMessage.error('修改失败');
   }
 };

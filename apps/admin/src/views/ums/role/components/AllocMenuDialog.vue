@@ -42,9 +42,11 @@ const loadCheckedKeys = async () => {
   const menuList = (await roleStore.getMenuList(props.roleId)) as any;
   const checkedMenuIds: number[] = [];
   if (menuList?.length > 0) {
+    // 只选中叶子节点，el-tree 会自动处理父节点半选状态
+    const allMenuIds = new Set(menuList.map((m: any) => m.id));
     for (const menu of menuList) {
-      // 只选中叶子节点，避免父节点被自动选中导致问题
-      if (menu.parentId !== 0) {
+      const hasChildren = menuList.some((m: any) => m.parentId === menu.id);
+      if (!hasChildren) {
         checkedMenuIds.push(menu.id);
       }
     }

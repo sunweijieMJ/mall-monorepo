@@ -25,7 +25,7 @@ export function useMenuTree() {
       await menuStore.getList({ parentId: 0, pageSize: 100, pageNum: 1 });
       rootList.value = menuStore.list.map((item) => ({
         ...item,
-        hasChildren: item.level === 0,
+        hasChildren: true, // 顶层菜单可能有子节点
       }));
     } catch (error) {
       console.error('获取列表失败:', error);
@@ -45,7 +45,7 @@ export function useMenuTree() {
       await menuStore.getList({ parentId: row.id, pageSize: 100, pageNum: 1 });
       const children = menuStore.list.map((item) => ({
         ...item,
-        hasChildren: item.level === 0,
+        hasChildren: item.level === 0, // level=0 的子节点可能还有子节点
       }));
       resolve(children);
     } catch (error) {

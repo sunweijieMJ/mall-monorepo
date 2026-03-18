@@ -75,6 +75,7 @@ import { ref, reactive, watch, computed } from 'vue';
 import type { AdminUserVo } from '@/api';
 import AppDialog from '@/components/Dialog/AppDialog.vue';
 import { useAdminUserStore } from '@/store/modules/adminUser';
+import { validatePassword } from '@/utils/mallValidate';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -122,21 +123,24 @@ const validateConfirmPassword = (_rule: any, value: string, callback: any) => {
   }
 };
 
-const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+const validatePasswordStrength = (_rule: any, value: string, callback: any) => {
+  if (value && !validatePassword(value)) {
+    callback(new Error('密码至少 8 位，需包含大小写字母和数字'));
+  } else {
+    callback();
+  }
+};
 
 const formRules = computed(() => ({
   username: [{ required: true, message: '请输入帐号', trigger: 'blur' }],
   email: [{ type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }],
   password: props.isEdit
     ? []
-    : [{ required: true, message: '请输入密码', trigger: 'blur' }],
-  newPassword: [
-    {
-      pattern: passwordPattern,
-      message: '密码至少 8 位，需包含大小写字母和数字',
-      trigger: 'blur',
-    },
-  ],
+    : [
+        { required: true, message: '请输入密码', trigger: 'blur' },
+        { validator: validatePasswordStrength, trigger: 'blur' },
+      ],
+  newPassword: [{ validator: validatePasswordStrength, trigger: 'blur' }],
   confirmPassword: [{ validator: validateConfirmPassword, trigger: 'blur' }],
 }));
 
