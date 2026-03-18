@@ -49,7 +49,7 @@
         </el-col>
         <el-col :span="4" class="table-cell">{{ coupon.useCount }}</el-col>
         <el-col :span="4" class="table-cell">
-          {{ (coupon.publishCount || 0) - (coupon.useCount || 0) }}
+          {{ (coupon.receiveCount || 0) - (coupon.useCount || 0) }}
         </el-col>
       </el-row>
     </div>
@@ -226,10 +226,9 @@ const formatTime = (time?: string | number) => {
   return formatDateUtil(date, 'yyyy-MM-dd hh:mm:ss');
 };
 
-const formatStatus = (endTime?: number) => {
+const formatStatus = (endTime?: string | number) => {
   if (!endTime) return 'N/A';
-  const now = new Date().getTime();
-  return endTime > now ? '未过期' : '已过期';
+  return new Date(endTime).getTime() > Date.now() ? '未过期' : '已过期';
 };
 
 const formatGetType = (type?: number) => {
