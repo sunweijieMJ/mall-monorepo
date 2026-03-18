@@ -1,107 +1,78 @@
 <!--
   品牌列表页面
-  从 mall-admin-web 迁移并转换为 Vue 3 + TypeScript
 -->
 <template>
   <div class="app-container">
     <!-- 筛选搜索 -->
-    <el-card class="filter-container" shadow="never">
-      <div>
-        <el-icon><Search /></el-icon>
-        <span>筛选搜索</span>
-        <el-button style="float: right" type="primary" @click="searchBrandList">
-          查询结果
-        </el-button>
-      </div>
-      <div style="margin-top: 15px">
-        <el-form :inline="true" :model="listQuery" label-width="140px">
-          <el-form-item label="输入搜索：">
-            <el-input
-              v-model="listQuery.keyword"
-              style="width: 203px"
-              placeholder="品牌名称/关键字"
-            />
-          </el-form-item>
-        </el-form>
-      </div>
-    </el-card>
-
-    <!-- 操作按钮 -->
-    <el-card class="operate-container" shadow="never">
-      <el-icon><Tickets /></el-icon>
-      <span>数据列表</span>
-      <el-button class="btn-add" @click="addBrand"> 添加 </el-button>
-    </el-card>
+    <FilterContainer @search="handleSearch" @reset="handleReset">
+      <el-form :inline="true" :model="listQuery" label-width="140px">
+        <el-form-item label="输入搜索：">
+          <el-input
+            v-model="listQuery.keyword"
+            class="input-width"
+            placeholder="品牌名称"
+            clearable
+          />
+        </el-form-item>
+      </el-form>
+    </FilterContainer>
 
     <!-- 数据列表 -->
-    <div class="table-container">
-      <el-table
-        ref="brandTableRef"
-        v-loading="brandStore.loading"
-        :data="brandStore.list"
-        style="width: 100%"
-        border
-        @selection-change="handleSelectionChange"
-      >
-        <el-table-column type="selection" width="60" align="center" />
-        <el-table-column label="编号" width="100" align="center">
-          <template #default="{ row }">{{ row.id }}</template>
-        </el-table-column>
-        <el-table-column label="品牌名称" align="center">
-          <template #default="{ row }">{{ row.name }}</template>
-        </el-table-column>
-        <el-table-column label="品牌首字母" width="100" align="center">
-          <template #default="{ row }">{{ row.firstLetter }}</template>
-        </el-table-column>
-        <el-table-column label="排序" width="100" align="center">
-          <template #default="{ row }">{{ row.sort }}</template>
-        </el-table-column>
-        <el-table-column label="品牌制造商" width="100" align="center">
-          <template #default="{ row, $index }">
-            <el-switch
-              v-model="row.factoryStatus"
-              :active-value="1"
-              :inactive-value="0"
-              @change="handleFactoryStatusChange($index, row)"
-            />
-          </template>
-        </el-table-column>
-        <el-table-column label="是否显示" width="100" align="center">
-          <template #default="{ row, $index }">
-            <el-switch
-              v-model="row.showStatus"
-              :active-value="1"
-              :inactive-value="0"
-              @change="handleShowStatusChange($index, row)"
-            />
-          </template>
-        </el-table-column>
-        <el-table-column label="相关" width="220" align="center">
-          <template #default="{ row, $index }">
-            <span>商品：</span>
-            <el-button type="primary" link @click="getProductList($index, row)">
-              {{ row.productCount || 100 }}
-            </el-button>
-            <span>评价：</span>
-            <el-button
-              type="primary"
-              link
-              @click="getProductCommentList($index, row)"
-            >
-              {{ row.productCommentCount || 1000 }}
-            </el-button>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="200" align="center">
-          <template #default="{ row, $index }">
-            <el-button @click="handleUpdate($index, row)"> 编辑 </el-button>
-            <el-button type="danger" @click="handleDelete($index, row)">
-              删除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </div>
+    <OperateContainer>
+      <el-button type="primary" @click="handleAdd">添加</el-button>
+    </OperateContainer>
+
+    <AppTable
+      v-model:current-page="listQuery.pageNum"
+      v-model:page-size="listQuery.pageSize"
+      :data="list"
+      :loading="loading"
+      :total="total"
+      :page-sizes="[5, 10, 15]"
+      @selection-change="handleSelectionChange"
+      @size-change="handleSizeChange"
+      @page-change="handlePageChange"
+    >
+      <el-table-column type="selection" width="60" align="center" />
+      <el-table-column label="编号" width="100" align="center">
+        <template #default="{ row }">{{ row.id }}</template>
+      </el-table-column>
+      <el-table-column label="品牌名称" align="center">
+        <template #default="{ row }">{{ row.name }}</template>
+      </el-table-column>
+      <el-table-column label="品牌首字母" width="100" align="center">
+        <template #default="{ row }">{{ row.firstLetter }}</template>
+      </el-table-column>
+      <el-table-column label="排序" width="100" align="center">
+        <template #default="{ row }">{{ row.sort }}</template>
+      </el-table-column>
+      <el-table-column label="品牌制造商" width="100" align="center">
+        <template #default="{ row }">
+          <StatusSwitch
+            v-model="row.factoryStatus"
+            @update:model-value="handleFactoryStatusChange(row)"
+          />
+        </template>
+      </el-table-column>
+      <el-table-column label="是否显示" width="100" align="center">
+        <template #default="{ row }">
+          <StatusSwitch
+            v-model="row.showStatus"
+            @update:model-value="handleShowStatusChange(row)"
+          />
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="160" align="center" fixed="right">
+        <template #default="{ row }">
+          <el-button link type="primary" @click="handleUpdate(row)">
+            编辑
+          </el-button>
+          <el-button link type="danger" @click="handleDelete(row.id!)">
+            删除
+          </el-button>
+        </template>
+      </el-table-column>
+    </AppTable>
 
     <!-- 批量操作 -->
     <div class="batch-operate-container">
@@ -110,12 +81,8 @@
         placeholder="批量操作"
         style="width: 200px"
       >
-        <el-option
-          v-for="item in operates"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"
-        />
+        <el-option label="显示品牌" value="showBrand" />
+        <el-option label="隐藏品牌" value="hideBrand" />
       </el-select>
       <el-button
         style="margin-left: 20px"
@@ -126,224 +93,113 @@
       </el-button>
     </div>
 
-    <!-- 分页 -->
-    <div class="pagination-container">
-      <el-pagination
-        v-model:page-size="listQuery.pageSize"
-        v-model:current-page="listQuery.pageNum"
-        background
-        layout="total, sizes, prev, pager, next, jumper"
-        :page-sizes="[5, 10, 15]"
-        :total="brandStore.total"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
-    </div>
+    <!-- 添加/编辑对话框 -->
+    <BrandFormDialog
+      v-model="dialogVisible"
+      :is-edit="isEdit"
+      :edit-data="editData"
+      @success="getList"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { Search, Tickets } from '@element-plus/icons-vue';
-import { ElMessage, ElMessageBox, type ElTable } from 'element-plus';
-import { ref, reactive, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, onMounted } from 'vue';
+import BrandFormDialog from './components/BrandFormDialog.vue';
+import type { BrandVo } from '@/api';
+import AppTable from '@/components/List/AppTable.vue';
+import FilterContainer from '@/components/List/FilterContainer.vue';
+import OperateContainer from '@/components/List/OperateContainer.vue';
+import StatusSwitch from '@/components/StatusSwitch.vue';
+import { useBatchOperate } from '@/composables/useBatchOperate';
+import { useDeleteConfirm } from '@/composables/useDeleteConfirm';
+import { useListPage } from '@/composables/useListPage';
+import { useStatusToggle } from '@/composables/useStatusToggle';
 import { useBrandStore } from '@/store';
 
-// Router
-const router = useRouter();
 const brandStore = useBrandStore();
 
-// 表格引用
-const brandTableRef = ref<InstanceType<typeof ElTable>>();
-
-// 批量操作选项
-const operates = [
-  {
-    label: '显示品牌',
-    value: 'showBrand',
-  },
-  {
-    label: '隐藏品牌',
-    value: 'hideBrand',
-  },
-];
-
-// 列表查询参数
-const listQuery = reactive({
-  keyword: '',
+const defaultListQuery = {
   pageNum: 1,
   pageSize: 10,
-});
-
-// 状态
-const multipleSelection = ref<any[]>([]);
-const operateType = ref<string>('');
-
-// 获取品牌列表
-const getList = () => brandStore.getList(listQuery);
-
-// 处理选择变化
-const handleSelectionChange = (val: any[]) => {
-  multipleSelection.value = val;
+  keyword: null as string | null,
 };
 
-// 编辑品牌
-const handleUpdate = (_index: number, row: any) => {
-  router.push({
-    path: '/mall/pms/brand/update',
-    query: { id: String(row.id) },
+const {
+  listQuery,
+  loading,
+  list,
+  total,
+  getList,
+  handleSearch,
+  handleReset,
+  handleSizeChange,
+  handlePageChange,
+} = useListPage(
+  defaultListQuery,
+  (q) => brandStore.getList(q),
+  computed(() => brandStore.list),
+  computed(() => brandStore.total),
+);
+
+const dialogVisible = ref(false);
+const isEdit = ref(false);
+const editData = ref<Partial<BrandVo> | null>(null);
+
+const {
+  multipleSelection,
+  operateType,
+  handleSelectionChange,
+  executeBatchOperate,
+} = useBatchOperate<BrandVo>(getList);
+
+const handleAdd = () => {
+  isEdit.value = false;
+  editData.value = null;
+  dialogVisible.value = true;
+};
+
+const handleUpdate = (row: BrandVo) => {
+  isEdit.value = true;
+  editData.value = row;
+  dialogVisible.value = true;
+};
+
+const handleFactoryStatusChange = useStatusToggle(
+  brandStore.updateFactoryStatus,
+  getList,
+);
+
+const handleShowStatusChange = useStatusToggle(
+  brandStore.updateShowStatus,
+  getList,
+);
+
+const { handleDelete } = useDeleteConfirm(
+  '品牌',
+  (id: number) => brandStore.batchDelete([id]),
+  getList,
+);
+
+const handleBatchOperate = () => {
+  const ids = multipleSelection.value.map((item) => item.id!);
+  return executeBatchOperate({
+    showBrand: () => brandStore.updateShowStatus(ids, 1),
+    hideBrand: () => brandStore.updateShowStatus(ids, 0),
   });
 };
 
-// 删除品牌
-const handleDelete = async (_index: number, row: any) => {
-  try {
-    await ElMessageBox.confirm('是否要删除该品牌', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning',
-    });
-
-    await brandStore.batchDelete([row.id!]);
-    ElMessage.success('删除成功');
-    await getList();
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('删除品牌失败:', error);
-    }
-  }
-};
-
-// 查看商品列表（待实现）
-const getProductList = (_index: number, row: any) => {
-  console.log('查看品牌商品列表:', row);
-  ElMessage.info('此功能待实现');
-};
-
-// 查看评价列表（待实现）
-const getProductCommentList = (_index: number, row: any) => {
-  console.log('查看品牌评价列表:', row);
-  ElMessage.info('此功能待实现');
-};
-
-// 修改制造商状态
-const handleFactoryStatusChange = async (_index: number, row: any) => {
-  try {
-    await brandStore.updateFactoryStatus([row.id!], row.factoryStatus);
-    ElMessage.success('修改成功');
-  } catch (error) {
-    console.error('修改制造商状态失败:', error);
-    row.factoryStatus = row.factoryStatus === 0 ? 1 : 0;
-    ElMessage.error('修改失败');
-  }
-};
-
-// 修改显示状态
-const handleShowStatusChange = async (_index: number, row: any) => {
-  try {
-    await brandStore.updateShowStatus([row.id!], row.showStatus);
-    ElMessage.success('修改成功');
-  } catch (error) {
-    console.error('修改显示状态失败:', error);
-    row.showStatus = row.showStatus === 0 ? 1 : 0;
-    ElMessage.error('修改失败');
-  }
-};
-
-// 每页数量变化
-const handleSizeChange = (val: number) => {
-  listQuery.pageNum = 1;
-  listQuery.pageSize = val;
-  getList();
-};
-
-// 当前页变化
-const handleCurrentChange = (val: number) => {
-  listQuery.pageNum = val;
-  getList();
-};
-
-// 搜索品牌
-const searchBrandList = () => {
-  listQuery.pageNum = 1;
-  getList();
-};
-
-// 批量操作
-const handleBatchOperate = async () => {
-  if (multipleSelection.value.length < 1) {
-    ElMessage.warning('请选择一条记录');
-    return;
-  }
-
-  if (!operateType.value) {
-    ElMessage.warning('请选择批量操作类型');
-    return;
-  }
-
-  let showStatus = 0;
-  if (operateType.value === 'showBrand') {
-    showStatus = 1;
-  } else if (operateType.value === 'hideBrand') {
-    showStatus = 0;
-  }
-
-  const ids = multipleSelection.value.map((item) => item.id!);
-
-  try {
-    await brandStore.updateShowStatus(ids, showStatus);
-    await getList();
-    ElMessage.success('修改成功');
-  } catch (error) {
-    console.error('批量操作失败:', error);
-    ElMessage.error('操作失败');
-  }
-};
-
-// 添加品牌
-const addBrand = () => {
-  router.push({ path: '/mall/pms/brand/add' });
-};
-
-// 页面加载
 onMounted(() => {
   getList();
 });
 </script>
 
 <style scoped lang="scss">
-.filter-container {
-  margin-bottom: 10px;
-
-  .el-icon {
-    margin-right: 5px;
-    vertical-align: middle;
-  }
-}
-
-.operate-container {
-  margin-bottom: 10px;
-
-  .btn-add {
-    float: right;
-  }
-
-  .el-icon {
-    margin-right: 5px;
-    vertical-align: middle;
-  }
-}
-
-.table-container {
-  margin-bottom: 10px;
+.input-width {
+  width: 203px;
 }
 
 .batch-operate-container {
   margin-bottom: 20px;
-}
-
-.pagination-container {
-  display: flex;
-  justify-content: center;
 }
 </style>
