@@ -11,7 +11,10 @@ import type { CreateProductCategoryDtoNavStatus } from './createProductCategoryD
 import type { CreateProductCategoryDtoShowStatus } from './createProductCategoryDtoShowStatus';
 
 export interface CreateProductCategoryDto {
-  /** 父级分类 ID，0 表示一级分类 */
+  /**
+   * 父级分类 ID，0 表示一级分类
+   * @minimum 0
+   */
   parentId: number;
   /** 分类名称 */
   name: string;
@@ -21,7 +24,10 @@ export interface CreateProductCategoryDto {
   navStatus?: CreateProductCategoryDtoNavStatus;
   /** 显示状态：0-不显示 1-显示 */
   showStatus?: CreateProductCategoryDtoShowStatus;
-  /** 排序 */
+  /**
+   * 排序
+   * @minimum 0
+   */
   sort?: number;
   /** 图标 URL */
   icon?: string;

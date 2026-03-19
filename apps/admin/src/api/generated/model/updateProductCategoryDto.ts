@@ -11,7 +11,10 @@ import type { UpdateProductCategoryDtoNavStatus } from './updateProductCategoryD
 import type { UpdateProductCategoryDtoShowStatus } from './updateProductCategoryDtoShowStatus';
 
 export interface UpdateProductCategoryDto {
-  /** 父级分类 ID，0 表示一级分类 */
+  /**
+   * 父级分类 ID，0 表示一级分类
+   * @minimum 0
+   */
   parentId?: number;
   /** 分类名称 */
   name?: string;
@@ -21,7 +24,10 @@ export interface UpdateProductCategoryDto {
   navStatus?: UpdateProductCategoryDtoNavStatus;
   /** 显示状态：0-不显示 1-显示 */
   showStatus?: UpdateProductCategoryDtoShowStatus;
-  /** 排序 */
+  /**
+   * 排序
+   * @minimum 0
+   */
   sort?: number;
   /** 图标 URL */
   icon?: string;

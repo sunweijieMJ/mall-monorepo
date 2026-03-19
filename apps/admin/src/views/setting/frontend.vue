@@ -38,7 +38,7 @@
 
 <script setup lang="ts">
 import { ElMessageBox, ElMessage } from 'element-plus';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import ConfigEditor from '@/components/ConfigEditor/index.vue';
 import { siteConfigSchema, type SiteConfig } from '@/constants/siteConfig';
 import { useSiteConfigStore } from '@/store/modules/siteConfig';
@@ -53,6 +53,13 @@ const draft = ref<Record<string, Record<string, unknown>>>(
   >,
 );
 
+onMounted(async () => {
+  await siteConfigStore.load();
+  draft.value = JSON.parse(
+    JSON.stringify(siteConfigStore.savedConfig),
+  ) as Record<string, Record<string, unknown>>;
+});
+
 // 是否有未保存的修改
 const isDirty = computed(
   () =>
@@ -64,10 +71,10 @@ const saving = ref(false);
 /**
  * 保存配置到 store
  */
-function handleSave() {
+async function handleSave() {
   saving.value = true;
   try {
-    siteConfigStore.save(draft.value as unknown as Partial<SiteConfig>);
+    await siteConfigStore.save(draft.value as unknown as Partial<SiteConfig>);
     ElMessage.success('配置已保存');
   } finally {
     saving.value = false;
@@ -88,7 +95,7 @@ async function handleReset() {
         type: 'warning',
       },
     );
-    siteConfigStore.reset();
+    await siteConfigStore.reset();
     // 同步草稿到重置后的默认值
     draft.value = JSON.parse(
       JSON.stringify(siteConfigStore.savedConfig),

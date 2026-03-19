@@ -30,7 +30,7 @@
 
 <script setup lang="ts">
 import { ElMessage } from 'element-plus';
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import ThemeCodeEditor from './components/ThemeCodeEditor.vue';
 import ThemeToolbar from './components/ThemeToolbar.vue';
 import ThemeVisualEditor from './components/ThemeVisualEditor.vue';
@@ -53,6 +53,10 @@ const mergedVars = computed(() =>
   globalStore.getMergedThemeVars(editTheme.value),
 );
 const modifiedCount = computed(() => Object.keys(customVars.value).length);
+
+onMounted(() => {
+  globalStore.loadTheme();
+});
 
 function handleVarChange(varName: string, value: string) {
   globalStore.setThemeVar(varName, value, editTheme.value);
@@ -96,6 +100,7 @@ function handleApply() {
       `已切换到 ${editTheme.value === 'dark' ? '深色' : '浅色'} 主题`,
     );
   }
+  globalStore.saveTheme();
 }
 
 function handleExport() {
@@ -117,6 +122,7 @@ function handleReset() {
   if (editTheme.value === globalStore.currentTheme) {
     globalStore.applyCustomTheme();
   }
+  globalStore.saveTheme();
   ElMessage.success('已重置为默认主题');
 }
 </script>

@@ -415,7 +415,7 @@ export class OrderService {
     const { orderId, status, ...receiverFields } = dto;
 
     return this.transactionService.run(async (manager) => {
-      await manager
+      const result = await manager
         .createQueryBuilder()
         .update(OrderEntity)
         .set({
@@ -428,8 +428,22 @@ export class OrderService {
           receiverRegion: receiverFields.receiverRegion,
           modifyTime: new Date(),
         })
-        .where('id = :id', { id: orderId })
+        .where(
+          'id = :id AND deleteStatus = 0 AND status IN (:...allowedStatuses)',
+          {
+            id: orderId,
+            allowedStatuses: [
+              OrderStatus.PENDING_PAYMENT,
+              OrderStatus.PAID,
+              OrderStatus.SHIPPING,
+            ],
+          },
+        )
         .execute();
+
+      if (result.affected === 0) {
+        throw new NotFoundException('订单不存在或当前状态不允许修改收货人信息');
+      }
 
       await manager.save(OrderOperateHistoryEntity, {
         orderId,
@@ -458,12 +472,22 @@ export class OrderService {
     }
 
     return this.transactionService.run(async (manager) => {
-      await manager
+      const result = await manager
         .createQueryBuilder()
         .update(OrderEntity)
         .set(updateFields)
-        .where('id = :id', { id: orderId })
+        .where(
+          'id = :id AND deleteStatus = 0 AND status IN (:...allowedStatuses)',
+          {
+            id: orderId,
+            allowedStatuses: [OrderStatus.PENDING_PAYMENT, OrderStatus.PAID],
+          },
+        )
         .execute();
+
+      if (result.affected === 0) {
+        throw new NotFoundException('订单不存在或当前状态不允许修改费用信息');
+      }
 
       await manager.save(OrderOperateHistoryEntity, {
         orderId,
@@ -977,8 +1001,11 @@ export class OrderService {
         if (i === orderItems.length - 1) {
           // 最后一项 = 总额 - 前 N-1 项之和，确保分摊总和精确等于 integrationAmount
           item.integrationAmount = String(
-            Math.round((integrationAmount - distributedIntegration) * 100) /
-              100,
+            Math.round(
+              ((integrationAmount - distributedIntegration) /
+                (item.productQuantity ?? 1)) *
+                100,
+            ) / 100,
           );
         } else {
           const perAmount =
@@ -990,7 +1017,7 @@ export class OrderService {
                 ) / 100
               : 0;
           item.integrationAmount = String(perAmount);
-          distributedIntegration += perAmount;
+          distributedIntegration += perAmount * (item.productQuantity ?? 0);
         }
       }
     }
@@ -1827,7 +1854,10 @@ export class OrderService {
       const item = orderItems[i];
       if (i === orderItems.length - 1) {
         item.couponAmount = String(
-          Math.round((couponAmount - distributedCoupon) * 100) / 100,
+          Math.round(
+            ((couponAmount - distributedCoupon) / (item.productQuantity ?? 1)) *
+              100,
+          ) / 100,
         );
       } else {
         const perAmount =
@@ -1835,7 +1865,7 @@ export class OrderService {
             (Number(item.productPrice ?? 0) / totalAmount) * couponAmount * 100,
           ) / 100;
         item.couponAmount = String(perAmount);
-        distributedCoupon += perAmount;
+        distributedCoupon += perAmount * (item.productQuantity ?? 0);
       }
     }
   }

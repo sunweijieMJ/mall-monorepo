@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { ReturnApplyService } from '@/modules/oms/return-apply/return-apply.service';
 import { ReturnApplyEntity } from '@/modules/oms/return-apply/infrastructure/persistence/relational/entities/return-apply.entity';
 import {
@@ -97,6 +97,7 @@ describe('ReturnApplyService', () => {
 
   describe('updateStatus', () => {
     it('更新状态 → 记录 handleTime', async () => {
+      mockRepo.findOneBy.mockResolvedValue({ id: 1, status: 0 });
       const qb = mockRepo.createQueryBuilder();
       qb.update = vi.fn().mockReturnValue(qb);
       qb.set = vi.fn().mockReturnValue(qb);
@@ -115,6 +116,7 @@ describe('ReturnApplyService', () => {
     });
 
     it('status=2 + receiveMan → 记录 receiveTime', async () => {
+      mockRepo.findOneBy.mockResolvedValue({ id: 1, status: 1 });
       const qb = mockRepo.createQueryBuilder();
       qb.update = vi.fn().mockReturnValue(qb);
       qb.set = vi.fn().mockReturnValue(qb);
@@ -134,6 +136,7 @@ describe('ReturnApplyService', () => {
     });
 
     it('status=3（拒绝）→ 不记录 receiveTime', async () => {
+      mockRepo.findOneBy.mockResolvedValue({ id: 1, status: 0 });
       const qb = mockRepo.createQueryBuilder();
       qb.update = vi.fn().mockReturnValue(qb);
       qb.set = vi.fn().mockReturnValue(qb);
@@ -148,6 +151,7 @@ describe('ReturnApplyService', () => {
     });
 
     it('refundAmount → 转为 string 存入 returnAmount', async () => {
+      mockRepo.findOneBy.mockResolvedValue({ id: 1, status: 1 });
       const qb = mockRepo.createQueryBuilder();
       qb.update = vi.fn().mockReturnValue(qb);
       qb.set = vi.fn().mockReturnValue(qb);
@@ -162,6 +166,22 @@ describe('ReturnApplyService', () => {
 
       expect(qb.set).toHaveBeenCalledWith(
         expect.objectContaining({ returnAmount: '99.5' }),
+      );
+    });
+
+    it('非法状态流转 → 抛出 BadRequestException', async () => {
+      mockRepo.findOneBy.mockResolvedValue({ id: 1, status: 2 });
+
+      await expect(service.updateStatus(1, { status: 1 })).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('记录不存在 → 抛出 NotFoundException', async () => {
+      mockRepo.findOneBy.mockResolvedValue(null);
+
+      await expect(service.updateStatus(1, { status: 1 })).rejects.toThrow(
+        '退货申请 1 不存在',
       );
     });
   });
@@ -300,6 +320,7 @@ describe('ReturnApplyService', () => {
 
   describe('handle / confirmReceive', () => {
     it('handle → 委托给 updateStatus', async () => {
+      mockRepo.findOneBy.mockResolvedValue({ id: 1, status: 0 });
       const qb = mockRepo.createQueryBuilder();
       qb.update = vi.fn().mockReturnValue(qb);
       qb.set = vi.fn().mockReturnValue(qb);
@@ -314,6 +335,7 @@ describe('ReturnApplyService', () => {
     });
 
     it('confirmReceive → status=2 委托给 updateStatus', async () => {
+      mockRepo.findOneBy.mockResolvedValue({ id: 1, status: 1 });
       const qb = mockRepo.createQueryBuilder();
       qb.update = vi.fn().mockReturnValue(qb);
       qb.set = vi.fn().mockReturnValue(qb);

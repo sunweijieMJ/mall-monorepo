@@ -79,6 +79,9 @@ import { ReadHistoryModule } from './modules/portal/read-history/read-history.mo
 import { PortalProductModule } from './modules/portal/product/portal-product.module';
 import { PaymentModule } from './modules/portal/payment/payment.module';
 
+// 系统配置
+import { SettingModule } from './modules/setting/setting.module';
+
 // 其他
 import { OssModule } from './modules/oss/oss.module';
 import { HealthModule } from './infrastructure/health/health.module';
@@ -276,6 +279,9 @@ import { HealthModule } from './infrastructure/health/health.module';
     ReadHistoryModule,
     PortalProductModule,
     PaymentModule,
+
+    // 系统配置
+    SettingModule,
 
     // 其他
     OssModule,

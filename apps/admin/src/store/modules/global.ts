@@ -1,5 +1,9 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
+import {
+  settingControllerFindByPathV1,
+  settingControllerUpsertV1,
+} from '@/api';
 import { DEFAULT_LOCALE, DEFAULT_THEME_STYLE } from '@/constants/system';
 import type { LocaleKey, ThemeStyleKey } from '@/interface/system';
 import type { ThemeData, ThemeVars } from '@/utils/theme';
@@ -8,6 +12,8 @@ import {
   clearCustomThemeVars,
   getDefaultThemeVars,
 } from '@/utils/theme';
+
+const CONFIG_PATH = 'theme';
 
 export const useGlobalStore = defineStore(
   'global',
@@ -124,6 +130,32 @@ export const useGlobalStore = defineStore(
       return { ...defaults, ...custom };
     };
 
+    // ==================== 主题配置持久化 ====================
+
+    /** 从服务端加载自定义主题变量 */
+    const loadTheme = async () => {
+      try {
+        const res = await settingControllerFindByPathV1(CONFIG_PATH);
+        if (res?.value) {
+          customThemeVars.value = res.value as ThemeData;
+          applyCustomTheme();
+        }
+      } catch {
+        // 加载失败时使用本地持久化数据
+      }
+    };
+
+    /** 保存自定义主题变量到服务端 */
+    const saveTheme = async () => {
+      try {
+        await settingControllerUpsertV1(CONFIG_PATH, {
+          value: customThemeVars.value,
+        });
+      } catch {
+        // 写入失败时本地已保存，不影响使用
+      }
+    };
+
     // ==================== 高级模式相关 ====================
     const advanceMode = ref<boolean>(false);
     const clickCount = ref<number>(0);
@@ -182,6 +214,10 @@ export const useGlobalStore = defineStore(
       removeThemeVar,
       resetCustomTheme,
       getMergedThemeVars,
+
+      // 主题配置持久化
+      loadTheme,
+      saveTheme,
 
       // 高级模式相关
       advanceMode,

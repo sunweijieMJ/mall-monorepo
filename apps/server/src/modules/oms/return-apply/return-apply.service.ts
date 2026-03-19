@@ -77,6 +77,24 @@ export class ReturnApplyService {
     id: number,
     dto: Omit<UpdateReturnStatusDto, 'id'>,
   ): Promise<number> {
+    // 状态机校验：只允许合法的状态流转
+    const allowedTransitions: Record<number, number[]> = {
+      0: [1, 3], // 待处理 → 退货中 | 已拒绝
+      1: [2, 3], // 退货中 → 已完成 | 已拒绝
+    };
+
+    const current = await this.repo.findOneBy({ id });
+    if (!current) {
+      throw new NotFoundException(`退货申请 ${id} 不存在`);
+    }
+
+    const allowed = allowedTransitions[current.status];
+    if (!allowed || !allowed.includes(dto.status)) {
+      throw new BadRequestException(
+        `退货申请状态不允许从 ${current.status} 变更为 ${dto.status}`,
+      );
+    }
+
     const updateFields: Partial<ReturnApplyEntity> = {
       status: dto.status,
     };

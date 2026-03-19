@@ -294,6 +294,11 @@ export {
   adminUserControllerResetPasswordV1,
 } from './generated/admin-user/admin-user';
 
+export {
+  settingControllerFindByPathV1,
+  settingControllerUpsertV1,
+} from './generated/config/config';
+
 // 3. 自定义工具函数 (自动扫描 custom 目录)
 export * from './custom/external';
 export * from './custom/override';

@@ -631,3 +631,5 @@ export * from './updateSortDto';
 export * from './updateSubjectDto';
 export * from './updateSubjectDtoRecommendStatus';
 export * from './updateSubjectDtoShowStatus';
+export * from './upsertSettingDto';
+export * from './upsertSettingDtoValue';
