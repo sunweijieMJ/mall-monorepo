@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { CollectionService } from '@/modules/portal/collection/collection.service';
@@ -71,6 +71,15 @@ describe('CollectionService', () => {
       );
       expect(mockRepo.save).not.toHaveBeenCalled();
     });
+
+    it('商品不存在 → NotFoundException', async () => {
+      mockRepo.findOne.mockResolvedValue(null);
+      mockProductRepo.findOne.mockResolvedValue(null);
+
+      await expect(service.add(100, { productId: 999 })).rejects.toThrow(
+        NotFoundException,
+      );
+    });
   });
 
   describe('delete', () => {
@@ -83,6 +92,22 @@ describe('CollectionService', () => {
         memberId: 100,
         productId: 20,
       });
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockRepo.delete.mockResolvedValue({});
+
+      const result = await service.delete(100, 20);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockRepo.delete.mockResolvedValue({ affected: null });
+
+      const result = await service.delete(100, 20);
+
+      expect(result).toBe(0);
     });
   });
 
@@ -106,6 +131,22 @@ describe('CollectionService', () => {
       await service.clear(100);
 
       expect(mockRepo.delete).toHaveBeenCalledWith({ memberId: 100 });
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockRepo.delete.mockResolvedValue({});
+
+      const result = await service.clear(100);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockRepo.delete.mockResolvedValue({ affected: null });
+
+      const result = await service.clear(100);
+
+      expect(result).toBe(0);
     });
   });
 

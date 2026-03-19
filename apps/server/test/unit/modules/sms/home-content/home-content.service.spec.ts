@@ -151,6 +151,21 @@ describe('HomeContentService', () => {
 
       expect(qb.andWhere).toHaveBeenCalledWith('a.type = :type', { type: 0 });
     });
+
+    it('带 endTime 过滤 -> 调用 BETWEEN 查询', async () => {
+      const qb = setupQueryBuilder(mockAdvertiseRepo, [], 0);
+
+      await service.listAdvertise({
+        page: 1,
+        limit: 10,
+        endTime: '2025-06-15',
+      } as any);
+
+      expect(qb.andWhere).toHaveBeenCalledWith(
+        'a.endTime BETWEEN :start AND :end',
+        { start: '2025-06-15 00:00:00', end: '2025-06-15 23:59:59' },
+      );
+    });
   });
 
   describe('getAdvertiseItem', () => {
@@ -186,6 +201,22 @@ describe('HomeContentService', () => {
         name: '秋季促销',
       });
     });
+
+    it('affected undefined → 返回 0', async () => {
+      mockAdvertiseRepo.update.mockResolvedValue({});
+
+      const result = await service.updateAdvertise(1, { name: '秋季促销' });
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockAdvertiseRepo.update.mockResolvedValue({ affected: null });
+
+      const result = await service.updateAdvertise(1, { name: '秋季促销' });
+
+      expect(result).toBe(0);
+    });
   });
 
   describe('deleteAdvertise', () => {
@@ -196,6 +227,22 @@ describe('HomeContentService', () => {
 
       expect(mockAdvertiseRepo.softDelete).toHaveBeenCalledWith([1, 2]);
     });
+
+    it('affected undefined → 返回 0', async () => {
+      mockAdvertiseRepo.softDelete.mockResolvedValue({});
+
+      const result = await service.deleteAdvertise([1, 2]);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockAdvertiseRepo.softDelete.mockResolvedValue({ affected: null });
+
+      const result = await service.deleteAdvertise([1, 2]);
+
+      expect(result).toBe(0);
+    });
   });
 
   describe('updateAdvertiseStatus', () => {
@@ -205,6 +252,22 @@ describe('HomeContentService', () => {
       await service.updateAdvertiseStatus(1, 0);
 
       expect(mockAdvertiseRepo.update).toHaveBeenCalledWith(1, { status: 0 });
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockAdvertiseRepo.update.mockResolvedValue({});
+
+      const result = await service.updateAdvertiseStatus(1, 0);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockAdvertiseRepo.update.mockResolvedValue({ affected: null });
+
+      const result = await service.updateAdvertiseStatus(1, 0);
+
+      expect(result).toBe(0);
     });
   });
 
@@ -274,6 +337,24 @@ describe('HomeContentService', () => {
       expect(mockHomeBrandRepo.createQueryBuilder).toHaveBeenCalled();
       expect(qb.execute).toHaveBeenCalled();
     });
+
+    it('affected undefined → 返回 0', async () => {
+      const qb = setupQueryBuilder(mockHomeBrandRepo, [], 0);
+      qb.execute.mockResolvedValue({});
+
+      const result = await service.updateHomeBrandStatus([1, 2], 0);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      const qb = setupQueryBuilder(mockHomeBrandRepo, [], 0);
+      qb.execute.mockResolvedValue({ affected: null });
+
+      const result = await service.updateHomeBrandStatus([1, 2], 0);
+
+      expect(result).toBe(0);
+    });
   });
 
   describe('updateHomeBrandSort', () => {
@@ -284,6 +365,22 @@ describe('HomeContentService', () => {
 
       expect(mockHomeBrandRepo.update).toHaveBeenCalledWith(1, { sort: 50 });
     });
+
+    it('affected undefined → 返回 0', async () => {
+      mockHomeBrandRepo.update.mockResolvedValue({});
+
+      const result = await service.updateHomeBrandSort(1, 50);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockHomeBrandRepo.update.mockResolvedValue({ affected: null });
+
+      const result = await service.updateHomeBrandSort(1, 50);
+
+      expect(result).toBe(0);
+    });
   });
 
   describe('deleteHomeBrand', () => {
@@ -293,6 +390,22 @@ describe('HomeContentService', () => {
       await service.deleteHomeBrand([1, 2]);
 
       expect(mockHomeBrandRepo.softDelete).toHaveBeenCalledWith([1, 2]);
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockHomeBrandRepo.softDelete.mockResolvedValue({});
+
+      const result = await service.deleteHomeBrand([1, 2]);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockHomeBrandRepo.softDelete.mockResolvedValue({ affected: null });
+
+      const result = await service.deleteHomeBrand([1, 2]);
+
+      expect(result).toBe(0);
     });
   });
 
@@ -322,6 +435,20 @@ describe('HomeContentService', () => {
         { subjectName: '%夏日%' },
       );
     });
+
+    it('带 recommendStatus=0（falsy 但有效）-> 调用 andWhere', async () => {
+      const qb = setupQueryBuilder(mockSubjectRepo, [], 0);
+
+      await service.listSubject({
+        page: 1,
+        limit: 10,
+        recommendStatus: 0,
+      } as any);
+
+      expect(qb.andWhere).toHaveBeenCalledWith('s.recommendStatus = :rs', {
+        rs: 0,
+      });
+    });
   });
 
   describe('createSubject', () => {
@@ -348,6 +475,22 @@ describe('HomeContentService', () => {
 
       expect(mockSubjectRepo.softDelete).toHaveBeenCalledWith([1]);
     });
+
+    it('affected undefined → 返回 0', async () => {
+      mockSubjectRepo.softDelete.mockResolvedValue({});
+
+      const result = await service.deleteSubject([1]);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockSubjectRepo.softDelete.mockResolvedValue({ affected: null });
+
+      const result = await service.deleteSubject([1]);
+
+      expect(result).toBe(0);
+    });
   });
 
   describe('updateSubjectStatus', () => {
@@ -359,6 +502,24 @@ describe('HomeContentService', () => {
       expect(mockSubjectRepo.createQueryBuilder).toHaveBeenCalled();
       expect(qb.execute).toHaveBeenCalled();
     });
+
+    it('affected undefined → 返回 0', async () => {
+      const qb = setupQueryBuilder(mockSubjectRepo, [], 0);
+      qb.execute.mockResolvedValue({});
+
+      const result = await service.updateSubjectStatus([1, 2], 1);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      const qb = setupQueryBuilder(mockSubjectRepo, [], 0);
+      qb.execute.mockResolvedValue({ affected: null });
+
+      const result = await service.updateSubjectStatus([1, 2], 1);
+
+      expect(result).toBe(0);
+    });
   });
 
   describe('updateSubjectSort', () => {
@@ -368,6 +529,22 @@ describe('HomeContentService', () => {
       await service.updateSubjectSort(1, 30);
 
       expect(mockSubjectRepo.update).toHaveBeenCalledWith(1, { sort: 30 });
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockSubjectRepo.update.mockResolvedValue({});
+
+      const result = await service.updateSubjectSort(1, 30);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockSubjectRepo.update.mockResolvedValue({ affected: null });
+
+      const result = await service.updateSubjectSort(1, 30);
+
+      expect(result).toBe(0);
     });
   });
 
@@ -414,6 +591,20 @@ describe('HomeContentService', () => {
         rs: 1,
       });
     });
+
+    it('带 recommendStatus=0（falsy 但有效）-> 调用 andWhere', async () => {
+      const qb = setupQueryBuilder(mockNewProductRepo, [], 0);
+
+      await service.listNewProduct({
+        page: 1,
+        limit: 10,
+        recommendStatus: 0,
+      } as any);
+
+      expect(qb.andWhere).toHaveBeenCalledWith('p.recommendStatus = :rs', {
+        rs: 0,
+      });
+    });
   });
 
   describe('createNewProduct', () => {
@@ -440,6 +631,22 @@ describe('HomeContentService', () => {
 
       expect(mockNewProductRepo.softDelete).toHaveBeenCalledWith([1, 2]);
     });
+
+    it('affected undefined → 返回 0', async () => {
+      mockNewProductRepo.softDelete.mockResolvedValue({});
+
+      const result = await service.deleteNewProduct([1, 2]);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockNewProductRepo.softDelete.mockResolvedValue({ affected: null });
+
+      const result = await service.deleteNewProduct([1, 2]);
+
+      expect(result).toBe(0);
+    });
   });
 
   describe('updateNewProductStatus', () => {
@@ -451,6 +658,24 @@ describe('HomeContentService', () => {
       expect(mockNewProductRepo.createQueryBuilder).toHaveBeenCalled();
       expect(qb.execute).toHaveBeenCalled();
     });
+
+    it('affected undefined → 返回 0', async () => {
+      const qb = setupQueryBuilder(mockNewProductRepo, [], 0);
+      qb.execute.mockResolvedValue({});
+
+      const result = await service.updateNewProductStatus([1, 2], 0);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      const qb = setupQueryBuilder(mockNewProductRepo, [], 0);
+      qb.execute.mockResolvedValue({ affected: null });
+
+      const result = await service.updateNewProductStatus([1, 2], 0);
+
+      expect(result).toBe(0);
+    });
   });
 
   describe('updateNewProductSort', () => {
@@ -460,6 +685,22 @@ describe('HomeContentService', () => {
       await service.updateNewProductSort(1, 60);
 
       expect(mockNewProductRepo.update).toHaveBeenCalledWith(1, { sort: 60 });
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockNewProductRepo.update.mockResolvedValue({});
+
+      const result = await service.updateNewProductSort(1, 60);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockNewProductRepo.update.mockResolvedValue({ affected: null });
+
+      const result = await service.updateNewProductSort(1, 60);
+
+      expect(result).toBe(0);
     });
   });
 
@@ -532,6 +773,22 @@ describe('HomeContentService', () => {
 
       expect(mockHotProductRepo.softDelete).toHaveBeenCalledWith([1, 2]);
     });
+
+    it('affected undefined → 返回 0', async () => {
+      mockHotProductRepo.softDelete.mockResolvedValue({});
+
+      const result = await service.deleteHotProduct([1, 2]);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockHotProductRepo.softDelete.mockResolvedValue({ affected: null });
+
+      const result = await service.deleteHotProduct([1, 2]);
+
+      expect(result).toBe(0);
+    });
   });
 
   describe('updateHotProductStatus', () => {
@@ -543,6 +800,24 @@ describe('HomeContentService', () => {
       expect(mockHotProductRepo.createQueryBuilder).toHaveBeenCalled();
       expect(qb.execute).toHaveBeenCalled();
     });
+
+    it('affected undefined → 返回 0', async () => {
+      const qb = setupQueryBuilder(mockHotProductRepo, [], 0);
+      qb.execute.mockResolvedValue({});
+
+      const result = await service.updateHotProductStatus([1, 2], 1);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      const qb = setupQueryBuilder(mockHotProductRepo, [], 0);
+      qb.execute.mockResolvedValue({ affected: null });
+
+      const result = await service.updateHotProductStatus([1, 2], 1);
+
+      expect(result).toBe(0);
+    });
   });
 
   describe('updateHotProductSort', () => {
@@ -552,6 +827,22 @@ describe('HomeContentService', () => {
       await service.updateHotProductSort(1, 70);
 
       expect(mockHotProductRepo.update).toHaveBeenCalledWith(1, { sort: 70 });
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockHotProductRepo.update.mockResolvedValue({});
+
+      const result = await service.updateHotProductSort(1, 70);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockHotProductRepo.update.mockResolvedValue({ affected: null });
+
+      const result = await service.updateHotProductSort(1, 70);
+
+      expect(result).toBe(0);
     });
   });
 });

@@ -22,8 +22,22 @@ describe('RedisHealthIndicator', () => {
     expect(result).toEqual({ redis: { status: 'up' } });
   });
 
-  it('ping 异常 → 抛出 HealthCheckError', async () => {
+  it('ping 返回非 PONG → 抛出 HealthCheckError', async () => {
+    mockRedisClient.ping.mockResolvedValue('NOT_PONG');
+    await expect(indicator.isHealthy('redis')).rejects.toThrow(
+      HealthCheckError,
+    );
+  });
+
+  it('ping 异常（Error 实例）→ 抛出 HealthCheckError 含 message', async () => {
     mockRedisClient.ping.mockRejectedValue(new Error('Connection refused'));
+    await expect(indicator.isHealthy('redis')).rejects.toThrow(
+      HealthCheckError,
+    );
+  });
+
+  it('ping 异常（非 Error 实例）→ 抛出 HealthCheckError 含 "未知错误"', async () => {
+    mockRedisClient.ping.mockRejectedValue('string error');
     await expect(indicator.isHealthy('redis')).rejects.toThrow(
       HealthCheckError,
     );

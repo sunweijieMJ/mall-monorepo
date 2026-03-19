@@ -82,6 +82,45 @@ describe('MemberLevelService', () => {
       expect(mockRepo.create).toHaveBeenCalled();
       expect(mockRepo.save).toHaveBeenCalled();
     });
+
+    it('带 freeFreightPoint → 转为字符串写入', async () => {
+      mockRepo.save.mockResolvedValue(levelFixture);
+
+      await service.create({
+        name: '金牌会员',
+        growthPoint: 2000,
+        freeFreightPoint: 99,
+      } as any);
+
+      expect(mockRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ freeFreightPoint: '99' }),
+      );
+    });
+
+    it('不传 freeFreightPoint → 不包含该字段', async () => {
+      mockRepo.save.mockResolvedValue(levelFixture);
+
+      await service.create({
+        name: '普通会员',
+        growthPoint: 500,
+      });
+
+      const createArg = mockRepo.create.mock.calls[0][0];
+      expect(createArg).not.toHaveProperty('freeFreightPoint');
+    });
+
+    it('freeFreightPoint 为 null → 不包含该字段', async () => {
+      mockRepo.save.mockResolvedValue(levelFixture);
+
+      await service.create({
+        name: '普通会员',
+        growthPoint: 500,
+        freeFreightPoint: null,
+      } as any);
+
+      const createArg = mockRepo.create.mock.calls[0][0];
+      expect(createArg).not.toHaveProperty('freeFreightPoint');
+    });
   });
 
   describe('update', () => {
@@ -106,6 +145,32 @@ describe('MemberLevelService', () => {
       );
       expect(mockRepo.update).not.toHaveBeenCalled();
     });
+
+    it('带 freeFreightPoint → 转为字符串写入', async () => {
+      mockRepo.findOne
+        .mockResolvedValueOnce(levelFixture)
+        .mockResolvedValueOnce({ ...levelFixture, freeFreightPoint: '199.00' });
+      mockRepo.update.mockResolvedValue({ affected: 1 });
+
+      await service.update(1, { freeFreightPoint: 199 } as any);
+
+      expect(mockRepo.update).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({ freeFreightPoint: '199' }),
+      );
+    });
+
+    it('freeFreightPoint 为 null → 不包含该字段', async () => {
+      mockRepo.findOne
+        .mockResolvedValueOnce(levelFixture)
+        .mockResolvedValueOnce(levelFixture);
+      mockRepo.update.mockResolvedValue({ affected: 1 });
+
+      await service.update(1, { freeFreightPoint: null } as any);
+
+      const updateArg = mockRepo.update.mock.calls[0][1];
+      expect(updateArg).not.toHaveProperty('freeFreightPoint');
+    });
   });
 
   describe('delete', () => {
@@ -115,6 +180,22 @@ describe('MemberLevelService', () => {
       await service.delete([1, 2]);
 
       expect(mockRepo.softDelete).toHaveBeenCalled();
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockRepo.softDelete.mockResolvedValue({});
+
+      const result = await service.delete([1, 2]);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockRepo.softDelete.mockResolvedValue({ affected: null });
+
+      const result = await service.delete([1, 2]);
+
+      expect(result).toBe(0);
     });
   });
 });

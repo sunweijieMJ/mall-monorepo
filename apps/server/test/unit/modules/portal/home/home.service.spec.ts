@@ -234,5 +234,51 @@ describe('HomeService', () => {
       expect(flash.nextStartTime).toBeNull();
       expect(mockProductRepo.findBy).not.toHaveBeenCalled();
     });
+
+    it('price/flashPromotionPrice 为非数字 → parseFloat 返回 NaN，fallback 到 0', async () => {
+      mockAdvertiseRepo.find.mockResolvedValue([]);
+      mockBrandRepo.find.mockResolvedValue([]);
+      mockNewProductRepo.find.mockResolvedValue([]);
+      mockHotProductRepo.find.mockResolvedValue([]);
+      mockSubjectRepo.find.mockResolvedValue([]);
+
+      const fpQb = mockFlashPromotionRepo.createQueryBuilder();
+      fpQb.getOne.mockResolvedValue({ id: 10, title: '秒杀' });
+      mockFlashPromotionRepo.createQueryBuilder.mockReturnValue(fpQb);
+
+      const fsQb = mockFlashSessionRepo.createQueryBuilder();
+      fsQb.getOne
+        .mockResolvedValueOnce({
+          id: 20,
+          name: '场次',
+          startTime: '10:00',
+          endTime: '12:00',
+        })
+        .mockResolvedValueOnce(null);
+      mockFlashSessionRepo.createQueryBuilder.mockReturnValue(fsQb);
+
+      mockFlashProductRelRepo.find.mockResolvedValue([
+        {
+          productId: 100,
+          flashPromotionPrice: 'not-a-number',
+          flashPromotionCount: 10,
+          flashPromotionLimit: 1,
+        },
+      ]);
+      mockProductRepo.findBy.mockResolvedValue([
+        {
+          id: 100,
+          name: '商品',
+          pic: 'a.jpg',
+          price: 'invalid',
+        },
+      ]);
+
+      const result = await service.getHomeContent();
+      const flash = result.homeFlashPromotion as any;
+
+      expect(flash.productList[0].price).toBe(0);
+      expect(flash.productList[0].flashPromotionPrice).toBe(0);
+    });
   });
 });

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { FindOperator } from 'typeorm';
 import { SkuStockService } from '@/modules/pms/sku-stock/sku-stock.service';
 import { SkuStockEntity } from '@/modules/pms/sku-stock/infrastructure/persistence/relational/entities/sku-stock.entity';
 import { createMockRepository } from '../../../../helpers/mock.factory';
@@ -47,7 +48,7 @@ describe('SkuStockService', () => {
 
       const callArgs = mockRepo.find.mock.calls[0][0];
       expect(callArgs.where.productId).toBe(10);
-      expect(callArgs.where.skuCode).toBeDefined();
+      expect(callArgs.where.skuCode).toBeInstanceOf(FindOperator);
     });
   });
 

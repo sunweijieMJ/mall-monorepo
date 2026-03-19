@@ -187,6 +187,40 @@ describe('ProductService', () => {
         NotFoundException,
       );
     });
+
+    it('子表列表字段全为 null → 使用空数组（不插入子表数据）', async () => {
+      mockManager.findOneBy.mockResolvedValue(productFixture());
+      mockManager.findOne.mockResolvedValue(productFixture());
+      mockManager.find.mockResolvedValue([]); // 无现有 SKU
+
+      const dto = {
+        name: '更新商品',
+        productAttributeValueList: null,
+        productLadderList: null,
+        productFullReductionList: null,
+        memberPriceList: null,
+        skuStockList: null,
+        subjectProductRelationList: null,
+        preferenceAreaProductRelationList: null,
+      } as any;
+
+      await service.update(1, dto);
+
+      expect(mockTransactionService.run).toHaveBeenCalled();
+      // 子表 delete 仍会执行（先删后插），但 save 不应包含子表数据
+    });
+
+    it('子表列表字段为 undefined → 使用空数组（不插入子表数据）', async () => {
+      mockManager.findOneBy.mockResolvedValue(productFixture());
+      mockManager.findOne.mockResolvedValue(productFixture());
+      mockManager.find.mockResolvedValue([]);
+
+      const dto = { name: '更新商品' } as any;
+
+      await service.update(1, dto);
+
+      expect(mockTransactionService.run).toHaveBeenCalled();
+    });
   });
 
   // ======================== delete ========================
@@ -601,6 +635,48 @@ describe('ProductService', () => {
         (call: any[]) => call[1]?.id !== undefined,
       );
       expect(skuSoftDeleteCall).toBeDefined();
+    });
+
+    it('混合操作：新增+更新+删除同时发生', async () => {
+      mockManager.findOneBy.mockResolvedValue(productFixture());
+      mockManager.findOne.mockResolvedValue(productFixture());
+      // 数据库中已有 id:100 和 id:200
+      mockManager.find.mockResolvedValue([
+        { id: 100, productId: 1, skuCode: 'OLD-001' },
+        { id: 200, productId: 1, skuCode: 'OLD-002' },
+      ]);
+
+      const dto = {
+        ...baseUpdateDto,
+        skuStockList: [
+          { id: 100, price: '150.00' }, // 更新
+          { price: '300.00' }, // 新增（无 id）
+          // id:200 不在列表中 → 删除
+        ],
+      };
+
+      await service.update(1, dto);
+
+      // 新增 SKU → manager.save 被调用
+      const saveCalls = mockManager.save.mock.calls;
+      const skuSaveCall = saveCalls.find(
+        (call: any[]) =>
+          Array.isArray(call[1]) &&
+          call[1].some((s: any) => s.price === '300.00'),
+      );
+      expect(skuSaveCall).toBeDefined();
+
+      // 更新 SKU → manager.update 被调用
+      const updateCalls = mockManager.update.mock.calls;
+      const skuUpdateCall = updateCalls.find((call: any[]) => call[1] === 100);
+      expect(skuUpdateCall).toBeDefined();
+
+      // 删除 SKU → manager.softDelete 被调用（id:200）
+      const softDeleteCalls = mockManager.softDelete.mock.calls;
+      const skuDeleteCall = softDeleteCalls.find(
+        (call: any[]) => call[1]?.id !== undefined,
+      );
+      expect(skuDeleteCall).toBeDefined();
     });
 
     it('纯更新无增删 → 只调 update 不调 save 也不调 delete（针对 SKU）', async () => {

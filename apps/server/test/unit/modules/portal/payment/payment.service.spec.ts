@@ -87,6 +87,20 @@ describe('PaymentService', () => {
         '订单状态不允许支付',
       );
     });
+
+    it('payAmount 为 null → 回退使用 totalAmount', async () => {
+      mockOrderRepo.findOne.mockResolvedValue(
+        orderFixture({ payAmount: null, totalAmount: '199.00' }),
+      );
+
+      await service.createAlipayPayment(1, 1);
+
+      expect(mockAlipayService.createPagePayment).toHaveBeenCalledWith(
+        'ORDER001',
+        199,
+        expect.stringContaining('ORDER001'),
+      );
+    });
   });
 
   // ======================== handleAlipayNotify ========================
@@ -129,6 +143,7 @@ describe('PaymentService', () => {
     });
 
     it('金额不一致 → 安全告警，不抛错', async () => {
+      const logSpy = vi.spyOn(service['logger'], 'error');
       mockAlipayService.verifyNotification.mockReturnValue(true);
       mockOrderRepo.findOne.mockResolvedValue(
         orderFixture({ payAmount: '200.00' }),
@@ -140,6 +155,7 @@ describe('PaymentService', () => {
 
       // paySuccess 不应被调用
       expect(mockOrderService.paySuccess).not.toHaveBeenCalled();
+      expect(logSpy).toHaveBeenCalledWith(expect.stringContaining('安全告警'));
     });
 
     it('paySuccess 异常 → 捕获不抛错（防止支付宝重试）', async () => {
@@ -150,6 +166,29 @@ describe('PaymentService', () => {
       await expect(
         service.handleAlipayNotify(validParams),
       ).resolves.toBeUndefined();
+    });
+
+    it('TRADE_FINISHED 状态 → 同样处理', async () => {
+      mockAlipayService.verifyNotification.mockReturnValue(true);
+      mockOrderRepo.findOne.mockResolvedValue(orderFixture());
+
+      await service.handleAlipayNotify({
+        ...validParams,
+        trade_status: 'TRADE_FINISHED',
+      });
+
+      expect(mockOrderService.paySuccess).toHaveBeenCalledWith(1, 1, 1);
+    });
+
+    it('payAmount 为空字符串 → 回退使用 totalAmount', async () => {
+      mockAlipayService.verifyNotification.mockReturnValue(true);
+      mockOrderRepo.findOne.mockResolvedValue(
+        orderFixture({ payAmount: '', totalAmount: '99.90' }),
+      );
+
+      await service.handleAlipayNotify(validParams);
+
+      expect(mockOrderService.paySuccess).toHaveBeenCalled();
     });
 
     it('非成功状态 → 不处理', async () => {

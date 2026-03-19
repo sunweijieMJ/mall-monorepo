@@ -58,5 +58,21 @@ describe('OrderSettingService', () => {
         normalOrderOvertime: 180,
       });
     });
+
+    it('affected undefined → 返回 0', async () => {
+      mockRepo.update.mockResolvedValue({});
+
+      const result = await service.update(1, { normalOrderOvertime: 180 });
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockRepo.update.mockResolvedValue({ affected: null });
+
+      const result = await service.update(1, { normalOrderOvertime: 180 });
+
+      expect(result).toBe(0);
+    });
   });
 });

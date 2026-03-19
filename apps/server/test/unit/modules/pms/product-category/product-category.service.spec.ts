@@ -65,6 +65,22 @@ describe('ProductCategoryService', () => {
       expect(callArgs.where.parentId).toBe(0);
       expect(callArgs.order.sort).toBe('DESC');
     });
+
+    it('pageNum/pageSize 缺省 → 使用默认值', async () => {
+      mockCategoryRepo.findAndCount.mockResolvedValue([[], 0]);
+      await service.getList(0, {} as any);
+      const callArgs = mockCategoryRepo.findAndCount.mock.calls[0][0];
+      expect(callArgs.skip).toBe(0);
+      expect(callArgs.take).toBe(10);
+    });
+
+    it('pageNum/pageSize 为 null → 使用默认值', async () => {
+      mockCategoryRepo.findAndCount.mockResolvedValue([[], 0]);
+      await service.getList(0, { pageNum: null, pageSize: null } as any);
+      const callArgs = mockCategoryRepo.findAndCount.mock.calls[0][0];
+      expect(callArgs.skip).toBe(0);
+      expect(callArgs.take).toBe(10);
+    });
   });
 
   describe('listWithChildren', () => {
@@ -136,6 +152,38 @@ describe('ProductCategoryService', () => {
 
       expect(dto.level).toBe(1);
     });
+
+    it('parentId 有值 + parent 存在 → level = parent.level + 1', async () => {
+      mockCategoryRepo.findOneBy.mockResolvedValue(level1Category); // level=1
+      mockCategoryRepo.update.mockResolvedValue({ affected: 1 });
+
+      const dto: any = { name: '子分类', parentId: 2 };
+      await service.update(3, dto);
+
+      expect(dto.level).toBe(2); // parent.level(1) + 1
+    });
+
+    it('parentId 有值 + parent 不存在 → level = 0', async () => {
+      mockCategoryRepo.findOneBy.mockResolvedValue(null); // parent 不存在
+      mockCategoryRepo.update.mockResolvedValue({ affected: 1 });
+
+      const dto: any = { name: '孤儿分类', parentId: 999 };
+      await service.update(4, dto);
+
+      expect(dto.level).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockCategoryRepo.update.mockResolvedValue({ affected: null });
+      const result = await service.update(1, { name: 'x', parentId: 0 });
+      expect(result).toBe(0);
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockCategoryRepo.update.mockResolvedValue({});
+      const result = await service.update(1, { name: 'x', parentId: 0 });
+      expect(result).toBe(0);
+    });
   });
 
   describe('delete', () => {
@@ -145,6 +193,20 @@ describe('ProductCategoryService', () => {
       await service.delete(1);
 
       expect(mockCategoryRepo.softDelete).toHaveBeenCalledWith(1);
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockCategoryRepo.softDelete.mockResolvedValue({});
+
+      const result = await service.delete(1);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockCategoryRepo.softDelete.mockResolvedValue({ affected: null });
+      const result = await service.delete(1);
+      expect(result).toBe(0);
     });
   });
 
@@ -163,6 +225,30 @@ describe('ProductCategoryService', () => {
       expect(mockCategoryRepo.createQueryBuilder).toHaveBeenCalled();
       expect(mockQb.execute).toHaveBeenCalled();
     });
+
+    it('affected null → 返回 0', async () => {
+      const mockQb = {
+        update: vi.fn().mockReturnThis(),
+        set: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue({ affected: null }),
+      };
+      mockCategoryRepo.createQueryBuilder.mockReturnValue(mockQb);
+      const result = await service.updateNavStatus([1], 1);
+      expect(result).toBe(0);
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      const mockQb = {
+        update: vi.fn().mockReturnThis(),
+        set: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue({}),
+      };
+      mockCategoryRepo.createQueryBuilder.mockReturnValue(mockQb);
+      const result = await service.updateNavStatus([1], 1);
+      expect(result).toBe(0);
+    });
   });
 
   describe('updateShowStatus', () => {
@@ -179,6 +265,30 @@ describe('ProductCategoryService', () => {
 
       expect(mockCategoryRepo.createQueryBuilder).toHaveBeenCalled();
       expect(mockQb.execute).toHaveBeenCalled();
+    });
+
+    it('affected null → 返回 0', async () => {
+      const mockQb = {
+        update: vi.fn().mockReturnThis(),
+        set: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue({ affected: null }),
+      };
+      mockCategoryRepo.createQueryBuilder.mockReturnValue(mockQb);
+      const result = await service.updateShowStatus([1], 0);
+      expect(result).toBe(0);
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      const mockQb = {
+        update: vi.fn().mockReturnThis(),
+        set: vi.fn().mockReturnThis(),
+        where: vi.fn().mockReturnThis(),
+        execute: vi.fn().mockResolvedValue({}),
+      };
+      mockCategoryRepo.createQueryBuilder.mockReturnValue(mockQb);
+      const result = await service.updateShowStatus([1], 0);
+      expect(result).toBe(0);
     });
   });
 });

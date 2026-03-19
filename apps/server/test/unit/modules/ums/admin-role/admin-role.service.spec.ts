@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -85,6 +86,30 @@ describe('AdminRoleService', () => {
 
       expect(result.adminCount).toBe(0);
     });
+
+    it('sort 未传 → 默认 0', async () => {
+      mockRoleRepo.save.mockImplementation((dto: any) =>
+        Promise.resolve({ id: 1, ...dto }),
+      );
+      const result = await service.create({ name: '编辑' });
+      expect(result.sort).toBe(0);
+    });
+
+    it('sort 为 null → 默认 0', async () => {
+      mockRoleRepo.save.mockImplementation((dto: any) =>
+        Promise.resolve({ id: 1, ...dto }),
+      );
+      const result = await service.create({ name: '编辑', sort: null } as any);
+      expect(result.sort).toBe(0);
+    });
+
+    it('sort 显式传值 → 使用传入值', async () => {
+      mockRoleRepo.save.mockImplementation((dto: any) =>
+        Promise.resolve({ id: 1, ...dto }),
+      );
+      const result = await service.create({ name: '编辑', sort: 5 });
+      expect(result.sort).toBe(5);
+    });
   });
 
   describe('delete', () => {
@@ -97,6 +122,20 @@ describe('AdminRoleService', () => {
       expect(mockRoleRepo.softDelete).toHaveBeenCalledWith([10]);
       expect(mockCache.del).toHaveBeenCalled();
     });
+
+    it('affected null → 返回 0', async () => {
+      mockRoleRepo.softDelete.mockResolvedValue({ affected: null });
+      mockAdminRoleRelRepo.find.mockResolvedValue([]);
+      const result = await service.delete([10]);
+      expect(result).toBe(0);
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockRoleRepo.softDelete.mockResolvedValue({});
+      mockAdminRoleRelRepo.find.mockResolvedValue([]);
+      const result = await service.delete([10]);
+      expect(result).toBe(0);
+    });
   });
 
   describe('update', () => {
@@ -107,6 +146,14 @@ describe('AdminRoleService', () => {
 
       expect(result).toBe(1);
       expect(mockRoleRepo.update).toHaveBeenCalledWith(1, { name: '新角色名' });
+    });
+  });
+
+  describe('getItem', () => {
+    it('不存在 → NotFoundException', async () => {
+      mockRoleRepo.findOneBy.mockResolvedValue(null);
+
+      await expect(service.getItem(999)).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -151,13 +198,19 @@ describe('AdminRoleService', () => {
   });
 
   describe('updateStatus', () => {
-    it('更新角色状态 → 返回 1', async () => {
+    it('更新角色状态 → 清除受影响 admin 资源缓存', async () => {
       mockRoleRepo.update.mockResolvedValue({ affected: 1 });
+      mockAdminRoleRelRepo.find.mockResolvedValue([
+        { roleId: 1, adminId: 10 },
+        { roleId: 1, adminId: 20 },
+      ]);
 
       const result = await service.updateStatus(1, 0);
 
       expect(result).toBe(1);
       expect(mockRoleRepo.update).toHaveBeenCalledWith(1, { status: 0 });
+      expect(mockAdminRoleRelRepo.find).toHaveBeenCalled();
+      expect(mockCache.del).toHaveBeenCalledTimes(2);
     });
   });
 

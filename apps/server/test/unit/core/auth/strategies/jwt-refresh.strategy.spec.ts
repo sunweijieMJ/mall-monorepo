@@ -24,7 +24,7 @@ describe('JwtRefreshStrategy.validate', () => {
       sub: 1,
       username: 'admin',
       type: 'admin' as const,
-      sessionId: 'sess-1',
+      sessionId: 1,
     };
     expect(strategy.validate(payload)).toEqual(payload);
   });

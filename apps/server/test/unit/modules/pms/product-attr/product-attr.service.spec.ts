@@ -124,6 +124,12 @@ describe('ProductAttrService', () => {
 
       expect(mockCateRepo.update).toHaveBeenCalledWith(1, { name: '尺寸' });
     });
+
+    it('affected null → 返回 0', async () => {
+      mockCateRepo.update.mockResolvedValue({ affected: null });
+      const result = await service.updateAttrCategory(1, { name: '尺寸' });
+      expect(result).toBe(0);
+    });
   });
 
   describe('deleteAttrCategory', () => {
@@ -133,6 +139,37 @@ describe('ProductAttrService', () => {
       await service.deleteAttrCategory(1);
 
       expect(mockCateRepo.softDelete).toHaveBeenCalledWith(1);
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockCateRepo.softDelete.mockResolvedValue({});
+
+      const result = await service.deleteAttrCategory(1);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockCateRepo.softDelete.mockResolvedValue({ affected: null });
+      const result = await service.deleteAttrCategory(1);
+      expect(result).toBe(0);
+    });
+  });
+
+  describe('getAttrCategoryItem', () => {
+    it('存在 → 返回属性分类', async () => {
+      mockCateRepo.findOneBy.mockResolvedValue(attrCategoryFixture);
+
+      const result = await service.getAttrCategoryItem(1);
+      expect(result.name).toBe('颜色');
+    });
+
+    it('不存在 → NotFoundException', async () => {
+      mockCateRepo.findOneBy.mockResolvedValue(null);
+
+      await expect(service.getAttrCategoryItem(999)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -267,6 +304,20 @@ describe('ProductAttrService', () => {
 
       expect(mockAttrRepo.update).toHaveBeenCalledWith(1, { name: '绿色' });
     });
+
+    it('affected undefined → 返回 0', async () => {
+      mockAttrRepo.update.mockResolvedValue({});
+
+      const result = await service.updateAttr(1, { name: '绿色' });
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockAttrRepo.update.mockResolvedValue({ affected: null });
+      const result = await service.updateAttr(1, { name: '绿色' });
+      expect(result).toBe(0);
+    });
   });
 
   describe('deleteAttr', () => {
@@ -280,7 +331,10 @@ describe('ProductAttrService', () => {
       await service.deleteAttr([1]);
 
       expect(mockTx.service.run).toHaveBeenCalled();
-      expect(mockTx.manager.softDelete).toHaveBeenCalled();
+      expect(mockTx.manager.softDelete).toHaveBeenCalledWith(
+        ProductAttrEntity,
+        [1],
+      );
       // 验证 attributeCount 减少 1
       const savedCategory = mockTx.manager.save.mock.calls[0][1];
       expect(savedCategory.attributeCount).toBe(2);
@@ -336,6 +390,14 @@ describe('ProductAttrService', () => {
       await service.deleteAttr([]);
 
       expect(mockTx.service.run).not.toHaveBeenCalled();
+    });
+
+    it('softDelete affected null → 返回 0', async () => {
+      mockTx.manager.find.mockResolvedValue([attrFixture]);
+      mockTx.manager.softDelete.mockResolvedValue({ affected: null });
+      mockTx.manager.findOneBy.mockResolvedValue(null);
+      const result = await service.deleteAttr([1]);
+      expect(result).toBe(0);
     });
   });
 });

@@ -89,6 +89,22 @@ describe('CompanyAddressService', () => {
 
       expect(mockRepo.update).toHaveBeenCalledWith(1, { name: '李四' });
     });
+
+    it('affected undefined → 返回 0', async () => {
+      mockRepo.update.mockResolvedValue({});
+
+      const result = await service.update(1, { name: '李四' });
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockRepo.update.mockResolvedValue({ affected: null });
+
+      const result = await service.update(1, { name: '李四' });
+
+      expect(result).toBe(0);
+    });
   });
 
   describe('delete', () => {
@@ -98,6 +114,22 @@ describe('CompanyAddressService', () => {
       await service.delete(1);
 
       expect(mockRepo.softDelete).toHaveBeenCalledWith(1);
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockRepo.softDelete.mockResolvedValue({});
+
+      const result = await service.delete(1);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockRepo.softDelete.mockResolvedValue({ affected: null });
+
+      const result = await service.delete(1);
+
+      expect(result).toBe(0);
     });
   });
 });

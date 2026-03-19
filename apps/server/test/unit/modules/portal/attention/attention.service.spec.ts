@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { AttentionService } from '@/modules/portal/attention/attention.service';
@@ -81,6 +81,58 @@ describe('AttentionService', () => {
       );
       expect(mockRepo.save).not.toHaveBeenCalled();
     });
+
+    it('品牌不存在 → NotFoundException', async () => {
+      mockRepo.findOne.mockResolvedValue(null);
+      mockBrandRepo.findOne.mockResolvedValue(null);
+
+      await expect(service.add(100, { brandId: 999 })).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('会员不存在 → nickname/icon 使用空字符串', async () => {
+      mockRepo.findOne.mockResolvedValue(null);
+      mockBrandRepo.findOne.mockResolvedValue(brandFixture);
+      mockMemberRepo.findOne.mockResolvedValue(null);
+      mockRepo.save.mockResolvedValue(attentionFixture);
+
+      await service.add(100, { brandId: 10 });
+
+      const createArg = mockRepo.create.mock.calls[0][0];
+      expect(createArg.memberNickname).toBe('');
+      expect(createArg.memberIcon).toBe('');
+    });
+
+    it('会员 nickname/icon 为 undefined → 使用空字符串', async () => {
+      mockRepo.findOne.mockResolvedValue(null);
+      mockBrandRepo.findOne.mockResolvedValue(brandFixture);
+      mockMemberRepo.findOne.mockResolvedValue({ id: 100 } as MemberEntity);
+      mockRepo.save.mockResolvedValue(attentionFixture);
+
+      await service.add(100, { brandId: 10 });
+
+      const createArg = mockRepo.create.mock.calls[0][0];
+      expect(createArg.memberNickname).toBe('');
+      expect(createArg.memberIcon).toBe('');
+    });
+
+    it('会员 nickname/icon 为 null → 使用空字符串', async () => {
+      mockRepo.findOne.mockResolvedValue(null);
+      mockBrandRepo.findOne.mockResolvedValue(brandFixture);
+      mockMemberRepo.findOne.mockResolvedValue({
+        id: 100,
+        nickname: null,
+        icon: null,
+      } as any);
+      mockRepo.save.mockResolvedValue(attentionFixture);
+
+      await service.add(100, { brandId: 10 });
+
+      const createArg = mockRepo.create.mock.calls[0][0];
+      expect(createArg.memberNickname).toBe('');
+      expect(createArg.memberIcon).toBe('');
+    });
   });
 
   describe('delete', () => {
@@ -93,6 +145,22 @@ describe('AttentionService', () => {
         memberId: 100,
         brandId: 10,
       });
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockRepo.delete.mockResolvedValue({});
+
+      const result = await service.delete(100, 10);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockRepo.delete.mockResolvedValue({ affected: null });
+
+      const result = await service.delete(100, 10);
+
+      expect(result).toBe(0);
     });
   });
 
@@ -116,6 +184,22 @@ describe('AttentionService', () => {
       await service.clear(100);
 
       expect(mockRepo.delete).toHaveBeenCalledWith({ memberId: 100 });
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockRepo.delete.mockResolvedValue({});
+
+      const result = await service.clear(100);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockRepo.delete.mockResolvedValue({ affected: null });
+
+      const result = await service.clear(100);
+
+      expect(result).toBe(0);
     });
   });
 });

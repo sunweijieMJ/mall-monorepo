@@ -130,7 +130,12 @@ describe('CouponService', () => {
 
       expect(mockManager.insert).toHaveBeenCalledWith(
         CouponProductRelationEntity,
-        expect.arrayContaining([expect.objectContaining({ productId: 100 })]),
+        expect.arrayContaining([
+          expect.objectContaining({
+            productId: 100,
+            couponId: expect.any(Number),
+          }),
+        ]),
       );
     });
 
@@ -148,7 +153,10 @@ describe('CouponService', () => {
       expect(mockManager.insert).toHaveBeenCalledWith(
         CouponProductCategoryRelationEntity,
         expect.arrayContaining([
-          expect.objectContaining({ productCategoryId: 10 }),
+          expect.objectContaining({
+            productCategoryId: 10,
+            couponId: expect.any(Number),
+          }),
         ]),
       );
     });
@@ -198,6 +206,18 @@ describe('CouponService', () => {
         CouponProductCategoryRelationEntity,
         { couponId: 1 },
       );
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockManager.softDelete.mockResolvedValue({ affected: null });
+      const result = await service.delete(1);
+      expect(result).toBe(0);
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockManager.softDelete.mockResolvedValue({});
+      const result = await service.delete(1);
+      expect(result).toBe(0);
     });
   });
 
@@ -253,6 +273,34 @@ describe('CouponService', () => {
         useStatus: 1,
       });
     });
+
+    it('有 couponId 过滤 → 使用精确匹配', async () => {
+      const qb = mockHistoryRepo.createQueryBuilder();
+      mockHistoryRepo.createQueryBuilder.mockReturnValue(qb);
+      qb.getManyAndCount.mockResolvedValue([[], 0]);
+
+      await service.listHistory({ page: 1, limit: 10, couponId: 5 } as any);
+
+      expect(qb.andWhere).toHaveBeenCalledWith('h.couponId = :couponId', {
+        couponId: 5,
+      });
+    });
+
+    it('有 orderSn 过滤 → 使用 LIKE 查询', async () => {
+      const qb = mockHistoryRepo.createQueryBuilder();
+      mockHistoryRepo.createQueryBuilder.mockReturnValue(qb);
+      qb.getManyAndCount.mockResolvedValue([[], 0]);
+
+      await service.listHistory({
+        page: 1,
+        limit: 10,
+        orderSn: 'ORDER001',
+      } as any);
+
+      expect(qb.andWhere).toHaveBeenCalledWith('h.orderSn LIKE :orderSn', {
+        orderSn: '%ORDER001%',
+      });
+    });
   });
 
   // ======================== update 补充 ========================
@@ -290,6 +338,26 @@ describe('CouponService', () => {
       );
     });
 
+    it('amount/minPoint 非 null → 转为字符串', async () => {
+      const dto = {
+        name: '金额券',
+        useType: 0,
+        amount: 20,
+        minPoint: 100,
+      } as any;
+
+      await service.update(1, dto);
+
+      expect(mockManager.update).toHaveBeenCalledWith(
+        expect.anything(),
+        1,
+        expect.objectContaining({
+          amount: '20',
+          minPoint: '100',
+        }),
+      );
+    });
+
     it('useType=0（全场通用）→ 仅清理关联，不插入新关联', async () => {
       const dto = { name: '全场通用', useType: 0 } as any;
 
@@ -299,6 +367,24 @@ describe('CouponService', () => {
       expect(mockManager.delete).toHaveBeenCalledTimes(2);
       // 不应有任何 insert 调用
       expect(mockManager.insert).not.toHaveBeenCalled();
+    });
+  });
+
+  // ======================== create 补充 ========================
+
+  describe('create 补充', () => {
+    it('amount/minPoint 为 null → 不转换', async () => {
+      const dto = {
+        name: '无金额券',
+        useType: 0,
+        amount: null,
+        minPoint: null,
+        publishCount: 10,
+      } as any;
+      await service.create(dto);
+      const saveArg = mockManager.save.mock.calls[0][1];
+      expect(saveArg.amount).toBeUndefined();
+      expect(saveArg.minPoint).toBeUndefined();
     });
   });
 

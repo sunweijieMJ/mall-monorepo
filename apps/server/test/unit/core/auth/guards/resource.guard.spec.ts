@@ -94,6 +94,22 @@ describe('ResourceGuard', () => {
     expect(await guard.canActivate(ctx as any)).toBe(true);
   });
 
+  it('多个资源模式，第一个不匹配第二个匹配 → 放行', async () => {
+    vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+    const resourceMap = new Map([
+      ['/admin/oms/orders/**', '2:订单管理'],
+      ['/admin/pms/products/**', '1:商品管理'],
+    ]);
+    mockAdminCacheService.getAllResourceMap.mockResolvedValue(resourceMap);
+    mockAdminCacheService.getResourceList.mockResolvedValue([
+      { id: 1, name: '商品管理' },
+    ]);
+    const user = { sub: 1, username: 'admin1', type: 'admin' };
+    const ctx = createMockContext(user, '/api/v1/admin/pms/products/list');
+
+    expect(await guard.canActivate(ctx as any)).toBe(true);
+  });
+
   it('admin 无权限 → 拒绝', async () => {
     vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
     const resourceMap = new Map([['/admin/pms/products/**', '1:商品管理']]);
@@ -105,5 +121,19 @@ describe('ResourceGuard', () => {
     const ctx = createMockContext(user, '/api/v1/admin/pms/products/list');
 
     expect(await guard.canActivate(ctx as any)).toBe(false);
+  });
+
+  it('admin 访问 /admin/auth/ 路径 → 跳过资源权限校验', async () => {
+    vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+    const user = { sub: 1, username: 'admin1', type: 'admin' };
+    const ctx = createMockContext(user, '/api/v1/admin/auth/login', 'POST');
+    expect(await guard.canActivate(ctx as any)).toBe(true);
+  });
+
+  it('admin 访问 /portal/auth/ 路径 → 跳过资源权限校验', async () => {
+    vi.spyOn(reflector, 'getAllAndOverride').mockReturnValue(false);
+    const user = { sub: 1, username: 'admin1', type: 'admin' };
+    const ctx = createMockContext(user, '/api/v1/portal/auth/register', 'POST');
+    expect(await guard.canActivate(ctx as any)).toBe(true);
   });
 });

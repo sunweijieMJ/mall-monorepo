@@ -150,6 +150,22 @@ describe('ReturnApplyService', () => {
       expect(setCall.handleNote).toBe('拒绝理由');
     });
 
+    it('退货中(1)→已拒绝(3) → 不记录 receiveTime', async () => {
+      mockRepo.findOneBy.mockResolvedValue({ id: 1, status: 1 });
+      const qb = mockRepo.createQueryBuilder();
+      qb.update = vi.fn().mockReturnValue(qb);
+      qb.set = vi.fn().mockReturnValue(qb);
+      qb.execute.mockResolvedValue({ affected: 1 });
+      mockRepo.createQueryBuilder.mockReturnValue(qb);
+
+      await service.updateStatus(1, { status: 3, handleNote: '退货中拒绝' });
+
+      const setCall = qb.set.mock.calls[0][0];
+      expect(setCall.status).toBe(3);
+      expect(setCall.receiveTime).toBeUndefined();
+      expect(setCall.handleNote).toBe('退货中拒绝');
+    });
+
     it('refundAmount → 转为 string 存入 returnAmount', async () => {
       mockRepo.findOneBy.mockResolvedValue({ id: 1, status: 1 });
       const qb = mockRepo.createQueryBuilder();
@@ -169,6 +185,25 @@ describe('ReturnApplyService', () => {
       );
     });
 
+    it('带 receiveNote → 更新中包含 receiveNote', async () => {
+      mockRepo.findOneBy.mockResolvedValue({ id: 1, status: 1 });
+      const qb = mockRepo.createQueryBuilder();
+      qb.update = vi.fn().mockReturnValue(qb);
+      qb.set = vi.fn().mockReturnValue(qb);
+      qb.execute.mockResolvedValue({ affected: 1 });
+      mockRepo.createQueryBuilder.mockReturnValue(qb);
+
+      await service.updateStatus(1, {
+        status: 2,
+        receiveMan: '收货员',
+        receiveNote: '包裹完好',
+      });
+
+      expect(qb.set).toHaveBeenCalledWith(
+        expect.objectContaining({ receiveNote: '包裹完好' }),
+      );
+    });
+
     it('非法状态流转 → 抛出 BadRequestException', async () => {
       mockRepo.findOneBy.mockResolvedValue({ id: 1, status: 2 });
 
@@ -184,6 +219,28 @@ describe('ReturnApplyService', () => {
         '退货申请 1 不存在',
       );
     });
+
+    it('affected null → 返回 0', async () => {
+      mockRepo.findOneBy.mockResolvedValue({ id: 1, status: 0 });
+      const qb = mockRepo.createQueryBuilder();
+      qb.update = vi.fn().mockReturnValue(qb);
+      qb.set = vi.fn().mockReturnValue(qb);
+      qb.execute.mockResolvedValue({ affected: null });
+      mockRepo.createQueryBuilder.mockReturnValue(qb);
+      const result = await service.updateStatus(1, { status: 1 });
+      expect(result).toBe(0);
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockRepo.findOneBy.mockResolvedValue({ id: 1, status: 0 });
+      const qb = mockRepo.createQueryBuilder();
+      qb.update = vi.fn().mockReturnValue(qb);
+      qb.set = vi.fn().mockReturnValue(qb);
+      qb.execute.mockResolvedValue({});
+      mockRepo.createQueryBuilder.mockReturnValue(qb);
+      const result = await service.updateStatus(1, { status: 1 });
+      expect(result).toBe(0);
+    });
   });
 
   describe('delete', () => {
@@ -193,6 +250,18 @@ describe('ReturnApplyService', () => {
       await service.delete([1, 2]);
 
       expect(mockRepo.softDelete).toHaveBeenCalledWith([1, 2]);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockRepo.softDelete.mockResolvedValue({ affected: null });
+      const result = await service.delete([1]);
+      expect(result).toBe(0);
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockRepo.softDelete.mockResolvedValue({});
+      const result = await service.delete([1]);
+      expect(result).toBe(0);
     });
   });
 
@@ -249,15 +318,15 @@ describe('ReturnApplyService', () => {
         productName: '测试商品',
         productPic: 'test.jpg',
         productAttr: '',
-        productCount: 1,
+        productQuantity: 1,
         productPrice: '99.00',
-        productRealPrice: '89.00',
+        realAmount: '89.00',
       });
       mockMemberRepo.findOne.mockResolvedValue({
         id: 1,
         username: 'testuser',
       });
-      mockRepo.save.mockImplementation((entity) =>
+      mockRepo.save.mockImplementation((entity: any) =>
         Promise.resolve({ id: 1, ...entity }),
       );
 
@@ -267,6 +336,77 @@ describe('ReturnApplyService', () => {
       expect(result.memberId).toBe(1);
       expect(result.orderId).toBe(100);
       expect(result.reason).toBe('质量问题');
+      expect(result.productCount).toBe(1);
+      expect(result.productRealPrice).toBe('89.00');
+    });
+
+    it('member 为 null → memberUsername 使用空字符串', async () => {
+      mockOrderRepo.findOne.mockResolvedValue({
+        id: 100,
+        memberId: 1,
+        status: OrderStatus.SHIPPING,
+        orderSn: 'OC202501010001',
+      });
+      mockOrderItemRepo.findOne.mockResolvedValue({
+        id: 1,
+        orderId: 100,
+        productId: 200,
+        productName: '测试商品',
+        productPic: 'test.jpg',
+        productAttr: '',
+        productQuantity: 1,
+        productPrice: '99.00',
+        realAmount: '89.00',
+      });
+      mockMemberRepo.findOne.mockResolvedValue(null); // member 不存在
+      mockRepo.save.mockImplementation((entity: any) =>
+        Promise.resolve({ id: 1, ...entity }),
+      );
+
+      const result = await service.portalCreate(1, baseDto);
+
+      expect(result.memberUsername).toBe('');
+    });
+
+    it('可选字段为 null → 使用默认空字符串', async () => {
+      mockOrderRepo.findOne.mockResolvedValue({
+        id: 100,
+        memberId: 1,
+        status: OrderStatus.SHIPPING,
+        orderSn: 'OC202501010001',
+      });
+      mockOrderItemRepo.findOne.mockResolvedValue({
+        id: 1,
+        orderId: 100,
+        productId: 200,
+        productName: null,
+        productPic: 'test.jpg',
+        productAttr: '',
+        productQuantity: null,
+        productPrice: '99.00',
+        realAmount: '89.00',
+      });
+      mockMemberRepo.findOne.mockResolvedValue({ id: 1, username: 'testuser' });
+      mockRepo.save.mockImplementation((entity: any) =>
+        Promise.resolve({ id: 1, ...entity }),
+      );
+
+      const dtoWithNulls = {
+        orderId: 100,
+        productId: 200,
+        returnName: null,
+        returnPhone: null,
+        reason: null,
+        returnAmount: null,
+      } as any;
+      const result = await service.portalCreate(1, dtoWithNulls);
+
+      expect(result.returnName).toBe('');
+      expect(result.returnPhone).toBe('');
+      expect(result.reason).toBe('');
+      expect(result.productName).toBe('');
+      expect(result.productCount).toBe(1);
+      expect(result.returnAmount).toBe('0');
     });
 
     it('已完成订单 → 创建成功', async () => {
@@ -282,21 +422,40 @@ describe('ReturnApplyService', () => {
         productName: '测试商品',
         productPic: 'test.jpg',
         productAttr: '',
-        productCount: 1,
+        productQuantity: 1,
         productPrice: '99.00',
-        productRealPrice: '89.00',
+        realAmount: '89.00',
       });
       mockMemberRepo.findOne.mockResolvedValue({
         id: 1,
         username: 'testuser',
       });
-      mockRepo.save.mockImplementation((entity) =>
+      mockRepo.save.mockImplementation((entity: any) =>
         Promise.resolve({ id: 2, ...entity }),
       );
 
       const result = await service.portalCreate(1, baseDto);
 
       expect(result.status).toBe(0);
+    });
+  });
+
+  describe('portalDetail', () => {
+    it('申请不存在或无权查看 → 抛出 NotFoundException', async () => {
+      mockRepo.findOne.mockResolvedValue(null);
+
+      await expect(service.portalDetail(999, 1)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('存在且归属当前会员 → 返回详情', async () => {
+      const apply = { id: 1, memberId: 1, status: 0 };
+      mockRepo.findOne.mockResolvedValue(apply);
+
+      const result = await service.portalDetail(1, 1);
+
+      expect(result).toBe(apply);
     });
   });
 

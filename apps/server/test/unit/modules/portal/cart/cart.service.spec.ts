@@ -58,6 +58,8 @@ describe('CartService', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    mockManager.save.mockReset().mockResolvedValue({});
+    mockManager.delete.mockReset().mockResolvedValue({});
     mockTransactionService.run.mockImplementation(async (cb: any) =>
       cb(mockManager),
     );
@@ -107,12 +109,48 @@ describe('CartService', () => {
 
       expect(result[0].deleteStatus).toBe(0);
     });
+
+    it('sku.stock 为 null → 视为 0', async () => {
+      const item = cartItemFixture();
+      mockCartRepo.find.mockResolvedValue([item]);
+      mockSkuRepo.find.mockResolvedValue([
+        skuFixture({ stock: null, lockStock: 0 }),
+      ]);
+      const result = await service.getCartList(1);
+      expect(result[0].deleteStatus).toBe(0);
+    });
+
+    it('sku.lockStock 为 null → 视为 0', async () => {
+      const item = cartItemFixture();
+      mockCartRepo.find.mockResolvedValue([item]);
+      mockSkuRepo.find.mockResolvedValue([
+        skuFixture({ stock: 5, lockStock: null }),
+      ]);
+      const result = await service.getCartList(1);
+      expect(result[0].deleteStatus).toBe(1); // 5-0=5 > 0
+    });
+
+    it('SKU 不在 skuMap 中 → 不标记', async () => {
+      const item = cartItemFixture({ productSkuId: 999 });
+      mockCartRepo.find.mockResolvedValue([item]);
+      mockSkuRepo.find.mockResolvedValue([skuFixture({ id: 200 })]);
+      const result = await service.getCartList(1);
+      expect(result[0].deleteStatus).toBe(1);
+    });
+
+    it('productSkuId 为 null → 不查 SKU', async () => {
+      const item = cartItemFixture({ productSkuId: null });
+      mockCartRepo.find.mockResolvedValue([item]);
+      const result = await service.getCartList(1);
+      expect(result[0].deleteStatus).toBe(1);
+      expect(mockSkuRepo.find).not.toHaveBeenCalled();
+    });
   });
 
   // ======================== add ========================
 
   describe('add', () => {
-    const addDto = { productId: 100, productSkuId: 200, quantity: 1 };
+    const addDto = { productId: 100, productSkuId: 200, productQuantity: 1 };
 
     it('相同 SKU 已存在 → 数量累加', async () => {
       const existing = cartItemFixture({ productQuantity: 3 });
@@ -156,10 +194,11 @@ describe('CartService', () => {
   describe('updateQuantity', () => {
     it('条目存在 → 更新数量', async () => {
       mockCartRepo.findOne.mockResolvedValue(cartItemFixture());
-      mockCartRepo.update.mockResolvedValue({});
+      mockCartRepo.update.mockResolvedValue({ affected: 1 });
 
-      await service.updateQuantity(1, 1, 5);
+      const result = await service.updateQuantity(1, 1, 5);
 
+      expect(result).toBe(1);
       expect(mockCartRepo.update).toHaveBeenCalledWith(1, {
         productQuantity: 5,
       });
@@ -233,6 +272,45 @@ describe('CartService', () => {
       await expect(
         service.updateAttr(1, 999, { productSkuId: 300 }),
       ).rejects.toThrow(NotFoundException);
+    });
+
+    it('目标 SKU 不存在 → 404', async () => {
+      const original = cartItemFixture();
+      mockCartRepo.findOne.mockResolvedValueOnce(original);
+      mockSkuRepo.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.updateAttr(1, 1, { productSkuId: 999 }),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('目标 SKU stock/lockStock 为 null → 视为 0', async () => {
+      const original = cartItemFixture({ productQuantity: 1 });
+      mockCartRepo.findOne.mockResolvedValueOnce(original);
+      mockSkuRepo.findOne.mockResolvedValue(
+        skuFixture({ id: 300, stock: null, lockStock: null }),
+      );
+      // available = 0 - 0 = 0 < 1, should throw
+      await expect(
+        service.updateAttr(1, 1, { productSkuId: 300 }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('spData 为 null → 保留原 productAttr', async () => {
+      const original = cartItemFixture({ productAttr: '原始规格' });
+      mockCartRepo.findOne
+        .mockResolvedValueOnce(original)
+        .mockResolvedValueOnce(null); // 目标 SKU 不在购物车
+      mockSkuRepo.findOne.mockResolvedValue(
+        skuFixture({ id: 300, spData: null }),
+      );
+
+      await service.updateAttr(1, 1, { productSkuId: 300 });
+
+      expect(mockManager.save).toHaveBeenCalledWith(
+        CartItemEntity,
+        expect.objectContaining({ productAttr: '原始规格' }),
+      );
     });
   });
 

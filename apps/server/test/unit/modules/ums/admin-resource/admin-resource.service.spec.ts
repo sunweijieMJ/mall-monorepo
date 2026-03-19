@@ -86,11 +86,12 @@ describe('AdminResourceService', () => {
 
   describe('delete', () => {
     it('删除资源 → 清除相关 admin 资源缓存', async () => {
-      mockResourceRepo.delete.mockResolvedValue({ affected: 1 });
+      mockResourceRepo.softDelete.mockResolvedValue({ affected: 1 });
 
       const result = await service.delete(1);
 
       expect(result).toBe(1);
+      expect(mockResourceRepo.softDelete).toHaveBeenCalledWith(1);
       expect(
         mockAdminCacheService.delResourceListByResource,
       ).toHaveBeenCalledWith(1);
@@ -160,11 +161,12 @@ describe('AdminResourceService', () => {
 
   describe('deleteCategory', () => {
     it('删除资源分类', async () => {
-      mockCategoryRepo.delete.mockResolvedValue({ affected: 1 });
+      mockCategoryRepo.softDelete.mockResolvedValue({ affected: 1 });
 
       const result = await service.deleteCategory(1);
 
       expect(result).toBe(1);
+      expect(mockCategoryRepo.softDelete).toHaveBeenCalledWith(1);
     });
   });
 

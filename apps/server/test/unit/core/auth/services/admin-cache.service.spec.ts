@@ -110,6 +110,19 @@ describe('AdminCacheService', () => {
       expect(mockResourceRepo.find).not.toHaveBeenCalled();
       expect(result.get('/test')).toBe('1:res');
     });
+
+    it('缓存返回 undefined → 查 DB 并缓存', async () => {
+      mockCache.get = vi.fn().mockResolvedValue(undefined);
+      mockResourceRepo.find.mockResolvedValue([
+        { id: 3, name: '会员管理', url: '/admin/member/**' },
+      ]);
+
+      const result = await service.getAllResourceMap();
+
+      expect(mockResourceRepo.find).toHaveBeenCalled();
+      expect(result.get('/admin/member/**')).toBe('3:会员管理');
+      expect(mockCache.set).toHaveBeenCalled();
+    });
   });
 
   describe('delResourceListByRole', () => {
@@ -148,6 +161,20 @@ describe('AdminCacheService', () => {
       expect(mockCache.del).toHaveBeenCalledWith(
         expect.stringContaining('resourceList:1'),
       );
+      expect(mockCache.del).toHaveBeenCalledWith(
+        expect.stringContaining('resourceList:all'),
+      );
+    });
+
+    it('无角色绑定 → 跳过 delResourceListByRoleIds，仅清全局缓存', async () => {
+      mockRoleResourceRelationRepo.find.mockResolvedValue([]);
+
+      await service.delResourceListByResource(999);
+
+      // 无角色绑定时不应查询 admin-role 关联
+      expect(mockAdminRoleRelationRepo.find).not.toHaveBeenCalled();
+      // 仍应清除全局资源 Map 缓存
+      expect(mockCache.del).toHaveBeenCalledTimes(1);
       expect(mockCache.del).toHaveBeenCalledWith(
         expect.stringContaining('resourceList:all'),
       );

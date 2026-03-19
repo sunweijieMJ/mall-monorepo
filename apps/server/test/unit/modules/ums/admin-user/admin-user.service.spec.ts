@@ -147,6 +147,10 @@ describe('AdminUserService', () => {
 
       expect(result).toBe(1);
       expect(mockCache.del).toHaveBeenCalledTimes(2); // admin + resourceList
+      expect(mockManager.delete).toHaveBeenCalledWith(AdminRoleRelationEntity, {
+        adminId: 1,
+      });
+      expect(mockManager.softDelete).toHaveBeenCalledWith(AdminUserEntity, 1);
     });
 
     it('不存在 → 返回 0', async () => {
@@ -246,6 +250,30 @@ describe('AdminUserService', () => {
 
       const result = await service.getRoleList(1);
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('resetPassword', () => {
+    it('正常重置 → hash + update + 清缓存', async () => {
+      mockAdminRepo.findOneBy.mockResolvedValue(adminFixture());
+      mockAdminRepo.update.mockResolvedValue({ affected: 1 });
+
+      const result = await service.resetPassword(1, 'NewPass123');
+
+      expect(bcrypt.hash).toHaveBeenCalledWith('NewPass123', 10);
+      expect(mockAdminRepo.update).toHaveBeenCalledWith(1, {
+        password: '$2a$10$hashed',
+      });
+      expect(mockCache.del).toHaveBeenCalled();
+      expect(result).toBe(1);
+    });
+
+    it('管理员不存在 → 404', async () => {
+      mockAdminRepo.findOneBy.mockResolvedValue(null);
+
+      await expect(service.resetPassword(999, 'any')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

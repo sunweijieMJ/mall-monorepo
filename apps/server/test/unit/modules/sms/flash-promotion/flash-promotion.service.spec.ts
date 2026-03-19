@@ -107,6 +107,22 @@ describe('FlashPromotionService', () => {
         title: '双11大促',
       });
     });
+
+    it('affected undefined → 返回 0', async () => {
+      mockFlashRepo.update.mockResolvedValue({});
+
+      const result = await service.updateFlash(1, { title: '双11大促' });
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockFlashRepo.update.mockResolvedValue({ affected: null });
+
+      const result = await service.updateFlash(1, { title: '双11大促' });
+
+      expect(result).toBe(0);
+    });
   });
 
   describe('deleteFlash', () => {
@@ -117,6 +133,22 @@ describe('FlashPromotionService', () => {
 
       expect(mockFlashRepo.softDelete).toHaveBeenCalledWith(1);
     });
+
+    it('affected undefined → 返回 0', async () => {
+      mockFlashRepo.softDelete.mockResolvedValue({});
+
+      const result = await service.deleteFlash(1);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockFlashRepo.softDelete.mockResolvedValue({ affected: null });
+
+      const result = await service.deleteFlash(1);
+
+      expect(result).toBe(0);
+    });
   });
 
   describe('updateFlashStatus', () => {
@@ -126,6 +158,22 @@ describe('FlashPromotionService', () => {
       await service.updateFlashStatus(1, 0);
 
       expect(mockFlashRepo.update).toHaveBeenCalledWith(1, { status: 0 });
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockFlashRepo.update.mockResolvedValue({});
+
+      const result = await service.updateFlashStatus(1, 0);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockFlashRepo.update.mockResolvedValue({ affected: null });
+
+      const result = await service.updateFlashStatus(1, 0);
+
+      expect(result).toBe(0);
     });
   });
 
@@ -184,6 +232,22 @@ describe('FlashPromotionService', () => {
         name: '下午场',
       });
     });
+
+    it('affected undefined → 返回 0', async () => {
+      mockSessionRepo.update.mockResolvedValue({});
+
+      const result = await service.updateSession(1, { name: '下午场' });
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockSessionRepo.update.mockResolvedValue({ affected: null });
+
+      const result = await service.updateSession(1, { name: '下午场' });
+
+      expect(result).toBe(0);
+    });
   });
 
   describe('deleteSession', () => {
@@ -194,6 +258,22 @@ describe('FlashPromotionService', () => {
 
       expect(mockSessionRepo.softDelete).toHaveBeenCalledWith(1);
     });
+
+    it('affected undefined → 返回 0', async () => {
+      mockSessionRepo.softDelete.mockResolvedValue({});
+
+      const result = await service.deleteSession(1);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockSessionRepo.softDelete.mockResolvedValue({ affected: null });
+
+      const result = await service.deleteSession(1);
+
+      expect(result).toBe(0);
+    });
   });
 
   describe('updateSessionStatus', () => {
@@ -203,6 +283,22 @@ describe('FlashPromotionService', () => {
       await service.updateSessionStatus(1, 0);
 
       expect(mockSessionRepo.update).toHaveBeenCalledWith(1, { status: 0 });
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockSessionRepo.update.mockResolvedValue({});
+
+      const result = await service.updateSessionStatus(1, 0);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockSessionRepo.update.mockResolvedValue({ affected: null });
+
+      const result = await service.updateSessionStatus(1, 0);
+
+      expect(result).toBe(0);
     });
   });
 
@@ -270,6 +366,26 @@ describe('FlashPromotionService', () => {
         flashPromotionPrice: '59.00',
       });
     });
+
+    it('affected undefined → 返回 0', async () => {
+      mockRelationRepo.update.mockResolvedValue({});
+
+      const result = await service.updateRelation(1, {
+        flashPromotionPrice: '59.00',
+      });
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockRelationRepo.update.mockResolvedValue({ affected: null });
+
+      const result = await service.updateRelation(1, {
+        flashPromotionPrice: '59.00',
+      });
+
+      expect(result).toBe(0);
+    });
   });
 
   describe('deleteRelation', () => {
@@ -279,6 +395,22 @@ describe('FlashPromotionService', () => {
       await service.deleteRelation(1);
 
       expect(mockRelationRepo.delete).toHaveBeenCalledWith(1);
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockRelationRepo.delete.mockResolvedValue({});
+
+      const result = await service.deleteRelation(1);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockRelationRepo.delete.mockResolvedValue({ affected: null });
+
+      const result = await service.deleteRelation(1);
+
+      expect(result).toBe(0);
     });
   });
 

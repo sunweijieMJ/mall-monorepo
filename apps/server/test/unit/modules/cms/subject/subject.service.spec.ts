@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { SubjectService } from '@/modules/cms/subject/subject.service';
@@ -101,6 +102,24 @@ describe('SubjectService', () => {
       const callArgs = mockSubjectRepo.findAndCount.mock.calls[0][0];
       expect(callArgs.skip).toBe(5); // (2-1)*5
       expect(callArgs.take).toBe(5);
+    });
+  });
+
+  // ── getItem ──
+
+  describe('getItem', () => {
+    it('存在 → 返回专题', async () => {
+      mockSubjectRepo.findOneBy.mockResolvedValue(subjectFixture);
+
+      const result = await service.getItem(1);
+
+      expect(result.title).toBe('夏季穿搭指南');
+    });
+
+    it('不存在 → NotFoundException', async () => {
+      mockSubjectRepo.findOneBy.mockResolvedValue(null);
+
+      await expect(service.getItem(999)).rejects.toThrow(NotFoundException);
     });
   });
 

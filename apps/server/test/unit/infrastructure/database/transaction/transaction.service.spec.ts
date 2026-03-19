@@ -53,6 +53,20 @@ describe('TransactionService', () => {
     expect(mockQueryRunner.release).toHaveBeenCalledOnce();
   });
 
+  it('回调抛非 Error 对象 → rollback + release + 重抛原始值', async () => {
+    const nonError = '字符串异常';
+
+    await expect(
+      service.run(async () => {
+        throw nonError;
+      }),
+    ).rejects.toBe(nonError);
+
+    expect(mockQueryRunner.rollbackTransaction).toHaveBeenCalledOnce();
+    expect(mockQueryRunner.commitTransaction).not.toHaveBeenCalled();
+    expect(mockQueryRunner.release).toHaveBeenCalledOnce();
+  });
+
   it('release 在成功和失败时都执行（finally 语义）', async () => {
     // 成功
     await service.run(async () => 'done');

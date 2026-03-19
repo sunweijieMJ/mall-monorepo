@@ -1,6 +1,7 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { FindOperator } from 'typeorm';
 import { CleanupSessionsTask } from '@/infrastructure/scheduler/tasks/cleanup-sessions.task';
 import { SessionEntity } from '@/core/auth/infrastructure/persistence/relational/entities/session.entity';
 import { createMockRepository } from '../../../helpers/mock.factory';
@@ -29,7 +30,7 @@ describe('CleanupSessionsTask', () => {
     await task.handleCron();
 
     expect(mockSessionRepo.delete).toHaveBeenCalledWith(
-      expect.objectContaining({ expiresAt: expect.anything() }),
+      expect.objectContaining({ expiresAt: expect.any(FindOperator) }),
     );
   });
 

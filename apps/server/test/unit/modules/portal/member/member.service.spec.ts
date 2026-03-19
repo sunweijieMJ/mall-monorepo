@@ -164,7 +164,10 @@ describe('MemberService', () => {
     it('非白名单字段 → 被过滤掉', async () => {
       mockMemberRepo.update.mockResolvedValue({});
 
-      await service.updateInfo(1, { password: 'hacked', nickname: '安全' });
+      await service.updateInfo(1, {
+        password: 'hacked',
+        nickname: '安全',
+      } as any);
 
       const updateArg = mockMemberRepo.update.mock.calls[0][1];
       expect(updateArg).not.toHaveProperty('password');
@@ -172,7 +175,7 @@ describe('MemberService', () => {
     });
 
     it('空更新 → 不调用 update', async () => {
-      await service.updateInfo(1, { nonExistField: 'value' });
+      await service.updateInfo(1, { nonExistField: 'value' } as any);
 
       expect(mockMemberRepo.update).not.toHaveBeenCalled();
     });
@@ -202,7 +205,7 @@ describe('MemberService', () => {
       mockAddressRepo.update.mockResolvedValue({});
       mockAddressRepo.save.mockResolvedValue({});
 
-      await service.addAddress(1, { name: '新地址', defaultStatus: 1 });
+      await service.addAddress(1, { name: '新地址', defaultStatus: 1 } as any);
 
       // 应先调用 update 清除默认
       expect(mockAddressRepo.update).toHaveBeenCalledWith(
@@ -432,6 +435,18 @@ describe('MemberService', () => {
       expect(result.total).toBe(0);
       expect(mockCouponRepo.findAndCount).not.toHaveBeenCalled();
     });
+
+    it('query 为 null → 使用默认分页', async () => {
+      historyQb2.getRawMany.mockResolvedValue([]);
+      const result = await service.listCouponObjects(1, undefined, null as any);
+      expect(result.list).toEqual([]);
+    });
+
+    it('useStatus 为 null → 不追加 andWhere', async () => {
+      historyQb2.getRawMany.mockResolvedValue([]);
+      await service.listCouponObjects(1, null as any);
+      expect(historyQb2.andWhere).not.toHaveBeenCalled();
+    });
   });
 
   // ======================== listCartCoupons ========================
@@ -521,6 +536,21 @@ describe('MemberService', () => {
         { id: 1, memberId: 1, couponId: 1, useStatus: 0 },
       ]);
       const coupon = couponFixture({ useType: 0, minPoint: '100' });
+      mockCouponRepo.findBy.mockResolvedValue([coupon]);
+      mockCouponProductRelRepo.find.mockResolvedValue([]);
+      mockCouponCategoryRelRepo.find.mockResolvedValue([]);
+
+      const result = await service.listCartCoupons(1, [1]);
+
+      expect(result).toHaveLength(0);
+    });
+
+    it('无效 useType（如 3）→ 过滤掉', async () => {
+      mockCartItemRepo.find.mockResolvedValue([cartItem()]);
+      mockCouponHistoryRepo.find.mockResolvedValue([
+        { id: 1, memberId: 1, couponId: 4, useStatus: 0 },
+      ]);
+      const coupon = couponFixture({ id: 4, useType: 3, minPoint: '0' });
       mockCouponRepo.findBy.mockResolvedValue([coupon]);
       mockCouponProductRelRepo.find.mockResolvedValue([]);
       mockCouponCategoryRelRepo.find.mockResolvedValue([]);

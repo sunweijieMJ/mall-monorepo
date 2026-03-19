@@ -430,6 +430,19 @@ describe('AuthService', () => {
       expect(mockCache.del).toHaveBeenCalledWith(
         expect.stringContaining('jwt_valid'),
       );
+      // 应删除该用户所有 Session
+      expect(mockSessionRepo.delete).toHaveBeenCalledWith({
+        userId: expect.any(Number),
+        userType: expect.any(String),
+      });
+      // 应删除 admin 用户缓存
+      expect(mockCache.del).toHaveBeenCalledWith(
+        expect.stringContaining('admin:'),
+      );
+      // 应删除 resourceList 缓存
+      expect(mockCache.del).toHaveBeenCalledWith(
+        expect.stringContaining('resourceList'),
+      );
     });
   });
 
@@ -513,6 +526,25 @@ describe('AuthService', () => {
       await expect(service.refreshToken(payload)).rejects.toThrow(
         '账号已被禁用',
       );
+    });
+
+    it('无 jti → 跳过 hash 验证，仍正常刷新', async () => {
+      const payloadWithoutJti = { ...payload, jti: undefined };
+      mockSessionRepo.findOne.mockResolvedValue({
+        id: 1,
+        userId: 1,
+        userType: 'admin',
+        hash: '$hashed$',
+      });
+      mockAdminRepo.findOne.mockResolvedValue(createAdminFixture());
+      mockSessionRepo.delete.mockResolvedValue({});
+      mockSessionRepo.save.mockResolvedValue({ id: 2 });
+
+      const result = await service.refreshToken(payloadWithoutJti);
+
+      expect(result.token).toBeDefined();
+      // bcrypt.compare 不应被调用（jti 为空跳过验证）
+      expect(bcrypt.compare).not.toHaveBeenCalled();
     });
   });
 

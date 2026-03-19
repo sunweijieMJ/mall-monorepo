@@ -109,6 +109,19 @@ describe('BrandService', () => {
         NotFoundException,
       );
     });
+
+    it('无 firstLetter 但有 name → 自动提取首字母', async () => {
+      mockBrandRepo.update.mockResolvedValue({});
+      mockBrandRepo.findOneBy.mockResolvedValue({
+        ...brandFixture,
+        name: 'Puma',
+      });
+
+      const dto = { name: 'Puma' } as any;
+      await service.update(1, dto);
+
+      expect(dto.firstLetter).toBe('P');
+    });
   });
 
   describe('remove', () => {
@@ -118,6 +131,22 @@ describe('BrandService', () => {
       await service.remove([1, 2]);
 
       expect(mockBrandRepo.softDelete).toHaveBeenCalledWith([1, 2]);
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockBrandRepo.softDelete.mockResolvedValue({});
+
+      const result = await service.remove([1, 2]);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockBrandRepo.softDelete.mockResolvedValue({ affected: null });
+
+      const result = await service.remove([1, 2]);
+
+      expect(result).toBe(0);
     });
   });
 
@@ -161,6 +190,30 @@ describe('BrandService', () => {
       expect(qb.where).toHaveBeenCalledWith('id IN (:...ids)', { ids: [1, 2] });
       expect(qb.execute).toHaveBeenCalled();
     });
+
+    it('affected undefined → 返回 0', async () => {
+      const qb = mockBrandRepo.createQueryBuilder();
+      qb.update = vi.fn().mockReturnValue(qb);
+      qb.set = vi.fn().mockReturnValue(qb);
+      mockBrandRepo.createQueryBuilder.mockReturnValue(qb);
+      qb.execute.mockResolvedValue({});
+
+      const result = await service.updateShowStatus([1, 2], 1);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      const qb = mockBrandRepo.createQueryBuilder();
+      qb.update = vi.fn().mockReturnValue(qb);
+      qb.set = vi.fn().mockReturnValue(qb);
+      mockBrandRepo.createQueryBuilder.mockReturnValue(qb);
+      qb.execute.mockResolvedValue({ affected: null });
+
+      const result = await service.updateShowStatus([1, 2], 1);
+
+      expect(result).toBe(0);
+    });
   });
 
   describe('updateFactoryStatus', () => {
@@ -177,6 +230,30 @@ describe('BrandService', () => {
       expect(qb.set).toHaveBeenCalledWith({ factoryStatus: 0 });
       expect(qb.where).toHaveBeenCalledWith('id IN (:...ids)', { ids: [1, 2] });
       expect(qb.execute).toHaveBeenCalled();
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      const qb = mockBrandRepo.createQueryBuilder();
+      qb.update = vi.fn().mockReturnValue(qb);
+      qb.set = vi.fn().mockReturnValue(qb);
+      mockBrandRepo.createQueryBuilder.mockReturnValue(qb);
+      qb.execute.mockResolvedValue({});
+
+      const result = await service.updateFactoryStatus([1, 2], 0);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      const qb = mockBrandRepo.createQueryBuilder();
+      qb.update = vi.fn().mockReturnValue(qb);
+      qb.set = vi.fn().mockReturnValue(qb);
+      mockBrandRepo.createQueryBuilder.mockReturnValue(qb);
+      qb.execute.mockResolvedValue({ affected: null });
+
+      const result = await service.updateFactoryStatus([1, 2], 0);
+
+      expect(result).toBe(0);
     });
   });
 

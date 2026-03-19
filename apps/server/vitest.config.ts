@@ -8,6 +8,7 @@ export default defineConfig({
     swc.vite({
       module: { type: 'es6' },
       jsc: {
+        target: 'es2022',
         parser: { syntax: 'typescript', decorators: true },
         transform: { decoratorMetadata: true },
       },
@@ -32,17 +33,19 @@ export default defineConfig({
     testTimeout: 60000,
     hookTimeout: 30000,
     coverage: {
-      provider: 'v8',
+      provider: 'istanbul',
       include: ['src/**/*.ts'],
       exclude: [
         '**/*.module.ts',
         '**/*.dto.ts',
         '**/*.entity.ts',
+        '**/*.vo.ts',
         '**/index.ts',
         'src/main.ts',
         '**/*.d.ts',
-        // 纯配置/种子/类型文件 — 无可测逻辑
+        // 纯配置/种子/类型/迁移文件 — 无可测逻辑
         'src/infrastructure/database/seeds/**',
+        'src/infrastructure/database/migrations/**',
         'src/infrastructure/database/data-source.ts',
         'src/infrastructure/database/config/*.ts',
         'src/infrastructure/database/typeorm-config.service.ts',
@@ -52,15 +55,16 @@ export default defineConfig({
         'src/infrastructure/metrics/metrics.config.ts',
         'src/infrastructure/metrics/metrics-config.type.ts',
         'src/config/*.ts',
-        'src/core/auth/config/*-config.type.ts',
+        'src/core/auth/config/*.ts',
         'src/core/auth/types/*.ts',
         'src/modules/portal/payment/config/*.ts',
         'src/common/validate-config.ts',
+        'src/common/validation-options.ts',
       ],
       reporter: ['text', 'text-summary', 'lcov', 'html'],
       reportsDirectory: resolve(__dirname, 'coverage'),
       thresholds: {
-        branches: 80,
+        branches: 90,
         functions: 80,
         lines: 80,
         statements: 80,

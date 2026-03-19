@@ -60,6 +60,22 @@ describe('ReturnReasonService', () => {
 
       expect(mockRepo.update).toHaveBeenCalledWith(1, { name: '尺码不合适' });
     });
+
+    it('affected undefined → 返回 0', async () => {
+      mockRepo.update.mockResolvedValue({});
+
+      const result = await service.update(1, { name: '尺码不合适' });
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockRepo.update.mockResolvedValue({ affected: null });
+
+      const result = await service.update(1, { name: '尺码不合适' });
+
+      expect(result).toBe(0);
+    });
   });
 
   describe('delete', () => {
@@ -69,6 +85,22 @@ describe('ReturnReasonService', () => {
       await service.delete([1, 2]);
 
       expect(mockRepo.softDelete).toHaveBeenCalledWith([1, 2]);
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockRepo.softDelete.mockResolvedValue({});
+
+      const result = await service.delete([1, 2]);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockRepo.softDelete.mockResolvedValue({ affected: null });
+
+      const result = await service.delete([1, 2]);
+
+      expect(result).toBe(0);
     });
   });
 
@@ -101,6 +133,22 @@ describe('ReturnReasonService', () => {
       const callArgs = mockRepo.update.mock.calls[0];
       // 第一个参数是 where 条件
       expect(callArgs[1]).toEqual({ status: 0 });
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockRepo.update.mockResolvedValue({});
+
+      const result = await service.updateStatus([1, 2], 0);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockRepo.update.mockResolvedValue({ affected: null });
+
+      const result = await service.updateStatus([1, 2], 0);
+
+      expect(result).toBe(0);
     });
   });
 });

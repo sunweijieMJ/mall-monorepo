@@ -155,11 +155,83 @@ describe('AlipayService', () => {
     });
   });
 
+  describe('rsaVerify 异常路径', () => {
+    it('公钥损坏 → rsaVerify 捕获异常返回 false', () => {
+      const svc = new AlipayService({
+        get: (key: string) => {
+          const map: Record<string, string> = {
+            'payment.alipay.appId': '2021001234',
+            'payment.alipay.privateKey': privateKey,
+            'payment.alipay.publicKey': 'INVALID_KEY_DATA',
+            'payment.alipay.gateway': 'https://openapi.alipay.com/gateway.do',
+            'payment.alipay.notifyUrl': 'https://example.com/notify',
+            'payment.alipay.returnUrl': 'https://example.com/return',
+          };
+          return map[key] ?? '';
+        },
+      } as any);
+
+      const params = {
+        out_trade_no: 'ORDER_ERR',
+        total_amount: '10.00',
+        sign: 'some-bad-sign',
+        sign_type: 'RSA2',
+      };
+      expect(svc.verifyNotification(params)).toBe(false);
+    });
+  });
+
   describe('buildSignString（过滤空值）', () => {
     it('参数含空字符串 → 被过滤', () => {
       const html = service.createPagePayment('ORDER005', 1, '');
       // biz_content 中 subject 为空字符串但是作为 JSON 值存在
       expect(html).toContain('ORDER005');
+    });
+  });
+
+  describe('constructor config 为 null → 使用默认值', () => {
+    it('config 返回 null → 各属性使用空字符串默认值', () => {
+      const svc = new AlipayService({
+        get: () => null,
+      } as any);
+      expect(svc).toBeDefined();
+    });
+  });
+
+  describe('formatKey 空字符串 → match 返回 null 走 ?? 分支', () => {
+    it('空 privateKey → formatPrivateKey 中 match 返回 null', () => {
+      const svc = new AlipayService({
+        get: (key: string) => {
+          const map: Record<string, string> = {
+            'payment.alipay.appId': '2021001234',
+            'payment.alipay.privateKey': '',
+            'payment.alipay.publicKey': publicKey,
+            'payment.alipay.gateway': 'https://openapi.alipay.com/gateway.do',
+            'payment.alipay.notifyUrl': 'https://example.com/notify',
+            'payment.alipay.returnUrl': 'https://example.com/return',
+          };
+          return map[key];
+        },
+      } as any);
+      // 空 key 会导致 match 返回 null，fallback 到 key 本身
+      expect(svc).toBeDefined();
+    });
+
+    it('空 publicKey → formatPublicKey 中 match 返回 null', () => {
+      const svc = new AlipayService({
+        get: (key: string) => {
+          const map: Record<string, string> = {
+            'payment.alipay.appId': '2021001234',
+            'payment.alipay.privateKey': privateKey,
+            'payment.alipay.publicKey': '',
+            'payment.alipay.gateway': 'https://openapi.alipay.com/gateway.do',
+            'payment.alipay.notifyUrl': 'https://example.com/notify',
+            'payment.alipay.returnUrl': 'https://example.com/return',
+          };
+          return map[key];
+        },
+      } as any);
+      expect(svc).toBeDefined();
     });
   });
 

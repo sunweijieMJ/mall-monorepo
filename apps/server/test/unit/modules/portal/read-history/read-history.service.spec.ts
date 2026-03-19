@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { In } from 'typeorm';
 import { ReadHistoryService } from '@/modules/portal/read-history/read-history.service';
 import { MemberReadHistoryNewEntity } from '@/modules/portal/read-history/infrastructure/persistence/relational/entities/member-read-history.entity';
 import { ProductEntity } from '@/modules/pms/product/infrastructure/persistence/relational/entities/product.entity';
@@ -80,6 +82,14 @@ describe('ReadHistoryService', () => {
       expect(mockRepo.save).toHaveBeenCalled();
       expect(result).toEqual(historyFixture);
     });
+
+    it('商品不存在 → NotFoundException', async () => {
+      mockProductRepo.findOne.mockResolvedValue(null);
+
+      await expect(service.save(100, { productId: 999 })).rejects.toThrow(
+        NotFoundException,
+      );
+    });
   });
 
   describe('list', () => {
@@ -103,6 +113,56 @@ describe('ReadHistoryService', () => {
       await service.clear(100);
 
       expect(mockRepo.delete).toHaveBeenCalledWith({ memberId: 100 });
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockRepo.delete.mockResolvedValue({});
+
+      const result = await service.clear(100);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockRepo.delete.mockResolvedValue({ affected: null });
+
+      const result = await service.clear(100);
+
+      expect(result).toBe(0);
+    });
+  });
+
+  describe('batchDelete', () => {
+    it('空数组 → 返回 0，不调用 delete', async () => {
+      const result = await service.batchDelete(100, []);
+      expect(result).toBe(0);
+      expect(mockRepo.delete).not.toHaveBeenCalled();
+    });
+
+    it('正常删除 → 返回 affected 数', async () => {
+      mockRepo.delete.mockResolvedValue({ affected: 2 });
+      const result = await service.batchDelete(100, [1, 2]);
+      expect(result).toBe(2);
+      expect(mockRepo.delete).toHaveBeenCalledWith({
+        id: In([1, 2]),
+        memberId: 100,
+      });
+    });
+
+    it('affected undefined → 返回 0', async () => {
+      mockRepo.delete.mockResolvedValue({});
+
+      const result = await service.batchDelete(100, [1, 2]);
+
+      expect(result).toBe(0);
+    });
+
+    it('affected null → 返回 0', async () => {
+      mockRepo.delete.mockResolvedValue({ affected: null });
+
+      const result = await service.batchDelete(100, [1, 2]);
+
+      expect(result).toBe(0);
     });
   });
 });

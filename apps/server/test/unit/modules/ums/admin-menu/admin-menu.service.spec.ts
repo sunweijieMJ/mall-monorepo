@@ -189,6 +189,18 @@ describe('AdminMenuService', () => {
 
       expect(result).toEqual([]);
     });
+
+    it('sort 为 null → 默认 0 排序', async () => {
+      mockMenuRepo.find.mockResolvedValue([
+        { id: 1, parentId: 0, sort: null },
+        { id: 2, parentId: 0, sort: 1 },
+      ]);
+
+      const result = await service.treeList();
+      expect(result).toHaveLength(2);
+      // sort null (→0) 排在 sort 1 之前
+      expect(result[0].id).toBe(1);
+    });
   });
 
   describe('updateHidden', () => {

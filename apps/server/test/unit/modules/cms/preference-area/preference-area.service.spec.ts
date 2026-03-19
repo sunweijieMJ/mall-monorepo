@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { PreferenceAreaService } from '@/modules/cms/preference-area/preference-area.service';
@@ -84,6 +85,24 @@ describe('PreferenceAreaService', () => {
       const callArgs = mockAreaRepo.find.mock.calls[0][0];
       expect(callArgs.order.sort).toBe('ASC');
       expect(callArgs.order.id).toBe('DESC');
+    });
+  });
+
+  // ── getItem ──
+
+  describe('getItem', () => {
+    it('存在 → 返回专区', async () => {
+      mockAreaRepo.findOneBy.mockResolvedValue(areaFixture);
+
+      const result = await service.getItem(1);
+
+      expect(result.name).toBe('精品推荐');
+    });
+
+    it('不存在 → NotFoundException', async () => {
+      mockAreaRepo.findOneBy.mockResolvedValue(null);
+
+      await expect(service.getItem(999)).rejects.toThrow(NotFoundException);
     });
   });
 
