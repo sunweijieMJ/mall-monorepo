@@ -4,12 +4,25 @@
 -->
 <template>
   <div class="app-container">
-    <!-- 操作按钮 -->
-    <el-card class="operate-container" shadow="never">
-      <el-icon style="margin-top: 5px"><Tickets /></el-icon>
-      <span style="margin-top: 5px">数据列表</span>
-      <el-button class="btn-add" @click="addProductAttr"> 添加 </el-button>
-    </el-card>
+    <!-- 操作区 -->
+    <OperateContainer>
+      <template #left>
+        <el-select
+          v-model="operateType"
+          placeholder="批量操作"
+          style="width: 200px"
+        >
+          <el-option
+            v-for="item in operates"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+        <el-button type="primary" @click="handleBatchOperate">确定</el-button>
+      </template>
+      <el-button type="primary" @click="addProductAttr">添加</el-button>
+    </OperateContainer>
 
     <!-- 数据列表 -->
     <div class="table-container">
@@ -33,16 +46,12 @@
         </el-table-column>
         <el-table-column label="属性是否可选" width="120" align="center">
           <template #default="{ row }">
-            {{
-              selectTypeFilter(row.selectType)
-            }}
+            {{ selectTypeFilter(row.selectType) }}
           </template>
         </el-table-column>
         <el-table-column label="属性值的录入方式" width="150" align="center">
           <template #default="{ row }">
-            {{
-              inputTypeFilter(row.inputType)
-            }}
+            {{ inputTypeFilter(row.inputType) }}
           </template>
         </el-table-column>
         <el-table-column label="可选值列表" align="center">
@@ -62,29 +71,6 @@
       </el-table>
     </div>
 
-    <!-- 批量操作 -->
-    <div class="batch-operate-container">
-      <el-select
-        v-model="operateType"
-        placeholder="批量操作"
-        style="width: 200px"
-      >
-        <el-option
-          v-for="item in operates"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"
-        />
-      </el-select>
-      <el-button
-        style="margin-left: 20px"
-        type="primary"
-        @click="handleBatchOperate"
-      >
-        确定
-      </el-button>
-    </div>
-
     <!-- 分页 -->
     <div class="pagination-container">
       <el-pagination
@@ -102,10 +88,10 @@
 </template>
 
 <script setup lang="ts">
-import { Tickets } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox, type ElTable } from 'element-plus';
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import OperateContainer from '@/components/List/OperateContainer.vue';
 import { useProductAttrStore } from '@/store';
 
 // Router
@@ -249,25 +235,8 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-.operate-container {
-  margin-bottom: 10px;
-
-  .btn-add {
-    float: right;
-  }
-
-  .el-icon {
-    margin-right: 5px;
-    vertical-align: middle;
-  }
-}
-
 .table-container {
   margin-bottom: 10px;
-}
-
-.batch-operate-container {
-  margin-bottom: 20px;
 }
 
 .pagination-container {

@@ -33,6 +33,7 @@
         <el-form-item label="商品品牌：">
           <el-select
             v-model="listQuery.brandId"
+            class="input-width"
             placeholder="请选择品牌"
             clearable
           >
@@ -47,6 +48,7 @@
         <el-form-item label="上架状态：">
           <el-select
             v-model="listQuery.publishStatus"
+            class="input-width"
             placeholder="全部"
             clearable
           >
@@ -57,6 +59,7 @@
         <el-form-item label="审核状态：">
           <el-select
             v-model="listQuery.verifyStatus"
+            class="input-width"
             placeholder="全部"
             clearable
           >
@@ -67,8 +70,24 @@
       </el-form>
     </FilterContainer>
 
-    <!-- 数据列表 -->
+    <!-- 操作区 -->
     <OperateContainer>
+      <template #left>
+        <el-select
+          v-model="operateType"
+          placeholder="批量操作"
+          style="width: 200px"
+        >
+          <el-option label="商品上架" value="publishOn" />
+          <el-option label="商品下架" value="publishOff" />
+          <el-option label="设为推荐" value="recommendOn" />
+          <el-option label="取消推荐" value="recommendOff" />
+          <el-option label="设为新品" value="newOn" />
+          <el-option label="取消新品" value="newOff" />
+          <el-option label="移入回收站" value="recycle" />
+        </el-select>
+        <el-button type="primary" @click="handleBatchOperate">确定</el-button>
+      </template>
       <el-button type="primary" @click="handleAddProduct">添加</el-button>
     </OperateContainer>
 
@@ -141,43 +160,15 @@
       </el-table-column>
       <el-table-column label="操作" width="160" align="center" fixed="right">
         <template #default="{ row }">
-          <el-button link type="primary" @click="handleUpdate(row)"
-          >
+          <el-button link type="primary" @click="handleUpdate(row)">
             编辑
-          </el-button
-          >
-          <el-button link type="danger" @click="handleDelete(row.id!)"
-          >
+          </el-button>
+          <el-button link type="danger" @click="handleDelete(row.id!)">
             删除
-          </el-button
-          >
+          </el-button>
         </template>
       </el-table-column>
     </AppTable>
-
-    <!-- 批量操作 -->
-    <div class="batch-operate-container">
-      <el-select
-        v-model="operateType"
-        placeholder="批量操作"
-        style="width: 150px"
-      >
-        <el-option label="商品上架" value="publishOn" />
-        <el-option label="商品下架" value="publishOff" />
-        <el-option label="设为推荐" value="recommendOn" />
-        <el-option label="取消推荐" value="recommendOff" />
-        <el-option label="设为新品" value="newOn" />
-        <el-option label="取消新品" value="newOff" />
-        <el-option label="移入回收站" value="recycle" />
-      </el-select>
-      <el-button
-        style="margin-left: 20px"
-        type="primary"
-        @click="handleBatchOperate"
-      >
-        确定
-      </el-button>
-    </div>
 
     <!-- SKU编辑对话框 -->
     <SkuEditDialog
@@ -350,9 +341,5 @@ onMounted(() => {
 <style scoped lang="scss">
 .input-width {
   width: 203px;
-}
-
-.batch-operate-container {
-  margin-bottom: 20px;
 }
 </style>

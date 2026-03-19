@@ -17,8 +17,19 @@
       </el-form>
     </FilterContainer>
 
-    <!-- 数据列表 -->
+    <!-- 操作区 -->
     <OperateContainer>
+      <template #left>
+        <el-select
+          v-model="operateType"
+          placeholder="批量操作"
+          style="width: 200px"
+        >
+          <el-option label="显示品牌" value="showBrand" />
+          <el-option label="隐藏品牌" value="hideBrand" />
+        </el-select>
+        <el-button type="primary" @click="handleBatchOperate">确定</el-button>
+      </template>
       <el-button type="primary" @click="handleAdd">添加</el-button>
     </OperateContainer>
 
@@ -73,25 +84,6 @@
         </template>
       </el-table-column>
     </AppTable>
-
-    <!-- 批量操作 -->
-    <div class="batch-operate-container">
-      <el-select
-        v-model="operateType"
-        placeholder="批量操作"
-        style="width: 200px"
-      >
-        <el-option label="显示品牌" value="showBrand" />
-        <el-option label="隐藏品牌" value="hideBrand" />
-      </el-select>
-      <el-button
-        style="margin-left: 20px"
-        type="primary"
-        @click="handleBatchOperate"
-      >
-        确定
-      </el-button>
-    </div>
 
     <!-- 添加/编辑对话框 -->
     <BrandFormDialog
@@ -197,9 +189,5 @@ onMounted(() => {
 <style scoped lang="scss">
 .input-width {
   width: 203px;
-}
-
-.batch-operate-container {
-  margin-bottom: 20px;
 }
 </style>

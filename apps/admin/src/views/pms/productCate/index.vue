@@ -3,8 +3,21 @@
 -->
 <template>
   <div class="app-container">
-    <!-- 操作按钮 -->
+    <!-- 操作区 -->
     <OperateContainer>
+      <template #left>
+        <el-select
+          v-model="operateType"
+          placeholder="批量操作"
+          style="width: 200px"
+        >
+          <el-option label="显示分类" value="showCategory" />
+          <el-option label="隐藏分类" value="hideCategory" />
+          <el-option label="显示在导航" value="showNav" />
+          <el-option label="隐藏导航" value="hideNav" />
+        </el-select>
+        <el-button type="primary" @click="handleBatchOperate">确定</el-button>
+      </template>
       <el-button type="primary" @click="handleAdd">添加</el-button>
     </OperateContainer>
 
@@ -28,9 +41,7 @@
       </el-table-column>
       <el-table-column label="级别" width="100" align="center">
         <template #default="{ row }">
-          {{
-            row.level === 0 ? '一级' : '二级'
-          }}
+          {{ row.level === 0 ? '一级' : '二级' }}
         </template>
       </el-table-column>
       <el-table-column label="商品数量" width="100" align="center">
@@ -80,27 +91,6 @@
         </template>
       </el-table-column>
     </AppTable>
-
-    <!-- 批量操作 -->
-    <div class="batch-operate-container">
-      <el-select
-        v-model="operateType"
-        placeholder="批量操作"
-        style="width: 200px"
-      >
-        <el-option label="显示分类" value="showCategory" />
-        <el-option label="隐藏分类" value="hideCategory" />
-        <el-option label="显示在导航" value="showNav" />
-        <el-option label="隐藏导航" value="hideNav" />
-      </el-select>
-      <el-button
-        style="margin-left: 20px"
-        type="primary"
-        @click="handleBatchOperate"
-      >
-        确定
-      </el-button>
-    </div>
 
     <!-- 添加/编辑对话框 -->
     <CategoryFormDialog
@@ -156,17 +146,17 @@ const dialogVisible = ref(false);
 const isEdit = ref(false);
 const editData = ref<Partial<ProductCategoryVo> | null>(null);
 
+const getList = () => {
+  listQuery.pageNum = 1;
+  fetchList();
+};
+
 const {
   multipleSelection,
   operateType,
   handleSelectionChange,
   executeBatchOperate,
 } = useBatchOperate<ProductCategoryVo>(getList);
-
-const getList = () => {
-  listQuery.pageNum = 1;
-  fetchList();
-};
 
 const handleAdd = () => {
   isEdit.value = false;
@@ -230,8 +220,4 @@ onMounted(() => {
 });
 </script>
 
-<style scoped lang="scss">
-.batch-operate-container {
-  margin-bottom: 20px;
-}
-</style>
+<style scoped lang="scss"></style>

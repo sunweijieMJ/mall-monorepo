@@ -28,8 +28,20 @@
       </el-form>
     </FilterContainer>
 
-    <!-- 数据列表 -->
+    <!-- 操作区 -->
     <OperateContainer>
+      <template #left>
+        <el-select
+          v-model="operateType"
+          placeholder="批量操作"
+          style="width: 200px"
+        >
+          <el-option label="设为推荐" :value="0" />
+          <el-option label="取消推荐" :value="1" />
+          <el-option label="删除" :value="2" />
+        </el-select>
+        <el-button type="primary" @click="handleBatchOperate">确定</el-button>
+      </template>
       <el-button type="primary" @click="selectDialogVisible = true">
         选择商品
       </el-button>
@@ -80,26 +92,6 @@
         </template>
       </el-table-column>
     </AppTable>
-
-    <!-- 批量操作 -->
-    <div class="batch-operate-container">
-      <el-select
-        v-model="operateType"
-        placeholder="批量操作"
-        style="width: 200px"
-      >
-        <el-option label="设为推荐" :value="0" />
-        <el-option label="取消推荐" :value="1" />
-        <el-option label="删除" :value="2" />
-      </el-select>
-      <el-button
-        style="margin-left: 20px"
-        type="primary"
-        @click="handleBatchOperate"
-      >
-        确定
-      </el-button>
-    </div>
 
     <!-- 选择商品弹窗 -->
     <SelectProductDialog
@@ -277,9 +269,5 @@ onMounted(() => {
 <style scoped lang="scss">
 .input-width {
   width: 203px;
-}
-
-.batch-operate-container {
-  margin: 16px 0;
 }
 </style>

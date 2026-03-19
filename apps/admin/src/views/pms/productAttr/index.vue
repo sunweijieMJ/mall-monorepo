@@ -33,11 +33,9 @@
       <el-table-column label="设置" width="200" align="center">
         <template #default="{ row }">
           <el-button size="small" @click="getAttrList(row)">属性列表</el-button>
-          <el-button size="small" @click="getParamList(row)"
-          >
+          <el-button size="small" @click="getParamList(row)">
             参数列表
-          </el-button
-          >
+          </el-button>
         </template>
       </el-table-column>
       <el-table-column label="操作" width="160" align="center" fixed="right">
@@ -91,7 +89,7 @@ const {
   handlePageChange,
 } = useListPage(
   defaultListQuery,
-  (q) => productAttrStore.getAttrCateList(q),
+  (q) => productAttrStore.getCateList(q),
   computed(() => productAttrStore.cateList),
   computed(() => productAttrStore.cateTotal),
 );
@@ -114,7 +112,7 @@ const handleUpdate = (row: ProductAttributeCategoryVo) => {
 
 const { handleDelete } = useDeleteConfirm(
   '属性分类',
-  (id: number) => productAttrStore.deleteAttrCate(id),
+  (id: number) => productAttrStore.deleteCate(id),
   getList,
 );
 
