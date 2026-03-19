@@ -409,4 +409,22 @@ describe('CouponService', () => {
       expect(qb.andWhere).toHaveBeenCalledWith('c.type = :type', { type: 1 });
     });
   });
+
+  describe('update - amount/minPoint 条件分支', () => {
+    it('amount 为 null → 不传 amount 到 update', async () => {
+      await service.update(1, { amount: null, minPoint: null } as any);
+      const updateCall = mockManager.update.mock.calls[0];
+      const updateData = updateCall[2];
+      expect(updateData).not.toHaveProperty('amount');
+      expect(updateData).not.toHaveProperty('minPoint');
+    });
+
+    it('amount 有值 → 传 String(amount)', async () => {
+      await service.update(1, { amount: 10, minPoint: 100 } as any);
+      const updateCall = mockManager.update.mock.calls[0];
+      const updateData = updateCall[2];
+      expect(updateData.amount).toBe('10');
+      expect(updateData.minPoint).toBe('100');
+    });
+  });
 });

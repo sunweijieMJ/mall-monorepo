@@ -50,6 +50,17 @@ describe('AllExceptionsFilter', () => {
     );
   });
 
+  it('HttpException 字符串形式响应 → 直接用作 message', () => {
+    const exception = new HttpException('自定义错误', HttpStatus.BAD_REQUEST);
+    filter.catch(exception, host as any);
+
+    expect(mockReply).toHaveBeenCalledWith(
+      host._response,
+      { code: 400, message: '自定义错误', data: null },
+      400,
+    );
+  });
+
   it('HttpException 对象形式响应 → 提取 message 和 errors', () => {
     const exception = new HttpException(
       { message: '参数错误', errors: { name: '不能为空' } },

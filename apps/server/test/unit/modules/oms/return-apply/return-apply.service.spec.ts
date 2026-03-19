@@ -340,6 +340,20 @@ describe('ReturnApplyService', () => {
       expect(result.productRealPrice).toBe('89.00');
     });
 
+    it('orderItem 不存在 → 抛出 BadRequestException', async () => {
+      mockOrderRepo.findOne.mockResolvedValue({
+        id: 100,
+        memberId: 1,
+        status: OrderStatus.SHIPPING,
+        orderSn: 'OC202501010001',
+      });
+      mockOrderItemRepo.findOne.mockResolvedValue(null);
+
+      await expect(service.portalCreate(1, baseDto)).rejects.toThrow(
+        '该订单中不存在此商品',
+      );
+    });
+
     it('member 为 null → memberUsername 使用空字符串', async () => {
       mockOrderRepo.findOne.mockResolvedValue({
         id: 100,
@@ -506,6 +520,26 @@ describe('ReturnApplyService', () => {
       expect(qb.set).toHaveBeenCalledWith(
         expect.objectContaining({ status: 2, receiveMan: '收货员' }),
       );
+    });
+  });
+
+  describe('portalCreate - orderItem 不存在', () => {
+    it('orderItem 不存在 → BadRequestException', async () => {
+      mockOrderRepo.findOne.mockResolvedValue({
+        id: 1,
+        memberId: 1,
+        orderSn: 'OD202501010001',
+        status: 3, // SHIPPING
+      });
+      mockOrderItemRepo.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.portalCreate(1, {
+          orderId: 1,
+          productId: 999,
+          returnAmount: 10,
+        } as any),
+      ).rejects.toThrow('该订单中不存在此商品');
     });
   });
 });

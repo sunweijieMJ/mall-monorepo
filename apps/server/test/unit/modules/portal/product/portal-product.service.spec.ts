@@ -360,5 +360,39 @@ describe('PortalProductService', () => {
       // 去重后应只有 1 张优惠券
       expect(result.couponList).toHaveLength(1);
     });
+
+    it('brandId=0 → 不查品牌，brand 为 null', async () => {
+      const product = productFixture({ brandId: 0 });
+      mockProductRepo.findOne.mockResolvedValue(product);
+      mockSkuStockRepo.find.mockResolvedValue([]);
+      mockProductAttrRepo.find.mockResolvedValue([]);
+      mockProductAttrValueRepo.find.mockResolvedValue([]);
+      const couponQb = mockCouponRepo.createQueryBuilder();
+      mockCouponRepo.createQueryBuilder.mockReturnValue(couponQb);
+      couponQb.getMany.mockResolvedValue([]);
+      mockCouponProductRelRepo.find.mockResolvedValue([]);
+      mockCouponCategoryRelRepo.find.mockResolvedValue([]);
+
+      const result = await service.detail(1);
+      expect(result.brand).toBeNull();
+      expect(mockBrandRepo.findOne).not.toHaveBeenCalled();
+    });
+
+    it('productAttributeCategoryId=0 → 不查属性，productAttrList 为空', async () => {
+      const product = productFixture({ productAttributeCategoryId: 0 });
+      mockProductRepo.findOne.mockResolvedValue(product);
+      mockBrandRepo.findOne.mockResolvedValue(null);
+      mockSkuStockRepo.find.mockResolvedValue([]);
+      mockProductAttrValueRepo.find.mockResolvedValue([]);
+      const couponQb = mockCouponRepo.createQueryBuilder();
+      mockCouponRepo.createQueryBuilder.mockReturnValue(couponQb);
+      couponQb.getMany.mockResolvedValue([]);
+      mockCouponProductRelRepo.find.mockResolvedValue([]);
+      mockCouponCategoryRelRepo.find.mockResolvedValue([]);
+
+      const result = await service.detail(1);
+      expect(result.productAttrList).toEqual([]);
+      expect(mockProductAttrRepo.find).not.toHaveBeenCalled();
+    });
   });
 });

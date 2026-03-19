@@ -382,4 +382,32 @@ describe('CartService', () => {
       );
     });
   });
+
+  describe('updateQuantity - affected 0', () => {
+    it('affected undefined → 返回 0', async () => {
+      mockCartRepo.findOne.mockResolvedValue(cartItemFixture());
+      mockCartRepo.update.mockResolvedValue({});
+      const result = await service.updateQuantity(1, 1, 5);
+      expect(result).toBe(0);
+    });
+  });
+
+  describe('delete - affected 0', () => {
+    it('affected undefined → 返回 0', async () => {
+      const qb = mockCartRepo.createQueryBuilder();
+      qb.delete = vi.fn().mockReturnValue(qb);
+      mockCartRepo.createQueryBuilder.mockReturnValue(qb);
+      qb.execute.mockResolvedValue({});
+      const result = await service.delete(1, [1]);
+      expect(result).toBe(0);
+    });
+  });
+
+  describe('clear - affected 0', () => {
+    it('affected undefined → 返回 0', async () => {
+      mockCartRepo.delete.mockResolvedValue({});
+      const result = await service.clear(1);
+      expect(result).toBe(0);
+    });
+  });
 });

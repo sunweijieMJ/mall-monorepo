@@ -160,6 +160,35 @@ describe('BrandService', () => {
       const callArgs = mockBrandRepo.findAndCount.mock.calls[0][0];
       expect(callArgs.where.showStatus).toBe(1);
     });
+
+    it('page=0 → fallback 到 1', async () => {
+      mockBrandRepo.findAndCount.mockResolvedValue([[], 0]);
+      await service.recommendList(0, 10);
+      const callArgs = mockBrandRepo.findAndCount.mock.calls[0][0];
+      expect(callArgs.skip).toBe(0); // (1-1)*10 = 0
+    });
+
+    it('limit=0 → fallback 到 10', async () => {
+      mockBrandRepo.findAndCount.mockResolvedValue([[], 0]);
+      await service.recommendList(1, 0);
+      const callArgs = mockBrandRepo.findAndCount.mock.calls[0][0];
+      expect(callArgs.take).toBe(10);
+    });
+  });
+
+  describe('update (firstLetter 已提供)', () => {
+    it('firstLetter 已有值 → 不自动提取', async () => {
+      mockBrandRepo.update.mockResolvedValue({});
+      mockBrandRepo.findOneBy.mockResolvedValue({
+        ...brandFixture,
+        name: 'Puma',
+        firstLetter: 'Z',
+      });
+      const dto = { name: 'Puma', firstLetter: 'Z' } as any;
+      await service.update(1, dto);
+      // firstLetter 不应被覆盖
+      expect(dto.firstLetter).toBe('Z');
+    });
   });
 
   describe('findAll', () => {

@@ -115,6 +115,22 @@ describe('AdminUserService', () => {
     });
   });
 
+  describe('findByUsername', () => {
+    it('存在 → 返回管理员', async () => {
+      mockAdminRepo.findOneBy.mockResolvedValue(adminFixture());
+
+      const result = await service.findByUsername('admin');
+      expect(result?.username).toBe('admin');
+    });
+
+    it('不存在 → 返回 null', async () => {
+      mockAdminRepo.findOneBy.mockResolvedValue(null);
+
+      const result = await service.findByUsername('ghost');
+      expect(result).toBeNull();
+    });
+  });
+
   describe('update', () => {
     it('更新基本信息（密码字段被忽略）', async () => {
       mockAdminRepo.findOneBy.mockResolvedValue(adminFixture());
@@ -171,6 +187,13 @@ describe('AdminUserService', () => {
       expect(mockAdminRepo.update).toHaveBeenCalledWith(1, { status: 0 });
       expect(mockCache.del).toHaveBeenCalledTimes(2);
     });
+
+    it('管理员不存在 → NotFoundException', async () => {
+      mockAdminRepo.findOneBy.mockResolvedValue(null);
+      await expect(service.updateStatus(999, 0)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
   });
 
   describe('updatePassword', () => {
@@ -182,6 +205,20 @@ describe('AdminUserService', () => {
           newPassword: '',
         }),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it('用户不存在 → NotFoundException', async () => {
+      const qb = mockAdminRepo.createQueryBuilder();
+      mockAdminRepo.createQueryBuilder.mockReturnValue(qb);
+      qb.getOne.mockResolvedValue(null);
+
+      await expect(
+        service.updatePassword({
+          username: 'ghost',
+          oldPassword: 'pass',
+          newPassword: 'new',
+        }),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('旧密码错误 → 400', async () => {

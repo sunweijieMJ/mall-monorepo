@@ -33,7 +33,7 @@ export default defineConfig({
     testTimeout: 60000,
     hookTimeout: 30000,
     coverage: {
-      provider: 'istanbul',
+      provider: 'v8',
       include: ['src/**/*.ts'],
       exclude: [
         '**/*.module.ts',

@@ -444,6 +444,27 @@ describe('AuthService', () => {
         expect.stringContaining('resourceList'),
       );
     });
+
+    it('member 登出 → 删除 member 缓存', async () => {
+      const jwtSvc = { decode: vi.fn(), sign: vi.fn() };
+      jwtSvc.decode.mockReturnValue({
+        sub: 1,
+        username: 'test-member',
+        type: 'member',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      });
+      // 用反射直接替换 jwtService
+      (service as any).jwtService = jwtSvc;
+      mockCache.set = vi.fn().mockResolvedValue(undefined);
+      mockCache.del = vi.fn().mockResolvedValue(undefined);
+      mockSessionRepo.delete.mockResolvedValue({});
+
+      await service.logout('Bearer member-token');
+
+      expect(mockCache.del).toHaveBeenCalledWith(
+        expect.stringContaining('member:'),
+      );
+    });
   });
 
   // ======================== refreshToken ========================
@@ -627,6 +648,62 @@ describe('AuthService', () => {
         '账号已被禁用',
       );
       expect(mockSessionRepo.delete).toHaveBeenCalledWith({ id: 1 });
+    });
+  });
+
+  // ======================== parseExpiresDate 无效格式 ========================
+
+  describe('parseExpiresDate 无效格式', () => {
+    it('refreshExpires 非法格式 → fallback 10 年', async () => {
+      // 覆盖 ConfigService.get 让 auth.refreshExpires 返回非法值
+      const configSvc = (service as any).configService;
+      const originalGet = configSvc.get;
+      configSvc.get = vi
+        .fn()
+        .mockImplementation((key: string, ...args: any[]) => {
+          if (key === 'auth.refreshExpires') return 'invalid-format';
+          return originalGet(key, ...args);
+        });
+
+      mockCache.get = vi.fn().mockResolvedValue(null);
+      adminQb.getOne.mockResolvedValue(createAdminFixture());
+      vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+      mockSessionRepo.save.mockResolvedValue({ id: 1 });
+      mockLoginLogRepo.save.mockResolvedValue({});
+      mockAdminRepo.update.mockResolvedValue({});
+
+      const result = await service.adminLogin({
+        username: 'test-admin',
+        password: 'Admin@123456',
+      });
+      expect(result.token).toBeDefined();
+    });
+  });
+
+  // ======================== buildMenuTree 多兄弟排序 ========================
+
+  describe('getAdminInfo buildMenuTree 排序', () => {
+    it('多兄弟菜单 → 按 sort 排序', async () => {
+      mockAdminRepo.findOne.mockResolvedValue(createAdminFixture());
+      mockAdminRoleRelationRepo.find.mockResolvedValue([
+        { adminId: 1, roleId: 10 },
+      ]);
+      mockAdminRoleRepo.find.mockResolvedValue([{ id: 10, name: '管理员' }]);
+      mockRoleMenuRelationRepo.find.mockResolvedValue([
+        { roleId: 10, menuId: 100 },
+        { roleId: 10, menuId: 200 },
+      ]);
+      mockAdminMenuRepo.find.mockResolvedValue([
+        { id: 100, parentId: 0, sort: 2, title: 'B' },
+        { id: 200, parentId: 0, sort: 1, title: 'A' },
+      ]);
+
+      const result = await service.getAdminInfo(1);
+      const menus = result.menus as any[];
+
+      expect(menus).toHaveLength(2);
+      // sort 1 (A) 排在 sort 2 (B) 之前
+      expect(menus[0].title).toBe('A');
     });
   });
 });
