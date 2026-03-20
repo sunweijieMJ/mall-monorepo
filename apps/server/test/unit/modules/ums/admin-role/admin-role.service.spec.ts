@@ -251,12 +251,15 @@ describe('AdminRoleService', () => {
 
   describe('allocMenu', () => {
     it('分配菜单 → 先删后插', async () => {
+      mockAdminRoleRelRepo.find.mockResolvedValue([{ adminId: 1, roleId: 1 }]);
+
       await service.allocMenu(1, [100, 200]);
 
       expect(mockManager.delete).toHaveBeenCalledWith(RoleMenuRelationEntity, {
         roleId: 1,
       });
       expect(mockManager.save).toHaveBeenCalled();
+      expect(mockCache.del).toHaveBeenCalled();
     });
 
     it('空菜单列表 → 只删除', async () => {
@@ -277,7 +280,9 @@ describe('AdminRoleService', () => {
         RoleResourceRelationEntity,
         { roleId: 1 },
       );
-      expect(mockCache.del).toHaveBeenCalled();
+      expect(mockCache.del).toHaveBeenCalledWith(
+        expect.stringContaining('resourceList:'),
+      );
     });
   });
 

@@ -22,6 +22,7 @@ const mockService = {
   create: vi.fn(),
   update: vi.fn(),
   delete: vi.fn(),
+  getItem: vi.fn(),
   getProductList: vi.fn(),
 };
 

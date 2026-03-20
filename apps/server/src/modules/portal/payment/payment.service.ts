@@ -47,7 +47,7 @@ export class PaymentService {
 
     const payForm = this.alipayService.createPagePayment(
       order.orderSn,
-      Number(order.payAmount || order.totalAmount),
+      Number(order.payAmount ?? order.totalAmount),
       `Mall商城订单-${order.orderSn}`,
     );
 
@@ -84,7 +84,7 @@ export class PaymentService {
       }
 
       const paidAmount = parseFloat(params.total_amount);
-      const expectedAmount = Number(order.payAmount || order.totalAmount);
+      const expectedAmount = Number(order.payAmount ?? order.totalAmount);
       if (Math.abs(paidAmount - expectedAmount) > 0.01) {
         this.logger.error(
           `[安全告警] 支付金额不一致: orderSn=${outTradeNo}, paid=${paidAmount}, expected=${expectedAmount}，需人工核查`,

@@ -87,6 +87,7 @@ describe('MemberService', () => {
     vi.clearAllMocks();
     mockManagerQb.setLock.mockReturnThis();
     mockManagerQb.where.mockReturnThis();
+    mockManagerQb.getOne.mockResolvedValue(null);
     mockManager.createQueryBuilder.mockReturnValue(mockManagerQb);
     mockTransactionService.run.mockImplementation(async (cb: any) =>
       cb(mockManager),
@@ -446,6 +447,15 @@ describe('MemberService', () => {
       historyQb2.getRawMany.mockResolvedValue([]);
       await service.listCouponObjects(1, null as any);
       expect(historyQb2.andWhere).not.toHaveBeenCalled();
+    });
+
+    it('useStatus=0 → 追加 andWhere 过滤', async () => {
+      historyQb2.getRawMany.mockResolvedValue([]);
+      await service.listCouponObjects(1, 0);
+      expect(historyQb2.andWhere).toHaveBeenCalledWith(
+        'ch.use_status = :useStatus',
+        { useStatus: 0 },
+      );
     });
   });
 

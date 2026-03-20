@@ -61,4 +61,94 @@ describe('HealthController', () => {
     expect(result.details).toHaveProperty('redis');
     expect(result.details).toHaveProperty('memory_heap');
   });
+
+  it('DB pingCheck 抛异常 → status 为 error，database 为 down', async () => {
+    mockDb.pingCheck.mockRejectedValue(new Error('Connection refused'));
+    mockHealthCheckService.check.mockImplementation(
+      async (indicators: (() => Promise<any>)[]) => {
+        const details: Record<string, any> = {};
+        for (const indicator of indicators) {
+          try {
+            const result = await indicator();
+            Object.assign(details, result);
+          } catch (e) {
+            details.database = {
+              status: 'down',
+              message: (e as Error).message,
+            };
+          }
+        }
+        const hasError = Object.values(details).some(
+          (d: any) => d.status === 'down',
+        );
+        return { status: hasError ? 'error' : 'ok', details };
+      },
+    );
+
+    const result = await controller.check();
+
+    expect(result.status).toBe('error');
+    expect(result.details.database.status).toBe('down');
+  });
+
+  it('Redis isHealthy 抛异常 → 结果包含 redis error', async () => {
+    mockRedis.isHealthy.mockRejectedValue(new Error('Redis timeout'));
+    mockHealthCheckService.check.mockImplementation(
+      async (indicators: (() => Promise<any>)[]) => {
+        const details: Record<string, any> = {};
+        for (const indicator of indicators) {
+          try {
+            const result = await indicator();
+            Object.assign(details, result);
+          } catch (e) {
+            details.redis = { status: 'down', message: (e as Error).message };
+          }
+        }
+        const hasError = Object.values(details).some(
+          (d: any) => d.status === 'down',
+        );
+        return { status: hasError ? 'error' : 'ok', details };
+      },
+    );
+
+    const result = await controller.check();
+
+    expect(result.status).toBe('error');
+    expect(result.details.redis.status).toBe('down');
+    expect(result.details.redis.message).toContain('Redis timeout');
+  });
+
+  it('多个 indicator 同时失败 → 结果中包含所有失败项', async () => {
+    mockDb.pingCheck.mockRejectedValue(new Error('DB down'));
+    mockRedis.isHealthy.mockRejectedValue(new Error('Redis down'));
+    mockHealthCheckService.check.mockImplementation(
+      async (indicators: (() => Promise<any>)[]) => {
+        const details: Record<string, any> = {};
+        for (const indicator of indicators) {
+          try {
+            const result = await indicator();
+            Object.assign(details, result);
+          } catch (e) {
+            // 根据错误消息推断哪个 indicator 失败
+            const msg = (e as Error).message;
+            if (msg.includes('DB'))
+              details.database = { status: 'down', message: msg };
+            if (msg.includes('Redis'))
+              details.redis = { status: 'down', message: msg };
+          }
+        }
+        const hasError = Object.values(details).some(
+          (d: any) => d.status === 'down',
+        );
+        return { status: hasError ? 'error' : 'ok', details };
+      },
+    );
+
+    const result = await controller.check();
+
+    expect(result.status).toBe('error');
+    expect(result.details.database.status).toBe('down');
+    expect(result.details.redis.status).toBe('down');
+    expect(result.details.memory_heap.status).toBe('up');
+  });
 });

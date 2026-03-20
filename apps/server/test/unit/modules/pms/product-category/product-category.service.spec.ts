@@ -223,6 +223,7 @@ describe('ProductCategoryService', () => {
       await service.updateNavStatus([1, 2], 1);
 
       expect(mockCategoryRepo.createQueryBuilder).toHaveBeenCalled();
+      expect(mockQb.set).toHaveBeenCalledWith({ navStatus: 1 });
       expect(mockQb.execute).toHaveBeenCalled();
     });
 
@@ -264,6 +265,7 @@ describe('ProductCategoryService', () => {
       await service.updateShowStatus([1, 2], 0);
 
       expect(mockCategoryRepo.createQueryBuilder).toHaveBeenCalled();
+      expect(mockQb.set).toHaveBeenCalledWith({ showStatus: 0 });
       expect(mockQb.execute).toHaveBeenCalled();
     });
 

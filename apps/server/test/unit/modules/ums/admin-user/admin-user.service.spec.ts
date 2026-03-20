@@ -162,7 +162,8 @@ describe('AdminUserService', () => {
       const result = await service.delete(1);
 
       expect(result).toBe(1);
-      expect(mockCache.del).toHaveBeenCalledTimes(2); // admin + resourceList
+      expect(mockCache.del).toHaveBeenCalledWith('mall:admin:admin');
+      expect(mockCache.del).toHaveBeenCalledWith('mall:resourceList:1');
       expect(mockManager.delete).toHaveBeenCalledWith(AdminRoleRelationEntity, {
         adminId: 1,
       });
@@ -185,7 +186,8 @@ describe('AdminUserService', () => {
       await service.updateStatus(1, 0);
 
       expect(mockAdminRepo.update).toHaveBeenCalledWith(1, { status: 0 });
-      expect(mockCache.del).toHaveBeenCalledTimes(2);
+      expect(mockCache.del).toHaveBeenCalledWith('mall:admin:admin');
+      expect(mockCache.del).toHaveBeenCalledWith('mall:resourceList:1');
     });
 
     it('管理员不存在 → NotFoundException', async () => {

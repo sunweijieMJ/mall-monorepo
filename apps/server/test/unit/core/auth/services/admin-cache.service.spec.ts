@@ -180,4 +180,11 @@ describe('AdminCacheService', () => {
       );
     });
   });
+
+  describe('delAllResourceCache', () => {
+    it('清除全局资源 Map 缓存', async () => {
+      await service.delAllResourceCache();
+      expect(mockCache.del).toHaveBeenCalledWith('mall:resourceList:all');
+    });
+  });
 });

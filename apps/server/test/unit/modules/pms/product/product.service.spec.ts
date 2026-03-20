@@ -720,5 +720,21 @@ describe('ProductService', () => {
       );
       expect(skuSoftDeleteCalls.length).toBe(0);
     });
+
+    it('子表列表 undefined → ?? [] fallback，不执行 save', async () => {
+      mockManager.findOneBy.mockResolvedValue(productFixture());
+      mockManager.findOne.mockResolvedValue(productFixture());
+
+      // 不传任何子表列表字段，让 ?? [] 生效
+      await service.update(1, { name: '简单更新' } as any);
+
+      // 主表 update 应被调用
+      expect(mockManager.update).toHaveBeenCalled();
+      // softDelete 应被调用（skuStockList undefined → ?? [] → length === 0 → 全删）
+      const skuDeleteCalls = mockManager.softDelete.mock.calls.filter(
+        (call: any[]) => call[1]?.productId === 1,
+      );
+      expect(skuDeleteCalls.length).toBeGreaterThanOrEqual(1);
+    });
   });
 });

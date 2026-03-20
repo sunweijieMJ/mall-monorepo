@@ -88,6 +88,20 @@ describe('PaymentService', () => {
       );
     });
 
+    it("payAmount='0' → 使用 0 而非 totalAmount（零元订单）", async () => {
+      mockOrderRepo.findOne.mockResolvedValue(
+        orderFixture({ payAmount: '0', totalAmount: '99.90' }),
+      );
+
+      await service.createAlipayPayment(1, 1);
+
+      expect(mockAlipayService.createPagePayment).toHaveBeenCalledWith(
+        'ORDER001',
+        0,
+        expect.stringContaining('ORDER001'),
+      );
+    });
+
     it('payAmount 为 null → 回退使用 totalAmount', async () => {
       mockOrderRepo.findOne.mockResolvedValue(
         orderFixture({ payAmount: null, totalAmount: '199.00' }),
@@ -180,15 +194,31 @@ describe('PaymentService', () => {
       expect(mockOrderService.paySuccess).toHaveBeenCalledWith(1, 1, 1);
     });
 
-    it('payAmount 为空字符串 → 回退使用 totalAmount', async () => {
+    it('payAmount 为空字符串 → Number("") 为 0，使用 0', async () => {
       mockAlipayService.verifyNotification.mockReturnValue(true);
       mockOrderRepo.findOne.mockResolvedValue(
         orderFixture({ payAmount: '', totalAmount: '99.90' }),
       );
 
+      // 使用 ?? 后，空字符串不会回退到 totalAmount，Number('') = 0
+      // 而 validParams.total_amount = '99.90'，金额不一致 → 不调用 paySuccess
       await service.handleAlipayNotify(validParams);
 
-      expect(mockOrderService.paySuccess).toHaveBeenCalled();
+      expect(mockOrderService.paySuccess).not.toHaveBeenCalled();
+    });
+
+    it("payAmount='0' → 使用 0 而非 totalAmount（零元订单）", async () => {
+      mockAlipayService.verifyNotification.mockReturnValue(true);
+      mockOrderRepo.findOne.mockResolvedValue(
+        orderFixture({ payAmount: '0', totalAmount: '99.90' }),
+      );
+
+      await service.handleAlipayNotify({
+        ...validParams,
+        total_amount: '0',
+      });
+
+      expect(mockOrderService.paySuccess).toHaveBeenCalledWith(1, 1, 1);
     });
 
     it('非成功状态 → 不处理', async () => {

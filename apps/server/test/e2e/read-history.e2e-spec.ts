@@ -21,6 +21,7 @@ const mockService = {
   save: vi.fn(),
   list: vi.fn(),
   clear: vi.fn(),
+  batchDelete: vi.fn(),
 };
 
 @Module({

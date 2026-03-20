@@ -335,6 +335,7 @@ describe('HomeContentService', () => {
       await service.updateHomeBrandStatus([1, 2], 0);
 
       expect(mockHomeBrandRepo.createQueryBuilder).toHaveBeenCalled();
+      expect(qb.set).toHaveBeenCalledWith({ recommendStatus: 0 });
       expect(qb.execute).toHaveBeenCalled();
     });
 
@@ -500,6 +501,7 @@ describe('HomeContentService', () => {
       await service.updateSubjectStatus([1, 2], 1);
 
       expect(mockSubjectRepo.createQueryBuilder).toHaveBeenCalled();
+      expect(qb.set).toHaveBeenCalledWith({ recommendStatus: 1 });
       expect(qb.execute).toHaveBeenCalled();
     });
 
@@ -656,6 +658,7 @@ describe('HomeContentService', () => {
       await service.updateNewProductStatus([1, 2], 0);
 
       expect(mockNewProductRepo.createQueryBuilder).toHaveBeenCalled();
+      expect(qb.set).toHaveBeenCalledWith({ recommendStatus: 0 });
       expect(qb.execute).toHaveBeenCalled();
     });
 
@@ -798,6 +801,7 @@ describe('HomeContentService', () => {
       await service.updateHotProductStatus([1, 2], 1);
 
       expect(mockHotProductRepo.createQueryBuilder).toHaveBeenCalled();
+      expect(qb.set).toHaveBeenCalledWith({ recommendStatus: 1 });
       expect(qb.execute).toHaveBeenCalled();
     });
 

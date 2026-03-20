@@ -29,6 +29,7 @@ const mockReturnApplyService = {
   delete: vi.fn(),
   portalCreate: vi.fn(),
   portalList: vi.fn(),
+  portalDetail: vi.fn(),
 };
 
 @Module({

@@ -3133,4 +3133,436 @@ describe('OrderService', () => {
       ).rejects.toThrow('该优惠券不可用');
     });
   });
+
+  // ======================== generateOrder with dto.cartIds ========================
+
+  describe('generateOrder with cartIds', () => {
+    it('dto.cartIds 存在 → 额外 andWhere 过滤购物车', async () => {
+      const cartQb = {
+        where: vi.fn().mockReturnThis(),
+        andWhere: vi.fn().mockReturnThis(),
+        getMany: vi.fn().mockResolvedValue([cartItemFixture()]),
+      };
+      mockCartItemRepo.createQueryBuilder.mockReturnValue(cartQb);
+      mockProductRepo.findBy.mockResolvedValue([productFixture()]);
+      mockSkuStockRepo.findBy.mockResolvedValue([skuFixture()]);
+      mockProductLadderRepo.findBy.mockResolvedValue([]);
+      mockProductFullReductionRepo.findBy.mockResolvedValue([]);
+      mockMemberRepo.findOneBy.mockResolvedValue({
+        id: 1,
+        username: 'test',
+        integration: 500,
+      });
+      mockMemberAddressRepo.findOneBy.mockResolvedValue({
+        id: 1,
+        memberId: 1,
+        name: '张',
+        phoneNumber: '138',
+        postCode: '100',
+        province: '北京',
+        city: '北京',
+        region: '朝阳',
+        detailAddress: '路1号',
+      });
+      mockOrderSettingRepo.find.mockResolvedValue([
+        { confirmOvertime: 15, normalOrderOvertime: 60 },
+      ]);
+      mockRedisClient.incr.mockResolvedValue(1);
+      mockOrderRepo.create.mockImplementation((d: any) => ({ id: 1, ...d }));
+      mockManager.save.mockImplementation((_e: any, d: any) =>
+        Promise.resolve(
+          Array.isArray(d) ? d : { id: 1, orderSn: 'TEST', ...d },
+        ),
+      );
+      mockManagerQb.getOne.mockResolvedValue(skuFixture());
+      mockOrderItemRepo.findBy.mockResolvedValue([orderItemFixture()]);
+
+      const result = await service.generateOrder(1, {
+        memberReceiveAddressId: 1,
+        payType: 1,
+        cartIds: [1, 2],
+      });
+
+      expect(result.order).toBeDefined();
+      expect(cartQb.andWhere).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  // ======================== generateOrder 积分抵扣失败 ========================
+
+  describe('generateOrder 积分抵扣 affected=0', () => {
+    it('积分扣减 affected=0 → BadRequestException 会员积分不足', async () => {
+      const cartQb = {
+        where: vi.fn().mockReturnThis(),
+        andWhere: vi.fn().mockReturnThis(),
+        getMany: vi.fn().mockResolvedValue([cartItemFixture()]),
+      };
+      mockCartItemRepo.createQueryBuilder.mockReturnValue(cartQb);
+      mockProductRepo.findBy.mockResolvedValue([productFixture()]);
+      mockSkuStockRepo.findBy.mockResolvedValue([skuFixture()]);
+      mockProductLadderRepo.findBy.mockResolvedValue([]);
+      mockProductFullReductionRepo.findBy.mockResolvedValue([]);
+      mockMemberRepo.findOneBy.mockResolvedValue({
+        id: 1,
+        username: 'test',
+        integration: 500,
+      });
+      mockMemberAddressRepo.findOneBy.mockResolvedValue({
+        id: 1,
+        memberId: 1,
+        name: '张',
+        phoneNumber: '138',
+        postCode: '100',
+        province: '北京',
+        city: '北京',
+        region: '朝阳',
+        detailAddress: '路1号',
+      });
+      mockOrderSettingRepo.find.mockResolvedValue([
+        { confirmOvertime: 15, normalOrderOvertime: 60 },
+      ]);
+      mockRedisClient.incr.mockResolvedValue(1);
+      mockOrderRepo.create.mockImplementation((d: any) => ({ id: 1, ...d }));
+      mockManager.save.mockImplementation((_e: any, d: any) =>
+        Promise.resolve(
+          Array.isArray(d) ? d : { id: 1, orderSn: 'TEST', ...d },
+        ),
+      );
+      mockManagerQb.getOne.mockResolvedValue(skuFixture());
+      mockIntegrationConsumeSettingRepo.findOneBy.mockResolvedValue({
+        deductionPerAmount: 100,
+        maxPercentPerOrder: 50,
+        useUnit: 100,
+      });
+      mockManagerQb.execute
+        .mockResolvedValueOnce({ affected: 1 }) // lockStock update
+        .mockResolvedValueOnce({ affected: 0 }); // integration deduction
+
+      await expect(
+        service.generateOrder(1, {
+          memberReceiveAddressId: 1,
+          payType: 1,
+          useIntegration: 200,
+        }),
+      ).rejects.toThrow('会员积分不足');
+    });
+  });
+
+  // ======================== payOrder deductResult.affected=0 ========================
+
+  describe('payOrder deductResult.affected=0', () => {
+    it('payOrder SKU 实际库存不足 → BadRequestException', async () => {
+      mockOrderRepo.findOne.mockResolvedValue(
+        orderFixture({ status: OrderStatus.PENDING_PAYMENT }),
+      );
+      mockManagerQb.getOne.mockResolvedValue(
+        skuFixture({ stock: 100, lockStock: 50 }),
+      );
+      mockManager.findBy.mockResolvedValue([
+        orderItemFixture({ productQuantity: 2 }),
+      ]);
+      mockManagerQb.execute
+        .mockResolvedValueOnce({ affected: 1 }) // update order status
+        .mockResolvedValueOnce({ affected: 0 }); // deduct stock
+
+      await expect(service.paySuccess(1, 1, 1)).rejects.toThrow('实际库存不足');
+    });
+  });
+
+  // ======================== cancelOrder productQuantity NaN → || 0 ========================
+
+  describe('cancelOrder productQuantity NaN', () => {
+    it('productQuantity 为 NaN 字符串 → || 0 → releaseQty=0 不释放', async () => {
+      mockOrderRepo.findOne.mockResolvedValue(orderFixture());
+      mockManager.findBy.mockResolvedValue([
+        orderItemFixture({ productQuantity: 'abc' as any }),
+      ]);
+
+      await service.cancelOrder(1, 1);
+      expect(mockTransactionService.run).toHaveBeenCalled();
+    });
+  });
+
+  // ======================== close productQuantity NaN ========================
+
+  describe('close productQuantity NaN', () => {
+    it('close 订单中 productQuantity NaN → releaseQty=0 不释放', async () => {
+      const qb = {
+        where: vi.fn().mockReturnThis(),
+        getMany: vi
+          .fn()
+          .mockResolvedValue([
+            orderFixture({ id: 1, status: OrderStatus.PENDING_PAYMENT }),
+          ]),
+      };
+      mockOrderRepo.createQueryBuilder.mockReturnValue(qb);
+      mockManager.findBy.mockResolvedValue([
+        orderItemFixture({ productQuantity: 'abc' as any }),
+      ]);
+
+      await service.close([1], '关闭');
+      expect(mockTransactionService.run).toHaveBeenCalled();
+    });
+  });
+
+  // ======================== updateCouponStatus couponId=0 ========================
+
+  describe('updateCouponStatus couponId=0（通过 close 间接测试）', () => {
+    it('order.couponId=0 → updateCouponStatus 内 !couponId → 直接 return', async () => {
+      const qb = {
+        where: vi.fn().mockReturnThis(),
+        getMany: vi.fn().mockResolvedValue([
+          orderFixture({
+            id: 1,
+            status: OrderStatus.PAID,
+            couponId: 0,
+            useIntegration: 0,
+          }),
+        ]),
+      };
+      mockOrderRepo.createQueryBuilder.mockReturnValue(qb);
+
+      await service.close([1], '关闭');
+      expect(mockManager.save).toHaveBeenCalled();
+      expect(mockManager.findOne).not.toHaveBeenCalled();
+    });
+  });
+
+  // ======================== sortBySkuId null productSkuId ========================
+
+  describe('sortBySkuId null productSkuId（通过 cancelOrder 间接测试）', () => {
+    it('orderItem.productSkuId=null → ?? 0 用于排序', async () => {
+      mockOrderRepo.findOne.mockResolvedValue(orderFixture());
+      mockManager.findBy.mockResolvedValue([
+        orderItemFixture({ productSkuId: null as any, productQuantity: 0 }),
+        orderItemFixture({
+          id: 2,
+          productSkuId: null as any,
+          productQuantity: 0,
+        }),
+      ]);
+
+      await service.cancelOrder(1, 1);
+      expect(mockTransactionService.run).toHaveBeenCalled();
+    });
+  });
+
+  // ======================== calcPerCouponAmount with null properties ========================
+
+  describe('calcPerCouponAmount null 属性（通过 generateOrder + coupon 间接测试）', () => {
+    it('多商品 coupon 下单，orderItem price/qty 为 null → ?? 0 或 ?? 1', async () => {
+      const carts = [
+        cartItemFixture({
+          id: 1,
+          productId: 100,
+          productSkuId: 200,
+          productCategoryId: 10,
+          productPrice: null as any,
+          productQuantity: 1,
+        }),
+        cartItemFixture({
+          id: 2,
+          productId: 101,
+          productSkuId: 201,
+          productCategoryId: 10,
+          productPrice: null as any,
+          productQuantity: 1,
+        }),
+      ];
+      const cartQb = {
+        where: vi.fn().mockReturnThis(),
+        andWhere: vi.fn().mockReturnThis(),
+        getMany: vi.fn().mockResolvedValue(carts),
+      };
+      mockCartItemRepo.createQueryBuilder.mockReturnValue(cartQb);
+      mockProductRepo.findBy.mockResolvedValue([
+        productFixture({ id: 100 }),
+        productFixture({ id: 101 }),
+      ]);
+      mockSkuStockRepo.findBy.mockResolvedValue([
+        skuFixture({
+          id: 200,
+          productId: 100,
+          price: null as any,
+          stock: 100,
+          lockStock: 0,
+        }),
+        skuFixture({
+          id: 201,
+          productId: 101,
+          price: null as any,
+          stock: 100,
+          lockStock: 0,
+        }),
+      ]);
+      mockProductLadderRepo.findBy.mockResolvedValue([]);
+      mockProductFullReductionRepo.findBy.mockResolvedValue([]);
+      mockMemberRepo.findOneBy.mockResolvedValue({
+        id: 1,
+        username: 'test',
+        integration: 500,
+      });
+      mockMemberAddressRepo.findOneBy.mockResolvedValue({
+        id: 1,
+        memberId: 1,
+        name: '张',
+        phoneNumber: '138',
+        postCode: '100',
+        province: '北京',
+        city: '北京',
+        region: '朝阳',
+        detailAddress: '路1号',
+      });
+      mockOrderSettingRepo.find.mockResolvedValue([
+        { confirmOvertime: 15, normalOrderOvertime: 60 },
+      ]);
+      mockRedisClient.incr.mockResolvedValue(1);
+      mockOrderRepo.create.mockImplementation((d: any) => ({ id: 1, ...d }));
+      mockManager.save.mockImplementation((_e: any, d: any) =>
+        Promise.resolve(
+          Array.isArray(d) ? d : { id: 1, orderSn: 'TEST', ...d },
+        ),
+      );
+      mockManagerQb.getOne.mockResolvedValue(
+        skuFixture({ stock: 100, lockStock: 0 }),
+      );
+      mockOrderItemRepo.findBy.mockResolvedValue([orderItemFixture()]);
+      mockCouponHistoryRepo.findOne.mockResolvedValue({
+        id: 1,
+        memberId: 1,
+        couponId: 5,
+        useStatus: 0,
+      });
+      mockCouponRepo.findOneBy.mockResolvedValue({
+        id: 5,
+        amount: '10',
+        minPoint: '0',
+        useType: 0,
+      });
+      mockCouponProductRelRepo.findBy.mockResolvedValue([]);
+      mockCouponCategoryRelRepo.findBy.mockResolvedValue([]);
+      // updateCouponStatus 内 manager.findOne 需要返回可用的优惠券领取记录
+      mockManager.findOne.mockResolvedValue({
+        id: 1,
+        memberId: 1,
+        couponId: 5,
+        useStatus: 0,
+      });
+
+      const result = await service.generateOrder(1, {
+        memberReceiveAddressId: 1,
+        payType: 1,
+        couponId: 5,
+      });
+      expect(result.order).toBeDefined();
+    });
+  });
+
+  // ======================== generateOrder 使用积分 + 多商品 ========================
+
+  describe('generateOrder 积分分摊多商品', () => {
+    it('useIntegration + 2 商品 → 非最后一项走 else 分支', async () => {
+      const carts = [
+        cartItemFixture({
+          id: 1,
+          productId: 100,
+          productSkuId: 200,
+          productCategoryId: 10,
+        }),
+        cartItemFixture({
+          id: 2,
+          productId: 101,
+          productSkuId: 201,
+          productCategoryId: 10,
+        }),
+      ];
+      const cartQb = {
+        where: vi.fn().mockReturnThis(),
+        andWhere: vi.fn().mockReturnThis(),
+        getMany: vi.fn().mockResolvedValue(carts),
+      };
+      mockCartItemRepo.createQueryBuilder.mockReturnValue(cartQb);
+      mockProductRepo.findBy.mockResolvedValue([
+        productFixture({ id: 100 }),
+        productFixture({ id: 101 }),
+      ]);
+      mockSkuStockRepo.findBy.mockResolvedValue([
+        skuFixture({ id: 200, productId: 100 }),
+        skuFixture({ id: 201, productId: 101 }),
+      ]);
+      mockProductLadderRepo.findBy.mockResolvedValue([]);
+      mockProductFullReductionRepo.findBy.mockResolvedValue([]);
+      mockMemberRepo.findOneBy.mockResolvedValue({
+        id: 1,
+        username: 'test',
+        integration: 500,
+      });
+      mockMemberAddressRepo.findOneBy.mockResolvedValue({
+        id: 1,
+        memberId: 1,
+        name: '张',
+        phoneNumber: '138',
+        postCode: '100',
+        province: '北京',
+        city: '北京',
+        region: '朝阳',
+        detailAddress: '路1号',
+      });
+      mockOrderSettingRepo.find.mockResolvedValue([
+        { confirmOvertime: 15, normalOrderOvertime: 60 },
+      ]);
+      mockRedisClient.incr.mockResolvedValue(1);
+      mockOrderRepo.create.mockImplementation((d: any) => ({ id: 1, ...d }));
+      mockManager.save.mockImplementation((_e: any, d: any) =>
+        Promise.resolve(
+          Array.isArray(d) ? d : { id: 1, orderSn: 'TEST', ...d },
+        ),
+      );
+      mockManagerQb.getOne.mockResolvedValue(
+        skuFixture({ stock: 100, lockStock: 10 }),
+      );
+      mockOrderItemRepo.findBy.mockResolvedValue([orderItemFixture()]);
+      mockIntegrationConsumeSettingRepo.findOneBy.mockResolvedValue({
+        deductionPerAmount: 100,
+        maxPercentPerOrder: 50,
+        useUnit: 100,
+      });
+
+      const result = await service.generateOrder(1, {
+        memberReceiveAddressId: 1,
+        payType: 1,
+        useIntegration: 200,
+      });
+      expect(result.order).toBeDefined();
+    });
+  });
+
+  // ======================== generateConfirmOrder 有可用优惠券 ========================
+
+  describe('generateConfirmOrder 有可用优惠券', () => {
+    it('couponHistory + coupon 匹配且 minPoint <= totalAmount → 返回可用', async () => {
+      const cartQb = {
+        where: vi.fn().mockReturnThis(),
+        andWhere: vi.fn().mockReturnThis(),
+        getMany: vi.fn().mockResolvedValue([cartItemFixture()]),
+      };
+      mockCartItemRepo.createQueryBuilder.mockReturnValue(cartQb);
+      mockProductRepo.findBy.mockResolvedValue([productFixture()]);
+      mockSkuStockRepo.findBy.mockResolvedValue([skuFixture()]);
+      mockProductLadderRepo.findBy.mockResolvedValue([]);
+      mockProductFullReductionRepo.findBy.mockResolvedValue([]);
+      mockMemberAddressRepo.findBy.mockResolvedValue([]);
+      mockCouponHistoryRepo.findBy.mockResolvedValue([
+        { id: 1, memberId: 1, couponId: 5, useStatus: 0 } as any,
+      ]);
+      mockCouponRepo.findBy.mockResolvedValue([
+        { id: 5, amount: '10', minPoint: '0', useType: 0 } as any,
+      ]);
+      mockIntegrationConsumeSettingRepo.findOneBy.mockResolvedValue(null);
+      mockMemberRepo.findOneBy.mockResolvedValue({ id: 1, integration: 100 });
+
+      const result = await service.generateConfirmOrder(1, []);
+      expect(result.couponHistoryDetailList.length).toBeGreaterThanOrEqual(1);
+    });
+  });
 });
