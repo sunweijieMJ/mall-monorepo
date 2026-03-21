@@ -8,6 +8,7 @@
  *  *\/
  */
 import type { MemberAddressVoDefaultStatus } from './memberAddressVoDefaultStatus';
+import type { MemberAddressVoDeletedAt } from './memberAddressVoDeletedAt';
 
 export interface MemberAddressVo {
   /** 主键ID */
@@ -16,11 +17,8 @@ export interface MemberAddressVo {
   createdAt: string;
   /** 更新时间 */
   updatedAt: string;
-  /**
-   * 删除时间
-   * @nullable
-   */
-  deletedAt?: string | null;
+  /** 删除时间 */
+  deletedAt?: MemberAddressVoDeletedAt;
   /** 会员ID */
   memberId: number;
   /** 收货人名称 */

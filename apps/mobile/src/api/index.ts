@@ -31,6 +31,11 @@ export * from './generated/model';
 
 // 2. 自动生成的 API 函数 (只导出函数,不导出类型)
 export {
+  settingControllerFindByPathV1,
+  settingControllerUpsertV1,
+} from './generated/config/config';
+
+export {
   attentionControllerCreateV1,
   attentionControllerListV1,
   attentionControllerClearV1,

@@ -7,16 +7,9 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
+import type { UpsertSettingDtoValue } from './upsertSettingDtoValue';
 
-export type CollectionControllerListV1Params = {
-  /**
-   * 页码，从 1 开始
-   * @minimum 1
-   */
-  pageNum?: number;
-  /**
-   * 每页数量
-   * @minimum 1
-   */
-  pageSize?: number;
-};
+export interface UpsertSettingDto {
+  /** 配置值（JSON） */
+  value: UpsertSettingDtoValue;
+}

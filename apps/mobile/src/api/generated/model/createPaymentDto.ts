@@ -12,5 +12,5 @@ export interface CreatePaymentDto {
   /** 订单 ID */
   orderId: number;
   /** 支付方式: 1=支付宝 */
-  payType?: number;
+  payType: number;
 }

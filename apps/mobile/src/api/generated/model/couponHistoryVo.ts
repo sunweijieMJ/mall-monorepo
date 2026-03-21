@@ -7,7 +7,6 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
-import type { CouponEntity } from './couponEntity';
 import type { CouponHistoryVoGetType } from './couponHistoryVoGetType';
 import type { CouponHistoryVoUseStatus } from './couponHistoryVoUseStatus';
 
@@ -34,5 +33,4 @@ export interface CouponHistoryVo {
   orderId?: number;
   /** 订单号码 */
   orderSn?: string;
-  coupon: CouponEntity;
 }

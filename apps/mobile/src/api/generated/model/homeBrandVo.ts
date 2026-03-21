@@ -7,6 +7,7 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
+import type { HomeBrandVoDeletedAt } from './homeBrandVoDeletedAt';
 import type { HomeBrandVoRecommendStatus } from './homeBrandVoRecommendStatus';
 
 export interface HomeBrandVo {
@@ -16,11 +17,8 @@ export interface HomeBrandVo {
   createdAt: string;
   /** 更新时间 */
   updatedAt: string;
-  /**
-   * 删除时间
-   * @nullable
-   */
-  deletedAt?: string | null;
+  /** 删除时间 */
+  deletedAt?: HomeBrandVoDeletedAt;
   /** 品牌ID */
   brandId: number;
   /** 品牌名称 */

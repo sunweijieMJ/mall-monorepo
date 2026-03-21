@@ -20,7 +20,7 @@
  *
  * 使用示例：
  * 1. 在 custom/ 目录新增 upload.ts
- * 2. 运行 pnpm api:gen
+ * 2. 运行 pnpm orval
  * 3. 脚本自动检测并导出 custom/upload.ts
  */
 

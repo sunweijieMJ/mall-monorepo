@@ -18,7 +18,6 @@ export type PortalProductControllerSearchV1Params = {
   /**
    * 每页数量
    * @minimum 1
-   * @maximum 100
    */
   pageSize?: number;
   /**
@@ -35,8 +34,6 @@ export type PortalProductControllerSearchV1Params = {
   productCategoryId?: number;
   /**
    * 排序方式：1-新品 2-销量 3-价格升序 4-价格降序
-   * @minimum 1
-   * @maximum 4
    */
   sort?: PortalProductControllerSearchV1Sort;
 };

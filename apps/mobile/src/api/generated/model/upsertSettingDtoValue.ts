@@ -8,15 +8,7 @@
  *  *\/
  */
 
-export type CollectionControllerListV1Params = {
-  /**
-   * 页码，从 1 开始
-   * @minimum 1
-   */
-  pageNum?: number;
-  /**
-   * 每页数量
-   * @minimum 1
-   */
-  pageSize?: number;
-};
+/**
+ * 配置值（JSON）
+ */
+export type UpsertSettingDtoValue = { [key: string]: unknown };

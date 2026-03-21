@@ -7,7 +7,6 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
-import type { OrderEntity } from './orderEntity';
 import type { OrderOperateHistoryVoOrderStatus } from './orderOperateHistoryVoOrderStatus';
 
 export interface OrderOperateHistoryVo {
@@ -23,5 +22,4 @@ export interface OrderOperateHistoryVo {
   orderStatus?: OrderOperateHistoryVoOrderStatus;
   /** 备注 */
   note?: string;
-  order: OrderEntity;
 }

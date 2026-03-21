@@ -9,10 +9,7 @@
  */
 
 export interface PortalLoginDto {
-  /**
-   * 手机号
-   * @pattern /^1[3-9]\d{9}$/
-   */
+  /** 手机号 */
   username: string;
   /** 登录密码 */
   password: string;

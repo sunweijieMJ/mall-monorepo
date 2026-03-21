@@ -9,16 +9,10 @@
  */
 
 export interface PortalRegisterDto {
-  /**
-   * 手机号（同时作为登录用户名）
-   * @pattern /^1[3-9]\d{9}$/
-   */
+  /** 手机号（同时作为登录用户名） */
   telephone: string;
   /** 密码（至少 8 位，包含大小写字母和数字） */
   password: string;
-  /**
-   * 短信验证码（6位数字）
-   * @pattern /^\d{6}$/
-   */
+  /** 短信验证码（6位数字） */
   authCode: string;
 }

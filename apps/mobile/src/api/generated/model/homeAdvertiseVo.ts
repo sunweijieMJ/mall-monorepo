@@ -7,6 +7,7 @@
  *  * 如需自定义接口，请在 src/api/custom/ 目录下创建覆盖文件
  *  *\/
  */
+import type { HomeAdvertiseVoDeletedAt } from './homeAdvertiseVoDeletedAt';
 import type { HomeAdvertiseVoStatus } from './homeAdvertiseVoStatus';
 import type { HomeAdvertiseVoType } from './homeAdvertiseVoType';
 
@@ -17,11 +18,8 @@ export interface HomeAdvertiseVo {
   createdAt: string;
   /** 更新时间 */
   updatedAt: string;
-  /**
-   * 删除时间
-   * @nullable
-   */
-  deletedAt?: string | null;
+  /** 删除时间 */
+  deletedAt?: HomeAdvertiseVoDeletedAt;
   /** 广告名称 */
   name: string;
   /** 轮播位置：0->PC首页轮播；1->app首页轮播 */

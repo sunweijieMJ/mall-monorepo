@@ -17,7 +17,7 @@
     "lint:script": "eslint . --fix",
     "lint:style": "stylelint '**/*.{css,scss,vue}' --fix",
     "test": "vitest --run",
-    "api:gen": "orval"
+    "orval": "orval"
   },
   "dependencies": {
     "@alova/adapter-uniapp": "^2.0.16",

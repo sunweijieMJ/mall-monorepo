@@ -9,16 +9,10 @@
  */
 
 export interface UpdateMemberPasswordDto {
-  /**
-   * 手机号
-   * @pattern /^1[3-9]\d{9}$/
-   */
+  /** 手机号 */
   telephone: string;
   /** 新密码 */
   password: string;
-  /**
-   * 短信验证码
-   * @pattern /^\d{6}$/
-   */
+  /** 短信验证码 */
   authCode: string;
 }

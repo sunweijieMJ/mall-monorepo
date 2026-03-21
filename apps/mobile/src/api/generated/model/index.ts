@@ -271,3 +271,5 @@ export * from './updateMemberAddressDto';
 export * from './updateMemberInfoDto';
 export * from './updateMemberInfoDtoGender';
 export * from './updateMemberPasswordDto';
+export * from './upsertSettingDto';
+export * from './upsertSettingDtoValue';

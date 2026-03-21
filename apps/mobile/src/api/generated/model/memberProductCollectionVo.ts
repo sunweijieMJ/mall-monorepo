@@ -19,11 +19,8 @@ export interface MemberProductCollectionVo {
   productName?: string;
   /** 商品图片 */
   productPic?: string;
-  /**
-   * 商品价格
-   * @nullable
-   */
-  productPrice?: number | null;
+  /** 商品价格 */
+  productPrice?: number;
   /** 收藏时间 */
   createdAt?: string;
 }
