@@ -358,6 +358,9 @@ importers:
       '@dcloudio/vite-plugin-uni':
         specifier: 3.0.0-alpha-5000220260306001
         version: 3.0.0-alpha-5000220260306001(@vueuse/core@10.11.1(vue@3.5.30(typescript@5.9.3)))(postcss@8.5.8)(rollup@4.59.0)(ts-node@10.9.2(@swc/core@1.15.18)(@types/node@25.3.3)(typescript@5.9.3))(vite@7.3.1(@types/node@25.3.3)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.31.1)(sass@1.97.3)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.30(typescript@5.9.3))
+      '@intlify/shared':
+        specifier: 11.2.8
+        version: 11.2.8
       '@kit/eslint-config':
         specifier: workspace:*
         version: link:../../internal/eslint-config

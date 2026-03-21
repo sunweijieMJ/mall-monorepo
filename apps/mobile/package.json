@@ -44,6 +44,7 @@
     "@dcloudio/uni-cli-shared": "3.0.0-alpha-5000220260306001",
     "@dcloudio/uni-stacktracey": "3.0.0-alpha-5000220260306001",
     "@dcloudio/vite-plugin-uni": "3.0.0-alpha-5000220260306001",
+    "@intlify/shared": "9.1.9",
     "@kit/eslint-config": "workspace:*",
     "@kit/stylelint-config": "workspace:*",
     "@types/lodash-es": "^4.17.12",
