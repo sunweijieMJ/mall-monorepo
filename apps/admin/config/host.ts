@@ -11,7 +11,7 @@ export const protocol = 'http:';
 /**
  * port
  */
-export const port = 9002;
+export const port = 9001;
 
 /**
  * host配置

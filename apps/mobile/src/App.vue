@@ -113,5 +113,5 @@ onThemeChange((res) => {
 </script>
 
 <style lang="scss">
-@use './index';
+@use './styles/index';
 </style>
