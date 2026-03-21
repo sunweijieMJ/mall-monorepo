@@ -98,8 +98,22 @@ onLoad((options) => {
   password.value = storage.getSync('password') || '';
 
   // 读取 redirect 参数（由路由拦截器或手动跳转传入）
-  if (options?.redirect) {
-    redirectUrl.value = decodeURIComponent(options.redirect);
+  let redirect = options?.redirect;
+
+  // H5 兜底：从 URL 读取 redirect 参数（onLoad options 在 H5 下可能丢失）
+  // #ifdef H5
+  if (!redirect) {
+    try {
+      const url = new URL(window.location.href);
+      redirect = url.searchParams.get('redirect') || '';
+    } catch {
+      // ignore
+    }
+  }
+  // #endif
+
+  if (redirect) {
+    redirectUrl.value = decodeURIComponent(redirect);
   }
 });
 
@@ -116,12 +130,22 @@ function isTabBarPage(url: string): boolean {
  * 优先使用 redirect 参数，否则返回上一页或首页
  */
 function navigateAfterLogin() {
+  // 先关闭 toast，避免 H5 下与导航冲突
+  uni.hideToast();
+
   const target = redirectUrl.value;
 
   if (target) {
+    const path = target.split('?')[0];
     if (isTabBarPage(target)) {
       // TabBar 页面需要用 switchTab（不支持带参数）
-      uni.switchTab({ url: target.split('?')[0] });
+      uni.switchTab({
+        url: path,
+        fail: () => {
+          // H5 下 switchTab 可能在 redirectTo 后的页面栈中失败，用 reLaunch 兜底
+          uni.reLaunch({ url: path });
+        },
+      });
     } else {
       uni.redirectTo({ url: target });
     }
