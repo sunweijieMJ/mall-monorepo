@@ -18,7 +18,7 @@
     @click="handleClick"
   >
     <!-- 左侧图标 -->
-    <text v-if="icon" :class="['u-tag__icon', icon]" />
+    <uni-icons v-if="icon" :type="icon" size="14" class="u-tag__icon" />
 
     <!-- 文本内容 -->
     <text class="u-tag__text">
@@ -26,9 +26,11 @@
     </text>
 
     <!-- 关闭按钮 -->
-    <text
+    <uni-icons
       v-if="closeable"
-      class="u-tag__close i-carbon-close"
+      type="closeempty"
+      size="14"
+      class="u-tag__close"
       @click.stop="handleClose"
     />
   </view>
@@ -73,7 +75,7 @@ interface Props {
   round?: boolean;
   /** 是否可关闭 */
   closeable?: boolean;
-  /** 左侧图标 (UnoCSS 图标类名) */
+  /** 左侧图标 (uni-icons type 值) */
   icon?: string;
   /** 自定义颜色 */
   color?: string;

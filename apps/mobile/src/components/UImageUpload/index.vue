@@ -25,11 +25,13 @@
   >
     <slot>
       <view class="u-image-upload__add">
-        <text class="i-carbon-add u-image-upload__add-icon" />
+        <uni-icons
+          type="plusempty"
+          size="28"
+          color="var(--color-text-secondary)"
+        />
         <text v-if="addText" class="u-image-upload__add-text">
-          {{
-            addText
-          }}
+          {{ addText }}
         </text>
       </view>
     </slot>
@@ -244,10 +246,6 @@ defineExpose({
     width: 100%;
     height: 100%;
     color: var(--color-text-secondary);
-  }
-
-  &__add-icon {
-    font-size: var(--font-size-xl);
   }
 
   &__add-text {

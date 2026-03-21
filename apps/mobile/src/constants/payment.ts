@@ -33,26 +33,36 @@ export enum PaymentStatus {
 }
 
 /**
+ * 支付方式图标配置
+ */
+export interface PaymentIcon {
+  /** 图标来源类型 */
+  type: 'uni-icon' | 'image';
+  /** uni-icons type 值 或 图片路径 */
+  value: string;
+}
+
+/**
  * 支付方式配置映射
  */
 export const PAYMENT_METHOD_MAP: Record<
   PaymentMethod,
   {
     text: string;
-    icon?: string;
+    icon?: PaymentIcon;
   }
 > = {
   [PaymentMethod.WECHAT]: {
     text: '微信支付',
-    icon: 'i-carbon-logo-wechat',
+    icon: { type: 'uni-icon', value: 'weixin' },
   },
   [PaymentMethod.ALIPAY]: {
     text: '支付宝',
-    icon: 'i-carbon-logo-alipay',
+    icon: { type: 'image', value: '/static/icons/icon_alipay.png' },
   },
   [PaymentMethod.BALANCE]: {
     text: '余额支付',
-    icon: 'i-carbon-wallet',
+    icon: { type: 'uni-icon', value: 'wallet' },
   },
 };
 

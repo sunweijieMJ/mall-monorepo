@@ -42,7 +42,11 @@
         <view v-if="title || showClose" class="u-popup__header">
           <text v-if="title" class="u-popup__title">{{ title }}</text>
           <view v-if="showClose" class="u-popup__close" @click="close">
-            <text class="i-carbon-close" />
+            <uni-icons
+              type="closeempty"
+              size="20"
+              color="var(--color-text-secondary)"
+            />
           </view>
         </view>
         <!-- 内容 -->

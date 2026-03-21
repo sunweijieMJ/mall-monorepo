@@ -20,25 +20,33 @@
       <text v-if="showRulesTitle" class="rules-title">密码要求：</text>
       <view :class="['rules-list', { horizontal: horizontal }]">
         <text :class="['rule-item', { valid: isLengthValid }]">
-          <text
-            :class="isLengthValid ? 'i-carbon-checkmark' : 'i-carbon-close'"
+          <uni-icons
+            :type="isLengthValid ? 'checkmarkempty' : 'closeempty'"
+            size="14"
           />
           长度{{ minLength }}-{{ maxLength }}位
         </text>
         <text v-if="requireLetter" :class="['rule-item', { valid: hasLetter }]">
-          <text :class="hasLetter ? 'i-carbon-checkmark' : 'i-carbon-close'" />
+          <uni-icons
+            :type="hasLetter ? 'checkmarkempty' : 'closeempty'"
+            size="14"
+          />
           包含字母
         </text>
         <text v-if="requireNumber" :class="['rule-item', { valid: hasNumber }]">
-          <text :class="hasNumber ? 'i-carbon-checkmark' : 'i-carbon-close'" />
+          <uni-icons
+            :type="hasNumber ? 'checkmarkempty' : 'closeempty'"
+            size="14"
+          />
           包含数字
         </text>
         <text
           v-if="requireSpecialChar"
           :class="['rule-item', { valid: hasSpecialChar }]"
         >
-          <text
-            :class="hasSpecialChar ? 'i-carbon-checkmark' : 'i-carbon-close'"
+          <uni-icons
+            :type="hasSpecialChar ? 'checkmarkempty' : 'closeempty'"
+            size="14"
           />
           包含特殊字符
         </text>

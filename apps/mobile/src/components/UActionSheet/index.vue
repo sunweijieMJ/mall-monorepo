@@ -18,9 +18,7 @@
       <view v-if="title || description" class="u-action-sheet__header">
         <text v-if="title" class="u-action-sheet__title">{{ title }}</text>
         <text v-if="description" class="u-action-sheet__description">
-          {{
-            description
-          }}
+          {{ description }}
         </text>
       </view>
 
@@ -33,15 +31,15 @@
           :class="getItemClasses(action)"
           @click="handleSelect(action, index)"
         >
-          <text
+          <uni-icons
             v-if="action.icon"
-            :class="['u-action-sheet__icon', action.icon]"
+            :type="action.icon"
+            size="20"
+            class="u-action-sheet__icon"
           />
           <text class="u-action-sheet__text">{{ action.label }}</text>
           <text v-if="action.subLabel" class="u-action-sheet__sub-text">
-            {{
-              action.subLabel
-            }}
+            {{ action.subLabel }}
           </text>
         </view>
       </view>
@@ -81,7 +79,7 @@ export interface ActionItem {
   value?: string | number;
   /** 副文本 */
   subLabel?: string;
-  /** 左侧图标 (UnoCSS 图标类名) */
+  /** 左侧图标 (uni-icons type 值) */
   icon?: string;
   /** 是否为危险操作 */
   danger?: boolean;

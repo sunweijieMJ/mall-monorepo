@@ -6,7 +6,11 @@
   <view class="u-empty">
     <view class="u-empty__icon">
       <slot name="icon">
-        <text :class="iconClass" />
+        <uni-icons
+          :type="iconType"
+          size="64"
+          color="var(--color-text-placeholder)"
+        />
       </slot>
     </view>
 
@@ -36,7 +40,7 @@ export interface Props {
   type?: 'default' | 'search' | 'network' | 'error' | 'cart' | 'message';
   /** 描述文字 */
   text?: string;
-  /** 自定义图标类名 */
+  /** 自定义 uni-icons type 值 */
   icon?: string;
 }
 
@@ -47,15 +51,15 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const iconMap: Record<string, string> = {
-  default: 'i-carbon-no-image',
-  search: 'i-carbon-search',
-  network: 'i-carbon-wifi-off',
-  error: 'i-carbon-warning-alt',
-  cart: 'i-carbon-shopping-cart',
-  message: 'i-carbon-email',
+  default: 'image',
+  search: 'search',
+  network: 'wifi',
+  error: 'info',
+  cart: 'cart',
+  message: 'email',
 };
 
-const iconClass = computed(() => {
+const iconType = computed(() => {
   return props.icon || iconMap[props.type] || iconMap.default;
 });
 </script>
@@ -71,8 +75,6 @@ const iconClass = computed(() => {
 
   &__icon {
     margin-bottom: var(--spacing-base);
-    color: var(--color-text-placeholder);
-    font-size: 128rpx;
   }
 
   &__text {

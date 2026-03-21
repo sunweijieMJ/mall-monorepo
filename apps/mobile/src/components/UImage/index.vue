@@ -19,7 +19,12 @@
           :mode="mode"
         />
         <!-- 无占位图时显示图标 -->
-        <text v-else class="i-carbon-image u-image__icon" />
+        <uni-icons
+          v-else
+          type="image"
+          size="24"
+          color="var(--color-text-placeholder)"
+        />
       </slot>
     </view>
 
@@ -35,7 +40,11 @@
         />
         <!-- 无错误图时显示图标 -->
         <template v-else>
-          <text class="i-carbon-warning-alt u-image__icon" />
+          <uni-icons
+            type="info"
+            size="24"
+            color="var(--color-text-placeholder)"
+          />
           <text class="u-image__error-text">加载失败</text>
         </template>
       </slot>
@@ -226,11 +235,6 @@ function handleRetry() {
   &__error-img {
     width: 100%;
     height: 100%;
-  }
-
-  &__icon {
-    color: var(--color-text-placeholder);
-    font-size: var(--font-size-xl);
   }
 
   &__error-text {
