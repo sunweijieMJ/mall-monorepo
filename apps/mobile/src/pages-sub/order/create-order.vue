@@ -158,13 +158,15 @@ definePage({
     navigationBarTitleText: '确认订单',
   },
 });
-import { onLoad } from '@dcloudio/uni-app';
+import { onLoad, onShow } from '@dcloudio/uni-app';
 import { ref, reactive } from 'vue';
 import type { PortalGenerateOrderDto } from '@/api';
-import { useOrderStore } from '@/store';
+import { useOrderStore, useAddressStore, useCartStore } from '@/store';
 import { formatDateTime } from '@/utils/formatters';
 
 const orderStore = useOrderStore();
+const addressStore = useAddressStore();
+const cartStore = useCartStore();
 
 /**
  * 创建订单页面（订单确认页）
@@ -261,6 +263,16 @@ onLoad((option) => {
 });
 
 /**
+ * 页面显示时检查是否有从地址列表选中的地址
+ */
+onShow(() => {
+  const selected = addressStore.consumeSelectedAddress();
+  if (selected) {
+    Object.assign(currentAddress, selected);
+  }
+});
+
+/**
  * 格式化商品属性
  */
 const formatProductAttr = (jsonAttr: string): string => {
@@ -327,10 +339,16 @@ const toggleMask = (type?: 'show') => {
  * 提交订单
  */
 const submit = async () => {
+  // 校验收货地址是否存在
+  if (!currentAddress.id) {
+    uni.showToast({ title: '请先添加收货地址', icon: 'none' });
+    return;
+  }
+
   const orderParam: PortalGenerateOrderDto = {
     payType: 1,
     cartIds: cartIds.value,
-    memberReceiveAddressId: currentAddress.id!,
+    memberReceiveAddressId: currentAddress.id,
     useIntegration: useIntegration.value,
     note: desc.value || undefined,
     couponId: currCoupon.value?.id,
@@ -339,6 +357,8 @@ const submit = async () => {
   try {
     const data = await orderStore.generateOrder(orderParam);
     const orderId = data?.order?.id;
+    // 下单成功后刷新购物车状态，移除已下单商品
+    cartStore.refreshCart().catch(() => {});
     uni.showModal({
       title: '提示',
       content: '订单创建成功，是否要立即支付？',
@@ -408,6 +428,8 @@ const calcPayAmount = () => {
     calcAmount.payAmount =
       calcAmount.payAmount - calcIntegrationAmount(useIntegration.value);
   }
+  // 防止支付金额为负数
+  calcAmount.payAmount = Math.max(0, calcAmount.payAmount);
 };
 
 /**
@@ -440,6 +462,8 @@ const handleIntegrationInput = (event: any) => {
       icon: 'none',
     });
   }
+  // 积分修改后重新计算支付金额
+  calcPayAmount();
 };
 </script>
 

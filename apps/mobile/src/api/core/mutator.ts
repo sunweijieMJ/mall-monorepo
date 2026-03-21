@@ -52,8 +52,10 @@ export const customMutator = async <T>(
   // 构建 meta 配置
   const meta = { showLoading, loadingText, showError };
 
-  // 构建请求配置
-  const options = { headers, params, meta };
+  // 构建请求配置（过滤 undefined 值，避免覆盖 alova 默认配置）
+  const options: Record<string, any> = { meta };
+  if (headers) options.headers = headers;
+  if (params) options.params = params;
 
   let response: ApiResponse;
 

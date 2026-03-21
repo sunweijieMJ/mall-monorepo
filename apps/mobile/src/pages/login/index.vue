@@ -127,21 +127,20 @@ const handleLogin = async () => {
       password: password.value,
     });
 
-    // 拼接完整token
-    const token =
-      (loginResponse.data?.tokenHead ?? '') + (loginResponse.data?.token ?? '');
+    // 直接使用原始 JWT token（mutator 已解包 response.data，无需再 .data）
+    const token = loginResponse.token ?? '';
 
-    // 保存token和用户凭证
-    storage.setSync('token', token);
+    // 保存用户凭证（token 由 userStore.login 统一管理）
     storage.setSync('username', username.value);
-    // ⚠️ 安全提示：生产环境不应该明文存储密码
-    // storage.setSync('password', password.value);
+
+    // 先将 token 写入 storage，以便获取用户信息的请求能携带 token
+    storage.setSync('token', token);
 
     // 获取用户信息
     const userResponse = await memberInfoControllerGetInfoV1();
 
-    // 更新用户状态
-    userStore.login(userResponse.data, token);
+    // 更新用户状态（mutator 已解包 response.data，直接传入）
+    userStore.login(userResponse, token);
 
     // 登录成功提示
     uni.showToast({

@@ -8,6 +8,7 @@ import { RoleSeedModule } from './role/role-seed.module';
 import { MenuSeedModule } from './menu/menu-seed.module';
 import { ResourceSeedModule } from './resource/resource-seed.module';
 import { AdminSeedModule } from './admin/admin-seed.module';
+import { MemberSeedModule } from './member/member-seed.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { AdminSeedModule } from './admin/admin-seed.module';
     MenuSeedModule,
     ResourceSeedModule,
     AdminSeedModule,
+    MemberSeedModule,
   ],
 })
 export class SeedModule {}

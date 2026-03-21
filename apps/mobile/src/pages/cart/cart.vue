@@ -202,15 +202,21 @@ const loadData = async () => {
     const processedList = list.map((item: CartItem) => {
       item.checked = true;
       item.loaded = 'loaded';
-      const spDataArr: SpDataItem[] = JSON.parse(item.productAttr);
-      let spDataStr = '';
-      for (const attr of spDataArr) {
-        spDataStr += attr.key;
-        spDataStr += ':';
-        spDataStr += attr.value;
-        spDataStr += ';';
+      try {
+        const spDataArr: SpDataItem[] = JSON.parse(item.productAttr);
+        let spDataStr = '';
+        for (const attr of spDataArr) {
+          spDataStr += attr.key;
+          spDataStr += ':';
+          spDataStr += attr.value;
+          spDataStr += ';';
+        }
+        item.spDataStr = spDataStr;
+      } catch (e) {
+        // 商品属性数据损坏时跳过，不影响其余商品显示
+        console.warn('解析商品属性失败:', item.productAttr, e);
+        item.spDataStr = '';
       }
-      item.spDataStr = spDataStr;
       return item;
     });
     cartList.value = processedList;
@@ -290,7 +296,6 @@ const handleDeleteCartItem = async (index: number) => {
     await cartStore.deleteItems([id]);
     cartList.value.splice(index, 1);
     calcTotal();
-    uni.hideLoading();
   } catch (error) {
     console.error('删除购物车项失败:', error);
   }

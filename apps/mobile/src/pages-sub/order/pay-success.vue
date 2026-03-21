@@ -30,40 +30,83 @@
 <script setup lang="ts">
 definePage({
   style: {
-    navigationBarTitleText: '支付成功',
+    navigationBarTitleText: '支付结果',
   },
 });
 import { onLoad } from '@dcloudio/uni-app';
 import { ref } from 'vue';
 import { API_CONFIG } from '@/constants';
+import { useOrderStore } from '@/store';
+
+const orderStore = useOrderStore();
 
 /**
- * 支付成功页面
- * 支持真实支付（支付宝）和模拟支付
- * 显示支付结果并提供查看订单和返回首页按钮
+ * 支付结果页面
+ * 通过后端查询订单状态来确认支付结果，而非仅依赖前端 URL 参数
  */
 
 /** 支付结果文本 */
-const payText = ref('');
+const payText = ref('查询支付结果中...');
 /** 交易状态 */
 const tradeStatus = ref<string | null>(null);
+
+/**
+ * 获取 orderId：优先从 URL 参数获取，其次从本地存储获取（支付宝回调场景）
+ */
+const resolveOrderId = (
+  options: Record<string, string> | undefined,
+): number | null => {
+  if (options?.orderId) {
+    return +options.orderId;
+  }
+  // 支付宝回调场景：从本地存储获取支付前保存的 orderId
+  const storedId = uni.getStorageSync('payingOrderId');
+  if (storedId) {
+    uni.removeStorageSync('payingOrderId');
+    return +storedId;
+  }
+  return null;
+};
+
+/**
+ * 通过后端验证订单支付状态
+ * 订单状态：0-待付款 1-待发货 2-已发货 3-已完成 4-已关闭 5-无效订单
+ */
+const verifyPaymentStatus = async (orderId: number) => {
+  try {
+    const data = await orderStore.fetchDetail(orderId);
+    // status >= 1 且 < 4 表示已支付（待发货/已发货/已完成）
+    if (data && data.status != null && data.status >= 1 && data.status <= 3) {
+      payText.value = '支付成功';
+      tradeStatus.value = 'TRADE_SUCCESS';
+    } else {
+      payText.value = '支付失败';
+      tradeStatus.value = 'TRADE_FAILED';
+    }
+  } catch (error) {
+    console.error('查询订单状态失败:', error);
+    payText.value = '支付结果查询失败';
+  }
+};
 
 /**
  * 页面加载
  */
 onLoad((options) => {
-  if (!API_CONFIG.USE_ALIPAY) {
-    payText.value = '支付成功';
+  const orderId = resolveOrderId(options);
+
+  if (!orderId) {
+    // 无法获取订单ID，降级为旧逻辑
+    if (!API_CONFIG.USE_ALIPAY) {
+      payText.value = '支付成功';
+    } else {
+      payText.value = options?.out_trade_no ? '支付成功' : '支付失败';
+    }
     return;
   }
-  // 支付宝回调后通过 out_trade_no 参数判断支付结果
-  const outTradeNo = options?.out_trade_no;
-  if (outTradeNo) {
-    payText.value = '支付成功';
-    tradeStatus.value = 'TRADE_SUCCESS';
-  } else {
-    payText.value = '支付失败';
-  }
+
+  // 通过后端验证订单实际支付状态
+  verifyPaymentStatus(orderId);
 });
 </script>
 

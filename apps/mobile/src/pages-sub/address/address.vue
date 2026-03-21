@@ -97,12 +97,8 @@ const loadData = async () => {
  */
 const checkAddress = (item: Address) => {
   if (source.value === 1) {
-    // 获取上一页实例并设置地址，然后返回
-    const pages = getCurrentPages();
-    const prevPage = pages[pages.length - 2] as any;
-    if (prevPage) {
-      prevPage.currentAddress = item;
-    }
+    // 将选中地址写入 store，由确认订单页消费
+    addressStore.setSelectedAddress(item);
     uni.navigateBack();
   }
 };

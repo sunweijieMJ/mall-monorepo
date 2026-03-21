@@ -135,7 +135,12 @@
           title="我的收藏"
           @click="navTo('/pages-sub/user/product-collection')"
         />
-        <UMenuItem icon="star" icon-color="#ee883b" title="我的评价" />
+        <UMenuItem
+          icon="star"
+          icon-color="#ee883b"
+          title="我的评价"
+          @click="uni.showToast({ title: '评价功能开发中', icon: 'none' })"
+        />
         <UMenuItem
           icon="gear"
           icon-color="#e07472"

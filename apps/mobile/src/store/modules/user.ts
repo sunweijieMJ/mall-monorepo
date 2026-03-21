@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import type { UserInfo } from '@/interface';
+import { storage } from '@/utils/storage';
 
 export const useUserStore = defineStore(
   'user',
@@ -16,6 +17,8 @@ export const useUserStore = defineStore(
       userInfo.value = user;
       if (loginToken) {
         token.value = loginToken;
+        // 同步写入 storage，供 API 拦截器读取
+        storage.setSync('token', loginToken);
       }
     };
 
@@ -23,6 +26,8 @@ export const useUserStore = defineStore(
       hasLogin.value = false;
       userInfo.value = null;
       token.value = null;
+      // 同步清除 storage 中的 token
+      storage.removeSync('token');
     };
 
     return { userInfo, hasLogin, token, isLoggedIn, login, logout };

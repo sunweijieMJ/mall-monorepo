@@ -106,6 +106,8 @@ const confirm = async () => {
       return;
     }
     // #ifdef H5
+    // 支付宝跳转前存储 orderId，供支付成功页验证使用
+    uni.setStorageSync('payingOrderId', orderId.value);
     paymentControllerCreateAlipayPaymentV1({
       orderId: orderId.value!,
       payType: payType.value,
@@ -125,7 +127,7 @@ const confirm = async () => {
       .paySuccess(orderId.value!, { payType: payType.value as 1 | 2 })
       .then(() => {
         uni.redirectTo({
-          url: '/pages-sub/order/pay-success',
+          url: `/pages-sub/order/pay-success?orderId=${orderId.value}`,
         });
       })
       .catch((error) => {

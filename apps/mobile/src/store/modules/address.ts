@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import { ref } from 'vue';
 import {
   memberAddressControllerListV1,
   memberAddressControllerGetItemV1,
@@ -9,6 +10,20 @@ import {
 import type { CreateMemberAddressDto, UpdateMemberAddressDto } from '@/api';
 
 export const useAddressStore = defineStore('address', () => {
+  /** 用户选中的地址（跨页面通信中转） */
+  const selectedAddress = ref<Record<string, any> | null>(null);
+
+  /** 设置选中地址 */
+  function setSelectedAddress(address: Record<string, any>) {
+    selectedAddress.value = address;
+  }
+
+  /** 消费并清除选中地址 */
+  function consumeSelectedAddress() {
+    const address = selectedAddress.value;
+    selectedAddress.value = null;
+    return address;
+  }
   /** 获取收货地址列表 */
   async function fetchList() {
     const res = await memberAddressControllerListV1();
@@ -39,5 +54,14 @@ export const useAddressStore = defineStore('address', () => {
     return res.data ?? null;
   }
 
-  return { fetchList, fetchDetail, create, update, remove };
+  return {
+    selectedAddress,
+    setSelectedAddress,
+    consumeSelectedAddress,
+    fetchList,
+    fetchDetail,
+    create,
+    update,
+    remove,
+  };
 });

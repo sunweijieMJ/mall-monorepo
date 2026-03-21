@@ -47,9 +47,12 @@ const alovaInstance = createAlova({
 
   // ==================== 请求拦截器 ====================
   beforeRequest(method) {
-    // 1. 添加 Token
-    const token = storage.get<string>('token');
+    // 1. 添加 Token（使用同步读取，避免 Promise 未 await 导致 header 异常）
+    const token = storage.getSync<string>('token');
     if (token) {
+      if (!method.config.headers) {
+        method.config.headers = {};
+      }
       method.config.headers.Authorization = `Bearer ${token}`;
     }
 

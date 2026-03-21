@@ -117,6 +117,12 @@ export const useCartStore = defineStore(
       return res.data ?? null;
     }
 
+    /** 从服务端刷新购物车（下单后同步状态） */
+    async function refreshCart() {
+      const list = await fetchList();
+      cartItems.value = (list as CartItem[]) ?? [];
+    }
+
     return {
       cartItems,
       cartCount,
@@ -134,6 +140,7 @@ export const useCartStore = defineStore(
       fetchPromotionList,
       fetchCartProduct,
       updateAttr,
+      refreshCart,
     };
   },
   {

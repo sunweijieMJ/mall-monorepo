@@ -14,7 +14,7 @@
       <!-- 背景色区域 -->
       <view
         class="titleNview-background"
-        :style="{ backgroundColor: titleNViewBackground }"
+        :style="{ backgroundColor: state.titleNViewBackground }"
       ></view>
       <swiper class="carousel" circular @change="handleSwiperChange">
         <swiper-item

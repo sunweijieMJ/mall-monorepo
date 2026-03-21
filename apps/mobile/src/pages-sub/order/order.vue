@@ -277,7 +277,7 @@ const loadData = async (type: 'refresh' | 'add' = 'refresh') => {
  * swiper切换
  */
 const changeTab = (e: any) => {
-  tabCurrentIndex.value = e.target.current;
+  tabCurrentIndex.value = e.detail.current;
   loadData();
 };
 
