@@ -240,12 +240,15 @@ onShow(() => {
  * navigator标签现在默认没有转场动画，所以用view
  */
 const navTo = (url: string) => {
-  let targetUrl = url;
   if (!hasLogin.value) {
-    targetUrl = '/pages/login/index';
+    const redirect = encodeURIComponent(url);
+    uni.navigateTo({
+      url: `/pages/login/index?redirect=${redirect}`,
+    });
+    return;
   }
   uni.navigateTo({
-    url: targetUrl,
+    url,
   });
 };
 

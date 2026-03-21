@@ -61,8 +61,11 @@ export function setupRouterInterceptor(): void {
       if (args.url.includes('index') || args.url.includes('category'))
         return args;
       if (!userStore.isLoggedIn) {
+        const redirect = encodeURIComponent(args.url);
         setTimeout(() => {
-          uni.redirectTo({ url: '/pages/login/index' });
+          uni.redirectTo({
+            url: `/pages/login/index?redirect=${redirect}`,
+          });
         }, 0);
         return false;
       }

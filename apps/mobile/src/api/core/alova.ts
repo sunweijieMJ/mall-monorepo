@@ -79,9 +79,8 @@ const alovaInstance = createAlova({
         uni.hideLoading();
       }
 
-      // 401 未授权 - 尝试刷新 Token
+      // 401 未授权 - 跳转登录页
       if (statusCode === 401) {
-        // Token 刷新失败或无 refreshToken，执行登出
         reportApiError(method.url, method.type, 'Unauthorized', 401);
 
         if (!isRedirectingToLogin) {
@@ -89,9 +88,30 @@ const alovaInstance = createAlova({
 
           uni.showToast({ title: '登录已过期，请重新登录', icon: 'none' });
 
+          // 获取当前页面完整路径（含查询参数）作为 redirect 参数
+          const pages = getCurrentPages();
+          const currentPage = pages[pages.length - 1];
+          let currentUrl = '';
+          if (currentPage) {
+            const query = (currentPage as any).options as
+              | Record<string, string>
+              | undefined;
+            const queryStr =
+              query && Object.keys(query).length
+                ? '?' +
+                  Object.entries(query)
+                    .map(([k, v]) => `${k}=${v}`)
+                    .join('&')
+                : '';
+            currentUrl = `/${currentPage.route}${queryStr}`;
+          }
+          const redirect = currentUrl
+            ? `?redirect=${encodeURIComponent(currentUrl)}`
+            : '';
+
           setTimeout(() => {
             uni.redirectTo({
-              url: '/pages/login/index',
+              url: `/pages/login/index${redirect}`,
               complete: () => {
                 isRedirectingToLogin = false;
               },

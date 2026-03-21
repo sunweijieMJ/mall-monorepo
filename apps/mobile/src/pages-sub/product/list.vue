@@ -186,7 +186,7 @@ onLoad((options) => {
     searchParam.productCategoryId = Number(options.sid);
   }
   if (options?.fid) {
-    loadCateList(options.fid, options.sid);
+    loadCateList();
   } else {
     loadCateList();
   }
@@ -223,7 +223,7 @@ onReachBottom(() => {
 /**
  * 加载分类列表
  */
-const loadCateList = async (fid?: string, sid?: string) => {
+const loadCateList = async () => {
   try {
     cateList.value = (await productStore.fetchCategoryTree()) || [];
   } catch (error) {

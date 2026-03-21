@@ -283,7 +283,7 @@ const formatProductAttr = (jsonAttr: string): string => {
       attrStr += `${attr.key}:${attr.value};`;
     }
     return attrStr;
-  } catch (error) {
+  } catch {
     return '';
   }
 };
@@ -346,7 +346,7 @@ const submit = async () => {
   }
 
   const orderParam: PortalGenerateOrderDto = {
-    payType: 1,
+    payType: payType.value,
     cartIds: cartIds.value,
     memberReceiveAddressId: currentAddress.id,
     useIntegration: useIntegration.value,

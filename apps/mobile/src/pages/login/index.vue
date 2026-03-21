@@ -70,30 +70,83 @@ import { storage } from '@/utils/storage';
  * 提供用户登录功能，支持记住用户名和密码
  */
 
+/** TabBar 页面路径列表 */
+const TAB_BAR_PAGES = [
+  '/pages/index/index',
+  '/pages/category/category',
+  '/pages/cart/cart',
+  '/pages/mine/mine',
+];
+
 /** 用户名 */
 const username = ref('');
 /** 密码 */
 const password = ref('');
 /** 是否正在登录 */
 const logining = ref(false);
+/** 登录成功后需要跳转的页面 */
+const redirectUrl = ref('');
 
 /** 用户状态管理 */
 const userStore = useUserStore();
 
 /**
- * 页面加载时恢复上次登录的用户名和密码
- * 注意：生产环境不应该存储明文密码，这里仅为演示
+ * 页面加载时恢复上次登录的用户名和密码，并读取重定向参数
  */
-onLoad(() => {
+onLoad((options) => {
   username.value = storage.getSync('username') || '';
   password.value = storage.getSync('password') || '';
+
+  // 读取 redirect 参数（由路由拦截器或手动跳转传入）
+  if (options?.redirect) {
+    redirectUrl.value = decodeURIComponent(options.redirect);
+  }
 });
+
+/**
+ * 判断路径是否为 TabBar 页面
+ */
+function isTabBarPage(url: string): boolean {
+  const path = url.split('?')[0];
+  return TAB_BAR_PAGES.includes(path);
+}
+
+/**
+ * 登录成功后跳转到目标页面
+ * 优先使用 redirect 参数，否则返回上一页或首页
+ */
+function navigateAfterLogin() {
+  const target = redirectUrl.value;
+
+  if (target) {
+    if (isTabBarPage(target)) {
+      // TabBar 页面需要用 switchTab（不支持带参数）
+      uni.switchTab({ url: target.split('?')[0] });
+    } else {
+      uni.redirectTo({ url: target });
+    }
+  } else {
+    // 无 redirect 参数时尝试返回上一页
+    const pages = getCurrentPages();
+    if (pages.length > 1) {
+      uni.navigateBack();
+    } else {
+      // 页面栈只有登录页（如从 redirectTo 进入），回首页
+      uni.switchTab({ url: '/pages/index/index' });
+    }
+  }
+}
 
 /**
  * 返回上一页
  */
 const navBack = () => {
-  uni.navigateBack();
+  const pages = getCurrentPages();
+  if (pages.length > 1) {
+    uni.navigateBack();
+  } else {
+    uni.switchTab({ url: '/pages/index/index' });
+  }
 };
 
 /**
@@ -149,9 +202,9 @@ const handleLogin = async () => {
       duration: 1500,
     });
 
-    // 延迟返回，让用户看到成功提示
+    // 延迟跳转，让用户看到成功提示
     setTimeout(() => {
-      uni.navigateBack();
+      navigateAfterLogin();
     }, 1500);
   } catch (error) {
     console.error('登录失败:', error);

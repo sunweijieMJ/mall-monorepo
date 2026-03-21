@@ -249,7 +249,7 @@ const onImageError = (index: number) => {
  */
 const navToLogin = () => {
   uni.navigateTo({
-    url: '/pages/login/index',
+    url: `/pages/login/index?redirect=${encodeURIComponent('/pages/cart/cart')}`,
   });
 };
 

@@ -189,7 +189,7 @@ const confirm = () => {
   }
 
   if (manageType.value === 'edit') {
-    const { id, prefixAddress, ...dto } = addressData;
+    const { id, prefixAddress: _pa1, ...dto } = addressData;
     addressStore
       .update(id!, dto)
       .then(() => {
@@ -207,7 +207,7 @@ const confirm = () => {
         console.error('修改地址失败:', error);
       });
   } else {
-    const { id, prefixAddress, ...dto } = addressData;
+    const { id: _id, prefixAddress: _pa2, ...dto } = addressData;
     addressStore
       .create(dto)
       .then(() => {

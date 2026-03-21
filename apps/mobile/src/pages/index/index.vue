@@ -254,7 +254,7 @@ definePage({
  */
 
 import { onLoad, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app';
-import { reactive, computed, ref } from 'vue';
+import { reactive, computed } from 'vue';
 import { ULoadMore } from '@/components';
 import type { Product, HomeAdvertise, HomeBrand } from '@/interface';
 import { useHomeStore } from '@/store';
@@ -440,8 +440,7 @@ const navToDetailPage = (item: Product): void => {
  * 导航到广告详情页
  * @param item - 广告信息
  */
-const navToAdvertisePage = (item: HomeAdvertise): void => {
-  const id = item.id;
+const navToAdvertisePage = (_item: HomeAdvertise): void => {
   // TODO: 实现广告详情页跳转逻辑
 };
 
@@ -530,11 +529,13 @@ onReachBottom(() => {
 
 // #ifndef MP
 // 标题栏input搜索框点击（非小程序平台）
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const onNavigationBarSearchInputClicked = async (e: any): Promise<void> => {
   // TODO: 实现搜索功能
 };
 
 // 点击导航栏 buttons 时触发（非小程序平台）
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const onNavigationBarButtonTap = (e: any): void => {
   const index = e.index;
   if (index === 0) {

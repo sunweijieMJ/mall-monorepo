@@ -307,6 +307,8 @@ const checkForLogin = (): boolean => {
       cancelText: '取消',
       success: (res) => {
         if (res.confirm) {
+          // 用 navigateTo 跳登录页，原页面保留在栈中
+          // 不传 redirect，让登录成功后 navigateBack 返回，保留页面状态
           uni.navigateTo({
             url: '/pages/login/index',
           });
