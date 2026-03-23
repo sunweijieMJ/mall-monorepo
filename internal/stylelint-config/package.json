@@ -7,11 +7,11 @@
     "./vue-app": "./vue-app.js"
   },
   "dependencies": {
-    "stylelint": "^17.1.1",
-    "stylelint-config-property-sort-order-smacss": "^11.1.0",
+    "stylelint": "^17.5.0",
+    "stylelint-config-property-sort-order-smacss": "^11.2.0",
     "stylelint-config-recommended-vue": "^1.6.1",
     "stylelint-config-standard-scss": "^17.0.0",
-    "stylelint-order": "^7.0.1",
+    "stylelint-order": "^8.1.1",
     "stylelint-scss": "^7.0.0"
   }
 }
