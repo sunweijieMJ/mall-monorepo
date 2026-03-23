@@ -63,7 +63,7 @@
     "@vitest/ui": "^4.0.13",
     "@vue/test-utils": "^2.4.6",
     "autoprefixer": "^10.4.27",
-    "code-inspector-plugin": "^1.4.2",
+    "code-inspector-plugin": "^1.4.5",
     "cross-env": "*",
     "eslint": "*",
     "openapi3-ts": "^4.5.0",
