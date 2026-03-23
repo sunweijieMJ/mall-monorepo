@@ -30,7 +30,7 @@
     "@dcloudio/uni-mp-weixin": "3.0.0-alpha-5000220260306001",
     "@dcloudio/uni-ui": "^1.5.11",
     "alova": "^3.5.1",
-    "core-js": "^3.48.0",
+    "core-js": "^3.49.0",
     "lodash-es": "^4.17.23",
     "pinia": "^2.3.1",
     "pinia-plugin-persistedstate": "^4.7.1",
