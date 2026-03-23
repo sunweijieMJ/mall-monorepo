@@ -65,7 +65,7 @@
     "minidev": "^2.2.5",
     "miniprogram-ci": "^2.1.26",
     "openapi3-ts": "^4.5.0",
-    "orval": "^8.2.0",
+    "orval": "^8.6.0",
     "prettier": "*",
     "pretty-quick": "*",
     "rimraf": "*",
