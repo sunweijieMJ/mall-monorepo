@@ -86,7 +86,7 @@
     "@types/bcryptjs": "3.0.0",
     "@types/express": "5.0.6",
     "@types/ms": "2.1.0",
-    "@types/multer": "2.0.0",
+    "@types/multer": "2.1.0",
     "@types/multer-s3": "3.0.3",
     "@types/node": "*",
     "@types/nodemailer": "^7.0.11",
