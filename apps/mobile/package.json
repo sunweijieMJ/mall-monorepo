@@ -54,7 +54,7 @@
     "@uni-helper/vite-plugin-uni-layouts": "^0.1.11",
     "@uni-helper/vite-plugin-uni-manifest": "^0.2.12",
     "@uni-helper/vite-plugin-uni-pages": "^0.3.23",
-    "@vitejs/plugin-legacy": "^7.2.1",
+    "@vitejs/plugin-legacy": "^8.0.0",
     "@vue/runtime-core": "^3.5.30",
     "autoprefixer": "^10.4.27",
     "commitizen": "*",
