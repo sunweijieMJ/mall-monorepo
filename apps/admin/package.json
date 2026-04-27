@@ -43,10 +43,10 @@
     "pinia-plugin-persistedstate": "^4.7.1",
     "sortablejs": "^1.15.7",
     "ts-md5": "^2.0.1",
-    "vue": "^3.5.29",
+    "vue": "^3.5.33",
     "vue-codemirror": "^6.1.1",
-    "vue-i18n": "^11.2.8",
-    "vue-router": "^5.0.3",
+    "vue-i18n": "^11.4.0",
+    "vue-router": "^5.0.6",
     "web-vitals": "^5.1.0"
   },
   "devDependencies": {
@@ -61,7 +61,7 @@
     "@vitejs/plugin-vue-jsx": "^5.1.4",
     "@vitest/coverage-v8": "^4.0.13",
     "@vitest/ui": "^4.0.13",
-    "@vue/test-utils": "^2.4.6",
+    "@vue/test-utils": "^2.4.9",
     "autoprefixer": "^10.4.27",
     "code-inspector-plugin": "^1.4.2",
     "cross-env": "*",
@@ -88,6 +88,6 @@
     "vite-plugin-mkcert": "^1.17.10",
     "vite-plugin-vue-mcp": "^0.3.2",
     "vitest": "*",
-    "vue-tsc": "^3.2.5"
+    "vue-tsc": "^3.2.7"
   }
 }
